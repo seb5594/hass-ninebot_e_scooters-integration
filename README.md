@@ -146,7 +146,7 @@ Diese Dokumentation bildet die wichtigste Protokollgrundlage des Projekts.
 Die Projektlizenz ist noch nicht festgelegt. Die Veröffentlichung ist bis zur
 Klärung der Rechte vorbereitet; daraus entsteht keine allgemeine Nutzungserlaubnis.
 Vorhandene Drittanbieterrechte bleiben bestehen. Siehe
-[Lizenzentscheidung](docs/LICENSING.md) und [Herkunftshinweise](THIRD_PARTY.md).
+[Lizenzentscheidung](docs/LICENSING.md) und [Herkunftshinweise](docs/THIRD_PARTY.md).
 
 Öffentliche Statistik-Badges funktionieren erst, wenn das Repository öffentlich und
 ein Release veröffentlicht ist; bis dahin können sie „not found“ anzeigen.
