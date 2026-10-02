@@ -1,15 +1,21 @@
 # Ninebot E-Scooters
 
+<!-- badges:begin (generated from project metadata) -->
+[![version](https://img.shields.io/static/v1?label=version&message=1.0.0b1&color=1877A5&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases) [![released](https://img.shields.io/github/release-date-pre/seb5594/hass-ninebot_e_scooters-integration?label=released&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases) [![checks](https://img.shields.io/github/actions/workflow/status/seb5594/hass-ninebot_e_scooters-integration/ci.yml?branch=main&label=checks&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/actions/workflows/ci.yml)
+
+[![stars](https://img.shields.io/github/stars/seb5594/hass-ninebot_e_scooters-integration?label=stars&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/stargazers) [![forks](https://img.shields.io/github/forks/seb5594/hass-ninebot_e_scooters-integration?label=forks&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/forks) [![issues](https://img.shields.io/github/issues/seb5594/hass-ninebot_e_scooters-integration?label=issues&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues) [![updated](https://img.shields.io/github/last-commit/seb5594/hass-ninebot_e_scooters-integration?label=updated&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/commits/main)
+
+[![downloads](https://img.shields.io/github/downloads/seb5594/hass-ninebot_e_scooters-integration/total?label=downloads&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases) [![latest release](https://img.shields.io/github/downloads/seb5594/hass-ninebot_e_scooters-integration/latest/total?label=latest%20release&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/latest)
+
+![home assistant](https://img.shields.io/static/v1?label=home%20assistant&message=%E2%89%A5%202026.9.0&color=1877A5&style=flat) ![stage](https://img.shields.io/static/v1?label=stage&message=beta&color=C27C0E&style=flat) ![type](https://img.shields.io/static/v1?label=type&message=device&color=5B6770&style=flat) ![iot class](https://img.shields.io/static/v1?label=iot%20class&message=local%20polling&color=5B6770&style=flat) ![setup](https://img.shields.io/static/v1?label=setup&message=UI%20config%20flow&color=157F71&style=flat) ![discovery](https://img.shields.io/static/v1?label=discovery&message=bluetooth&color=157F71&style=flat) ![requirements](https://img.shields.io/static/v1?label=requirements&message=0&color=1877A5&style=flat)
+
+![tests](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fseb5594%2Fhass-ninebot_e_scooters-integration%2Fbadges%2Ftests.json&style=flat) ![HACS zip](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fseb5594%2Fhass-ninebot_e_scooters-integration%2Fbadges%2Fzip-size.json&style=flat) ![last build](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fseb5594%2Fhass-ninebot_e_scooters-integration%2Fbadges%2Flast-build.json&style=flat)
+
+[![Add to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=seb5594&repository=hass-ninebot_e_scooters-integration&category=integration) [![Buy Me a Coffee](https://img.shields.io/static/v1?label=Support&message=Buy%20Me%20a%20Coffee&color=FFDD00&logo=buy-me-a-coffee&logoColor=black&style=flat)](https://buymeacoffee.com/seb5594) [![PayPal](https://img.shields.io/static/v1?label=Support&message=PayPal&color=0070BA&logo=paypal&logoColor=white&style=flat)](https://www.paypal.com/donate/?hosted_button_id=QMQPNRENXDN26)
+<!-- badges:end -->
+
 **v1.0.0 Beta 1** · Lokale Home-Assistant-Integration für Ninebot/Segway E-Scooter
 und kompatible Xiaomi-Modelle. Kein Cloud-Konto erforderlich.
-
-[![CI](https://github.com/seb5594/hass-ninebot_e-scooters-integration/actions/workflows/ci.yml/badge.svg)](https://github.com/seb5594/hass-ninebot_e-scooters-integration/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/seb5594/hass-ninebot_e-scooters-integration?include_prereleases)](https://github.com/seb5594/hass-ninebot_e-scooters-integration/releases)
-[![Downloads](https://img.shields.io/github/downloads/seb5594/hass-ninebot_e-scooters-integration/total)](https://github.com/seb5594/hass-ninebot_e-scooters-integration/releases)
-[![Stars](https://img.shields.io/github/stars/seb5594/hass-ninebot_e-scooters-integration)](https://github.com/seb5594/hass-ninebot_e-scooters-integration/stargazers)
-[![Issues](https://img.shields.io/github/issues/seb5594/hass-ninebot_e-scooters-integration)](https://github.com/seb5594/hass-ninebot_e-scooters-integration/issues)
-![Home Assistant](https://img.shields.io/badge/Home_Assistant-2026.9%2B-18BCF2?logo=homeassistant&logoColor=white)
-![Status](https://img.shields.io/badge/Status-Beta-orange)
 
 Die Referenz ist ein Xiaomi 1S mit BLE 1.29 und DRV 1.28. Weitere Profile sind
 experimentell und benötigen Hardware-Rückmeldungen. Die Integration behält eine
@@ -43,7 +49,7 @@ sind noch nicht implementiert. Fehlende Werte bleiben unbekannt.
 Voraussetzungen: **Home Assistant 2026.9 oder neuer**, Bluetooth-Adapter oder aktiver
 ESPHome-Bluetooth-Proxy. Andere Scooter-Apps vor der Einrichtung trennen.
 
-1. Unter [Releases](https://github.com/seb5594/hass-ninebot_e-scooters-integration/releases)
+1. Unter [Releases](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases)
    das **manual.zip** herunterladen und entpacken.
 2. `custom_components/ninebot_e_scooters` nach
    `/config/custom_components/ninebot_e_scooters` kopieren und Home Assistant neu starten.
@@ -111,7 +117,7 @@ logger:
 2. Passendes Profil wählen und zuerst nur Telemetrie prüfen. Akkustand, Spannung,
    Temperatur und Kilometerstand mit der Hersteller-App vergleichen; Apps nacheinander nutzen.
 3. HA-Neustart, Scooter-Neustart und eine kurze Reichweitenunterbrechung testen.
-4. [Modellbericht erstellen](https://github.com/seb5594/hass-ninebot_e-scooters-integration/issues/new?template=model-support.yml):
+4. [Modellbericht erstellen](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=model-support.yml):
    Ergebnis, Firmware, Adapter/Proxy und bereinigte Diagnose anhängen.
 
 Ein gleicher Bluetooth-Name oder eine erfolgreiche GATT-Verbindung beweist noch

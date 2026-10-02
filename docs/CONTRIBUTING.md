@@ -11,10 +11,13 @@ source .venv/bin/activate
 python -m pip install -r requirements-dev.txt
 python -m pytest -q
 python -m compileall -q custom_components
-python -m pycodestyle --ignore=E501,W503 custom_components
-node --test tests/frontend/*.test.cjs
-python scripts/build_release.py
+python -m pycodestyle custom_components
+node --test .github/tests/frontend/*.test.cjs
+python .github/checks/frontend_cache_version.py
 ```
+
+Tests live in `.github/tests`. The pull request pipeline runs the same checks through the
+shared engine and builds the HACS and manual ZIPs.
 
 The suite uses pure protocol modules and HA doubles. It does not connect to hardware.
 Follow [TESTING.md](TESTING.md) before marking a model/firmware verified.

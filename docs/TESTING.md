@@ -4,7 +4,7 @@ The regression suite contains **202 active Python tests** and two frontend cases
 Superseded tests for unavailable historical ZIPs have been removed. No current
 functionality is skipped.
 
-`tests/fixtures/xiaomi_1s_vectors.json` contains synthetic vectors produced by the
+`.github/tests/fixtures/xiaomi_1s_vectors.json` contains synthetic vectors produced by the
 unchanged 0.9.13 implementation, not hardware captures. Updated default Xiaomi
 crypto must produce identical encrypted bytes.
 

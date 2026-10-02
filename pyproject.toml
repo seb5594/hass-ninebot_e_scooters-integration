@@ -1,6 +1,6 @@
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = [".", "tests"]
+testpaths = [".github/tests"]
+pythonpath = [".", ".github/tests"]
 addopts = "-ra"
 
 [tool.autopep8]
