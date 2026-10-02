@@ -106,7 +106,7 @@ def test_5c00_does_not_fake_authenticated_reconnect():
         CMD_INIT=0x5B, CMD_READ=1, CMD_READ_ACK=4, CMD_PING=0x5C, CMD_PAIR=0x5D,
         make_init=PKT.make_init, make_read=PKT.make_read, make_ping=PKT.make_ping, make_pair=PKT.make_pair,
         TARGET_ESC=0x20, datetime=__import__("datetime").datetime,
-        UTC=__import__("datetime").UTC,
+        UTC=__import__("datetime").timezone.utc,
         _LOGGER=SimpleNamespace(info=lambda *args: None, debug=lambda *args, **kwargs: None)))
 
     async def check(accept_read_after_5c00):

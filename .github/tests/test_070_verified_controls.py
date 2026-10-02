@@ -4,7 +4,8 @@ from source_helpers import parse_source
 import ast
 import asyncio
 from dataclasses import replace
-from datetime import UTC, datetime
+from datetime import datetime
+from protocol_scope import UTC
 from pathlib import Path
 import struct
 from types import SimpleNamespace

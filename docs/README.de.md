@@ -34,8 +34,10 @@ sind noch nicht implementiert. Fehlende Werte bleiben unbekannt.
 
 ## Installation
 
-Voraussetzungen: **Home Assistant 2026.9 oder neuer**, Bluetooth-Adapter oder aktiver
-ESPHome-Bluetooth-Proxy. Andere Scooter-Apps vor der Einrichtung trennen.
+Voraussetzungen: **Home Assistant 2023.2 oder neuer**, Bluetooth-Adapter oder aktiver
+ESPHome-Bluetooth-Proxy. Andere Scooter-Apps vor der Einrichtung trennen. Vor 2026.9 gibt es
+weder einen einmaligen aktiven Scan noch die Wiedergabe der letzten Sichtung; die Integration
+wartet dann auf die nächste Aussendung des Scooters. Alles andere verhält sich gleich.
 
 1. Per HACS installieren (siehe unten) oder manuell im Terminal von Home Assistant
    (SSH-/Terminal-App) die gewünschte Version aus den

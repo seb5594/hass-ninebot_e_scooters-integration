@@ -1,7 +1,8 @@
 from source_helpers import parse_source
 """Check BMS date decoding, cache boundaries and retained entity semantics."""
 
-from datetime import UTC, datetime
+from datetime import datetime
+from protocol_scope import UTC
 import asyncio
 import ast
 from pathlib import Path

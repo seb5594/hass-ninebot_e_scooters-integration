@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Callable
 
 from homeassistant.components.binary_sensor import (
@@ -13,11 +12,12 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers import entity_registry
 
+from .compat import description_dataclass
 from .coordinator import ScooterCoordinator
 from .entity import ScooterEntity
 
 
-@dataclass(frozen=True, kw_only=True)
+@description_dataclass
 class ScooterBinaryDescription(BinarySensorEntityDescription):
     """Describe a scooter binary sensor."""
 

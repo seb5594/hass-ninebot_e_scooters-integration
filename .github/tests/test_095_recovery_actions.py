@@ -2,7 +2,8 @@
 
 import asyncio
 from dataclasses import replace
-from datetime import UTC, datetime
+from datetime import datetime
+from protocol_scope import UTC
 import logging
 from pathlib import Path
 import time

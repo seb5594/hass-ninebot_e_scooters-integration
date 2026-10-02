@@ -10,6 +10,9 @@ from unittest.mock import Mock
 
 import pytest
 
+from compat_scope import add_compat_symbols
+from protocol_scope import add_utility_symbols
+
 
 COORD = Path(__file__).resolve().parents[2] / "custom_components/ninebot_e_scooters/coordinator.py"
 tree = parse_source(COORD.read_text())
@@ -117,6 +120,8 @@ def test_gatt_failure_marks_scanner_for_an_alternative_on_next_sighting():
         "SCANNER_SOURCE_COOLDOWN": 90.0,
         "_LOGGER": Mock(),
     }
+    add_utility_symbols(scope)
+    add_compat_symbols(scope)
     exec(compile(ast.fix_missing_locations(source), str(COORD), "exec"), scope)
 
     async def check():

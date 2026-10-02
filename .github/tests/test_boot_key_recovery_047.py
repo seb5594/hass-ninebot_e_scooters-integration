@@ -14,8 +14,8 @@ def test_bluetooth_registration_is_only_in_after_start_callback():
         if isinstance(n, ast.FunctionDef) and n.name == "_activate_bluetooth":
             register_owners.append(ast.unparse(n))
     assert len(register_owners) == 1
-    assert "async_register_callback" in register_owners[0]
-    assert "async_clear_advertisement_history" in register_owners[0]
+    assert "async_register_scooter_callback" in register_owners[0]
+    assert "clear_advertisement_history" in register_owners[0]
     assert "CoreState.running" in register_owners[0]
     assert "async_forward_entry_setups" in ast.unparse(setup)
 

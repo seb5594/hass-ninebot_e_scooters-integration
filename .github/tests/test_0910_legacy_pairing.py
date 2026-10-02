@@ -1,7 +1,8 @@
 """Exercise M365's separate frame adapter and the dashboard prompt."""
 
 import asyncio
-from datetime import UTC, datetime
+from datetime import datetime
+from protocol_scope import UTC
 import logging
 import shutil
 import subprocess

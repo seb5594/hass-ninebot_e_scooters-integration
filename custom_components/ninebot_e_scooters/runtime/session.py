@@ -3,7 +3,7 @@
 from __future__ import annotations
 import asyncio
 from dataclasses import replace
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Any
 from bleak.exc import BleakError
 from homeassistant.components import persistent_notification
@@ -31,6 +31,7 @@ from ..protocols.ninebot.packet import (
     Xiaomi1sEscRegister,
     Xiaomi1sFastTelemetry,
 )
+from ..utilities import UTC, TIMEOUT_ERRORS
 from .errors import ScooterConnectionError
 from .constants import (
     MAX_ADVERTISEMENT_AGE,
@@ -220,7 +221,7 @@ class SessionMixin:
                         accept_timeout=True, quiet_timeout=True,
                         encrypted_override=init_frame,
                     )
-                except (BleakError, TimeoutError) as err:
+                except (BleakError, *TIMEOUT_ERRORS) as err:
                     _LOGGER.debug("Scooter NUS notification resubscription failed: %s", err)
                     self._stage = "ble129_init_5b"
             if init_response is None:
@@ -408,7 +409,7 @@ class SessionMixin:
             self._stage = "ble129_session_ready"
             _LOGGER.info("Scooter BLE phase: %s", self._stage)
 
-        except (BleakError, TimeoutError) as err:
+        except (BleakError, *TIMEOUT_ERRORS) as err:
             # For GATT failures, wait briefly and require a NEW
             # live advertisement/BlueZ BLEDevice before the next attempt.
             # Handshake failures retain the longer cooldown to avoid flooding
@@ -602,7 +603,7 @@ class SessionMixin:
             self._authentication_mode = "m365_legacy_read_only"
             self._control_session_started_at = datetime.now(UTC)
             self._stage = "m365_legacy_session_ready"
-        except (BleakError, TimeoutError) as err:
+        except (BleakError, *TIMEOUT_ERRORS) as err:
             raise ScooterConnectionError(
                 f"M365 legacy phase '{self._stage}' failed: {type(err).__name__}: {err}"
             ) from err

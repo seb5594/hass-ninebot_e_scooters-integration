@@ -46,7 +46,7 @@ def test_ble129_first_frame_is_identical_to_v097(name, frame, logical, encrypted
 def test_es_and_xiaomi_1s_same_address_has_different_meaning():
     assert packet.NinebotEsRegister.QUICK_ERROR == packet.Xiaomi1sEscRegister.FAST_TELEMETRY == 0xB0
     assert packet.Xiaomi1sEscRegister.SUPPLEMENTARY_KERS == 0x7B
-    assert 0x7B not in packet.NinebotEsRegister
+    assert 0x7B not in {register.value for register in packet.NinebotEsRegister}
     assert const.MOTOR_TO_MASTER == packet.LegacyM365Reply.ESC
     assert packet.DeviceId.EXTERNAL_BMS == packet.LegacyM365Reply.ESC
     assert const.WRITE == packet.PacketOpcode.WRITE_NO_REPLY

@@ -13,3 +13,4 @@ if importlib.util.find_spec("homeassistant") is None:
     package.__path__ = [str(Path(__file__).resolve().parents[2] /
                              "custom_components" / "ninebot_e_scooters")]
     sys.modules.setdefault("custom_components.ninebot_e_scooters", package)
+

@@ -21,6 +21,7 @@ from ..protocols.ninebot.packet import (
     LegacyM365Reply,
     PairingStatus,
 )
+from ..utilities import TIMEOUT_ERRORS, timeout as async_timeout
 from .errors import ScooterConnectionError
 from .constants import MAX_BLE129_BUFFER, MAX_BLE129_PAYLOAD
 import logging
@@ -240,7 +241,7 @@ class RequestsMixin:
             raise ScooterConnectionError("Scooter GATT link was lost during BLE129 write")
 
         try:
-            async with asyncio.timeout(timeout):
+            async with async_timeout(timeout):
                 while True:
                     packet = await packet_queue.get()
                     if (packet is None or self._client is not client
@@ -260,7 +261,7 @@ class RequestsMixin:
                         packet.source, packet.target, packet.command,
                         packet.index, self._stage,
                     )
-        except TimeoutError as err:
+        except TIMEOUT_ERRORS as err:
             if (self._client is not client or not client.is_connected
                     or self._crypto is not crypto or self._packet_queue is not packet_queue):
                 raise ScooterConnectionError(

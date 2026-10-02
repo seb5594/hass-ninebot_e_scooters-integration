@@ -3,7 +3,8 @@ from source_helpers import parse_source
 
 import ast
 import asyncio
-from datetime import UTC, datetime
+from datetime import datetime
+from protocol_scope import UTC
 import logging
 from pathlib import Path
 from types import SimpleNamespace

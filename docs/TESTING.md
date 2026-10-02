@@ -1,6 +1,6 @@
 # Validation and hardware acceptance
 
-The regression suite contains **202 active Python tests** and two frontend cases.
+The regression suite contains **218 active Python tests** and two frontend cases.
 Superseded tests for unavailable historical ZIPs have been removed. No current
 functionality is skipped.
 
@@ -12,9 +12,21 @@ New tests cover word/register boundaries, phone/PC key transitions, complete
 multiword reads, concurrent legacy requests, backoff, key validation, assembled
 coordinator imports and encrypted saved-session resume with fragmented notifications.
 
-HA-facing tests use doubles. API signatures were checked against HA 2026.9.3.
-No running HA installation or real BLE adapter was available. Automated success
-is regression evidence, not proof of quieter or faster hardware pairing.
+The regular suite uses Home Assistant doubles; `compat.py` is loaded for real, around those
+doubles. A second suite in `.github/ha_tests` runs the integration inside a genuine Home
+Assistant core: config, options and reconfigure flows, entity creation and naming, asset
+registration, Bluetooth callback registration, diagnostics redaction and unload. Only the
+Bluetooth hardware, the frontend and the web server are replaced, by doubles that copy the
+signatures of the installed release.
+
+The shared engine runs both suites on every release listed in its `ha_releases.json` at or
+above the minimum in `hacs.json` (currently 2023.2.5 to 2026.9.4, on Python 3.10 to 3.14);
+the Compatibility workflow does so weekly and for changes to the integration. Locally:
+`python .engine/.scripts/ha_matrix.py run 2023.2.5 2026.9.4`.
+
+No real BLE adapter or scooter was available. Automated success is regression evidence,
+not proof of quieter or faster hardware pairing, and not of how the older releases behave
+with a real adapter.
 
 ## Xiaomi 1S acceptance
 

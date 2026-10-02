@@ -1,7 +1,8 @@
 from source_helpers import parse_source
 """Verify the cached-reading fix, without requiring a running HA/BlueZ host."""
 import ast
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
+from protocol_scope import UTC
 from pathlib import Path
 from types import SimpleNamespace
 

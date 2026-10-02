@@ -11,7 +11,14 @@ from bleak_retry_connector import (
     establish_connection,
 )
 from homeassistant.components import bluetooth
+from ..compat import (
+    async_request_active_scan,
+    clear_advertisement_history,
+    create_background_task,
+    describe_unreachable_scooter,
+)
 from ..storage import snapshot
+from ..utilities import TIMEOUT_ERRORS
 from .errors import ScooterConnectionError
 from .constants import (
     DIRECT_GATT_TIMEOUT,
@@ -101,14 +108,14 @@ class ConnectionMixin:
                 if remaining > 0:
                     await asyncio.sleep(remaining)
                     continue
-                bluetooth.async_clear_advertisement_history(self.hass, self.address)
+                clear_advertisement_history(self.hass, self.address)
                 _LOGGER.debug("Scooter advertisement history rearmed for next live sighting")
                 if getattr(self, "_gatt_last_failure", None) is not None:
                     # A config-entry reload triggers a fresh discovery; do
                     # the same after a failed automatic GATT reconnect.
                     try:
                         self._recovery_scan_count = getattr(self, "_recovery_scan_count", 0) + 1
-                        await bluetooth.async_request_active_scan(self.hass, duration=4.0)
+                        await async_request_active_scan(self.hass, duration=4.0)
                     except Exception:
                         _LOGGER.debug("Scooter Bluetooth recovery scan failed", exc_info=True)
                 if self._retry_not_before <= asyncio.get_running_loop().time():
@@ -121,11 +128,11 @@ class ConnectionMixin:
             return
         if self._rearm_task is not None and not self._rearm_task.done():
             return
-        self._rearm_task = self.entry.async_create_background_task(
+        self._rearm_task = create_background_task(
+            self.entry,
             self.hass,
             self._async_rearm_after_cooldown(),
             f"ninebot_e_scooters_rearm_{self.entry.entry_id}",
-            eager_start=False,
         )
 
     async def async_test_gatt_connection(self) -> None:
@@ -136,7 +143,7 @@ class ConnectionMixin:
             connectable=True,
         )
         if ble_device is None:
-            await bluetooth.async_request_active_scan(self.hass)
+            await async_request_active_scan(self.hass)
             for _ in range(6):
                 await asyncio.sleep(0.5)
                 ble_device = bluetooth.async_ble_device_from_address(
@@ -147,14 +154,9 @@ class ConnectionMixin:
                 if ble_device is not None:
                     break
         if ble_device is None:
-            diagnostics = bluetooth.async_address_reachability_diagnostics(
-                self.hass,
-                self.address,
-                bluetooth.BluetoothReachabilityIntent.CONNECTION,
-            )
             raise ScooterConnectionError(
                 "Home Assistant has no currently reachable Bluetooth path: "
-                f"{diagnostics}"
+                f"{describe_unreachable_scooter(self.hass, self.address)}"
             )
         client = await self._async_establish_client(ble_device)
         try:
@@ -270,11 +272,11 @@ class ConnectionMixin:
             # Release the previous BlueZ client even when no refresh is in
             # progress. A config-entry reload used to perform this cleanup;
             # subsequent automatic connects could otherwise race the old link.
-            self.entry.async_create_background_task(
+            create_background_task(
+                self.entry,
                 self.hass,
                 self._async_cleanup_disconnected_client(client),
                 f"ninebot_e_scooters_disconnect_cleanup_{self.entry.entry_id}",
-                eager_start=False,
             )
 
         client: BleakClient | None = None
@@ -313,7 +315,7 @@ class ConnectionMixin:
             slot_exhausted = isinstance(err, BleakOutOfConnectionSlotsError)
             source = getattr(self, "_last_seen_scanner_source", None)
             if (getattr(self, "_enable_scanner_failover", False)
-                    and source and isinstance(err, (BleakError, TimeoutError))):
+                    and source and isinstance(err, (BleakError, *TIMEOUT_ERRORS))):
                 self._scanner_avoid_until[source] = loop.time() + SCANNER_SOURCE_COOLDOWN
             self._gatt_retry_cooldown = (
                 GATT_CLEANUP_COOLDOWN if prolonged_cleanup or slot_exhausted else GATT_RETRY_COOLDOWN
@@ -335,7 +337,7 @@ class ConnectionMixin:
             try:
                 if client is not None and client.is_connected:
                     await asyncio.wait_for(client.disconnect(), timeout=2.0)
-            except (BleakError, TimeoutError):
+            except (BleakError, *TIMEOUT_ERRORS):
                 pass
             raise
 
@@ -375,13 +377,13 @@ class ConnectionMixin:
                 if rx_char is not None:
                     try:
                         await asyncio.wait_for(client.stop_notify(rx_char), timeout=2.0)
-                    except (BleakError, TimeoutError):
+                    except (BleakError, *TIMEOUT_ERRORS):
                         pass
             # Bleak can report is_connected=False while BlueZ is still
             # releasing the old Device1 connection. Always complete teardown.
             if client is not None:
                 await asyncio.wait_for(client.disconnect(), timeout=5.0)
-        except (BleakError, TimeoutError):
+        except (BleakError, *TIMEOUT_ERRORS):
             _LOGGER.debug("Scooter BlueZ disconnect did not complete in time")
         finally:
             if had_gatt_attempt:

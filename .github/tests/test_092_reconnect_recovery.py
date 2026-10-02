@@ -7,6 +7,8 @@ import logging
 from pathlib import Path
 from types import SimpleNamespace
 
+from compat_scope import add_compat_symbols
+from protocol_scope import add_utility_symbols
 from test_pairing_queue import ScooterConnectionError
 
 
@@ -51,6 +53,8 @@ def test_disconnect_cleanup_precedes_new_client_without_config_entry_reload():
                      SCANNER_RECENT_SECONDS=20, SCANNER_ALTERNATIVE_MIN_RSSI=-85,
                      SCANNER_SOURCE_COOLDOWN=90, SHORT_SESSION_SECONDS=120,
                      _LOGGER=logging.getLogger("scooter_reconnect_test"))
+    add_utility_symbols(namespace)
+    add_compat_symbols(namespace)
     unit = ast.Module(body=[ast.ImportFrom(module="__future__", names=[ast.alias(name="annotations")], level=0),
                             ast.ClassDef(name="Harness", bases=[], keywords=[], body=selected, decorator_list=[])],
                       type_ignores=[])
@@ -142,6 +146,8 @@ def test_recovery_scan_rechecks_deadline_extended_during_scan():
                      bluetooth=SimpleNamespace(async_clear_advertisement_history=lambda _h, addr: history.append(addr),
                                                async_request_active_scan=scan),
                      _LOGGER=logging.getLogger("scooter_rearm_test"))
+    add_utility_symbols(namespace)
+    add_compat_symbols(namespace)
     unit = ast.Module(body=[ast.ImportFrom(module="__future__", names=[ast.alias(name="annotations")], level=0),
                             next(node for node in selected if node.name == "_async_rearm_after_cooldown")], type_ignores=[])
     exec(compile(ast.fix_missing_locations(unit), str(COORD), "exec"), namespace)

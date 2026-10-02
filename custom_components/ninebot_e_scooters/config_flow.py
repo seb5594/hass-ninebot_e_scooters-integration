@@ -11,16 +11,16 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant.components import bluetooth
-from homeassistant.config_entries import (
-    ConfigEntry,
-    ConfigFlow,
-    ConfigFlowResult,
-    OptionsFlow,
-)
+from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.const import CONF_ADDRESS
 from homeassistant.core import callback
 from homeassistant.helpers.storage import Store
 
+from .compat import (
+    ConfigFlowResult,
+    async_request_active_scan,
+    async_update_reload_and_abort,
+)
 from .const import (
     CONF_MODEL,
     CONF_POLL_INTERVAL,
@@ -90,10 +90,10 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
         if found:
             return found
 
-        # A one-shot active scan is supported by Home Assistant 2026.9.
-        # Devices in an existing BLE connection may temporarily stop advertising.
+        # Devices in an existing BLE connection may temporarily stop advertising,
+        # so provoke an advertisement where Home Assistant offers an active scan.
         try:
-            await bluetooth.async_request_active_scan(self.hass)
+            await async_request_active_scan(self.hass)
         except Exception as err:
             self._scan_error = str(err)
             _LOGGER.warning("Xiaomi scooter active scan failed: %s", err)
@@ -280,7 +280,7 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
         """Handle reconfiguration by selecting a different scooter."""
-        entry = self._get_reconfigure_entry()
+        entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
 
         if user_input is not None:
             address = user_input[CONF_ADDRESS]
@@ -296,9 +296,10 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
             # Older setup attempted ScooterCoordinator(...).async_test_gatt_connection()
             # before creating the entry, producing spurious cannot_connect errors.
 
-            return self.async_update_reload_and_abort(
+            return async_update_reload_and_abort(
+                self,
                 entry,
-                data_updates={
+                {
                     CONF_ADDRESS: address,
                     "bluetooth_name": _device_name(service_info),
                     # Pairing credentials belong to the previous physical scooter.
@@ -333,13 +334,15 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
         config_entry: ConfigEntry,
     ) -> OptionsFlow:
         """Return the options flow."""
-        return NinebotScooterOptionsFlow()
+        return NinebotScooterOptionsFlow(config_entry)
 
 
 class NinebotScooterOptionsFlow(OptionsFlow):
     """Handle Xiaomi Mi Scooter options."""
 
-    # Home Assistant injects the config_entry into the OptionsFlow instance.
+    def __init__(self, config_entry: ConfigEntry) -> None:
+        """Keep the entry privately: Home Assistant 2024.11+ owns `config_entry`."""
+        self._entry = config_entry
 
     async def async_step_init(
         self,
@@ -355,7 +358,7 @@ class NinebotScooterOptionsFlow(OptionsFlow):
                 {
                     vol.Required(
                         CONF_POLL_INTERVAL,
-                        default=self.config_entry.options.get(
+                        default=self._entry.options.get(
                             CONF_POLL_INTERVAL,
                             DEFAULT_POLL_INTERVAL,
                         ),
@@ -368,7 +371,7 @@ class NinebotScooterOptionsFlow(OptionsFlow):
                     ),
                     vol.Required(
                         CONF_MODEL,
-                        default=self.config_entry.options.get(CONF_MODEL, MODEL),
+                        default=self._entry.options.get(CONF_MODEL, MODEL),
                     ): vol.In(LEGACY_XIAOMI_MODELS),
                 }
             ),

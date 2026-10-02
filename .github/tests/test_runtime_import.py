@@ -59,20 +59,22 @@ def runtime(monkeypatch):
     module("bleak_retry_connector", BleakClientWithServiceCache=object,
            BleakOutOfConnectionSlotsError=BleakError, establish_connection=no_connect)
     module("homeassistant", __path__=[])
-    module("homeassistant.const", Platform=SimpleNamespace(
+    module("homeassistant.const", MAJOR_VERSION=2026, MINOR_VERSION=9, Platform=SimpleNamespace(
         SENSOR="sensor", BINARY_SENSOR="binary_sensor", SWITCH="switch", LOCK="lock", SELECT="select"))
     notification = module("homeassistant.components.persistent_notification",
                           async_create=lambda *args, **kwargs: None,
                           async_dismiss=lambda *args, **kwargs: None)
     bluetooth = module("homeassistant.components.bluetooth")
     module("homeassistant.components", bluetooth=bluetooth, persistent_notification=notification)
-    module("homeassistant.config_entries", ConfigEntry=object)
+    module("homeassistant.config_entries", ConfigEntry=object, ConfigFlowResult=dict)
     state = SimpleNamespace(running="running")
     module("homeassistant.core", CoreState=state, HomeAssistant=object)
     module("homeassistant.exceptions", HomeAssistantError=HAError)
-    registry = module("homeassistant.helpers.device_registry",
+    registry = module("homeassistant.helpers.device_registry", DeviceInfo=dict,
                       async_get=lambda hass: SimpleNamespace(async_get_device=lambda **kwargs: None))
     module("homeassistant.helpers", device_registry=registry)
+    module("homeassistant.helpers.entity", Entity=type("Entity", (), {"_name_translation_key": None}))
+    module("homeassistant.helpers.redact", async_redact_data=lambda data, keys: data)
     module("homeassistant.helpers.storage", Store=Store)
     module("homeassistant.helpers.update_coordinator", DataUpdateCoordinator=Coordinator, UpdateFailed=HAError)
     # Reload only the HA-facing modules so every dependency uses these doubles.

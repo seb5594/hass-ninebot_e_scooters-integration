@@ -6,6 +6,8 @@ import asyncio
 from pathlib import Path
 from types import SimpleNamespace
 
+from compat_scope import add_compat_symbols
+
 FILE = Path(__file__).resolve().parents[2] / "custom_components" / "ninebot_e_scooters" / "__init__.py"
 source = parse_source(FILE.read_text(encoding="utf-8"))
 method = next(n for n in source.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "async_setup_entry")
@@ -135,6 +137,7 @@ async def _test():
             and getattr(info, "device", None) is not None
         ),
     }
+    add_compat_symbols(ns)
     exec(compile(ast.fix_missing_locations(module), str(FILE), "exec"), ns)
     entry = Entry()
     hass = SimpleNamespace(

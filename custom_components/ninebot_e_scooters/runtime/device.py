@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 import asyncio
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Any
 from homeassistant.components import persistent_notification
 from homeassistant.helpers import device_registry
+from ..utilities import UTC
 from ..const import CONF_MODEL, DOMAIN, MANUFACTURER
 from ..models.profiles import (
     AUTO_MODEL,

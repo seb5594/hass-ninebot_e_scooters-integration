@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import date
 from typing import Callable
 
@@ -21,6 +20,7 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.entity import EntityCategory
 
+from .compat import description_dataclass
 from .coordinator import ScooterCoordinator
 from .const import REFERENCE_RANGE_KM
 from .entity import ScooterEntity
@@ -29,7 +29,7 @@ KILOMETERS = "km"
 METERS = "m"
 
 
-@dataclass(frozen=True, kw_only=True)
+@description_dataclass
 class ScooterSensorDescription(SensorEntityDescription):
     """Describe a scooter sensor."""
 

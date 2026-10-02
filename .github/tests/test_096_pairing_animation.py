@@ -10,6 +10,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from compat_scope import add_compat_symbols
 from test_protocol import PACKAGE_PATH
 from test_pairing_recovery_045 import ScooterConnectionError, setup as pairing_setup
 
@@ -28,8 +29,9 @@ def test_button_notice_embeds_animated_gif_served_without_config_writes(reuse_st
     setup_node = next(node for node in tree.body
                       if isinstance(node, ast.AsyncFunctionDef) and node.name == "async_setup")
     frontend_urls = []
-    scope = {"__file__": str(filename), "Path": Path, "StaticPathConfig": StaticPathConfig,
+    scope = {"__file__": str(filename), "Path": Path,
              "add_extra_js_url": lambda _hass, url: frontend_urls.append(url)}
+    add_compat_symbols(scope, static_path_config=StaticPathConfig)
     exec(compile(ast.fix_missing_locations(ast.Module(body=[
         ast.ImportFrom(module="__future__", names=[ast.alias(name="annotations")], level=0),
         setup_node], type_ignores=[])),

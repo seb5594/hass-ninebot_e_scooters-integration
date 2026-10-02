@@ -20,6 +20,16 @@ if PACKET_MODULE_NAME not in sys.modules:
 else:
     packet = sys.modules[PACKET_MODULE_NAME]
 
+UTILITIES_MODULE_NAME = "isolated_ninebot_utilities_test_scope"
+if UTILITIES_MODULE_NAME not in sys.modules:
+    utilities_path = Path(__file__).resolve().parents[2] / "custom_components/ninebot_e_scooters/utilities.py"
+    spec = importlib.util.spec_from_file_location(UTILITIES_MODULE_NAME, utilities_path)
+    utilities = importlib.util.module_from_spec(spec)
+    sys.modules[UTILITIES_MODULE_NAME] = utilities
+    spec.loader.exec_module(utilities)
+else:
+    utilities = sys.modules[UTILITIES_MODULE_NAME]
+
 
 PROTOCOL_SYMBOLS = (
     "BLE129_APP_KEY_LENGTH",
@@ -42,8 +52,20 @@ PROTOCOL_SYMBOLS = (
 )
 
 
+UTC = utilities.UTC  # datetime.UTC needs Python 3.11
+
+
+def add_utility_symbols(namespace: dict) -> dict:
+    """Provide the Python-version helpers that production modules import."""
+    namespace.setdefault("TIMEOUT_ERRORS", utilities.TIMEOUT_ERRORS)
+    namespace.setdefault("async_timeout", utilities.timeout)
+    namespace.setdefault("UTC", utilities.UTC)
+    return namespace
+
+
 def add_protocol_symbols(namespace: dict, packet_module=packet) -> dict:
     """Provide the real packet module names to a standalone method harness."""
+    add_utility_symbols(namespace)
     for name in PROTOCOL_SYMBOLS:
         namespace.setdefault(name, getattr(packet_module, name))
     namespace.setdefault("NINEBOT_HEADER", packet_module.HEADER)

@@ -7,6 +7,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
 
+from compat_scope import add_compat_symbols
+
 ROOT = Path(__file__).resolve().parents[2]
 FILE = ROOT / "custom_components" / "ninebot_e_scooters" / "coordinator.py"
 mod = parse_source(FILE.read_text())
@@ -58,7 +60,8 @@ def test_live_advertisement_is_claimed_once_and_cooldown_obeyed():
 def test_history_is_rearmed_only_after_cooldown():
     calls = []
     bt = SimpleNamespace(async_clear_advertisement_history=lambda hass, addr: calls.append(addr))
-    rearm = method_func("_async_rearm_after_cooldown", {"asyncio": asyncio, "bluetooth": bt, "_LOGGER": Mock()})
+    rearm = method_func("_async_rearm_after_cooldown", add_compat_symbols(
+        {"asyncio": asyncio, "bluetooth": bt, "_LOGGER": Mock()}))
 
     async def run():
         obj = SimpleNamespace(address="D8:9B:B1:50:DD:25", hass=object(),

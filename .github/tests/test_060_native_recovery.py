@@ -44,7 +44,7 @@ def test_ha_scanner_checked_post_start_for_unchanged_advertisement():
     assert 'async_last_service_info(' in INIT
     assert 'async_track_time_interval(' in INIT
     assert 'ADVERTISEMENT_CHECK_INTERVAL = timedelta(seconds=3)' in INIT
-    assert 'eager_start=False' in INIT
+    assert 'create_background_task(' in INIT
     assert 'async_request_refresh()' not in INIT.replace('async_request_refresh() here', '')
     assert 'scan_interval=60.0' in INIT
     assert 'scan_duration=10.0' in INIT
@@ -104,7 +104,7 @@ def test_failed_bluez_connect_enters_long_cleanup_quarantine():
 
 def test_last_ble129_failure_snapshot_survives_transport_reset():
     import datetime
-    ns = {'datetime': datetime.datetime, 'UTC': datetime.UTC}
+    ns = {'datetime': datetime.datetime, 'UTC': datetime.timezone.utc}
     exec(_extract_function(COORD, '_remember_failed_session', cls='ScooterCoordinator'), ns)
     state = SimpleNamespace(
         _stage='ble129_pairing_5c_5d',
