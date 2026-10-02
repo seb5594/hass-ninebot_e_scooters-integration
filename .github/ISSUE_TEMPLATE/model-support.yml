@@ -1,0 +1,34 @@
+name: Model or firmware report
+description: Report Ninebot or Xiaomi compatibility evidence
+title: "[Model]: "
+body:
+  - type: input
+    id: model
+    attributes:
+      label: Exact model and region
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: BLE, DRV and BMS firmware versions
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: HA version, adapter or proxy, selected profile
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Readings, pairing, restart and reconnect behavior
+      description: Compare with the manufacturer app and mark missing fields explicitly.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Redacted diagnostics and sanitized packet samples
+      description: Remove serials, MAC addresses, passwords and application keys.

@@ -1,0 +1,48 @@
+--- a/.actions/integration-ci/action.yml
++++ b/.actions/integration-ci/action.yml
+@@ -17,9 +17,18 @@
+         PYTHONDONTWRITEBYTECODE: '1'
+       run: |
+         python -m pip install flake8==7.3.0
++        if [ -f requirements-dev.txt ]; then
++          python -m pip install -r requirements-dev.txt
++        fi
+         flake8 custom_components --count --select=E9,F63,F7,F82 --show-source --statistics
+         python "$ENGINE/.scripts/package_integration.py" --check
+-        if [ -d tests ]; then python -m unittest discover -s tests -v; fi
++        if [ -d tests ]; then
++          if python -c 'import pytest' >/dev/null 2>&1; then
++            python -m pytest -q
++          else
++            python -m unittest discover -s tests -v
++          fi
++        fi
+     - uses: hacs/action@main
+       with:
+         category: integration
+--- a/.scripts/package_integration.py
++++ b/.scripts/package_integration.py
+@@ -14,7 +14,8 @@
+ manifest = json.loads(folders[0].read_text())
+ domain, version = manifest["domain"], manifest["version"]
+ assert domain == folder.name
+-assert re.fullmatch(r"\d+\.\d+\.\d+", version), "Stable semantic version required"
++assert re.fullmatch(r"\d+\.\d+\.\d+(?:(?:a|b|rc)\d+)?", version), "Stable or PEP 440 prerelease version required"
++prerelease = re.search(r"(?:a|b|rc)\d+$", version) is not None
+ hacs = json.loads(Path("hacs.json").read_text())
+ assert hacs["zip_release"] is True and hacs["filename"] == f"{domain}.zip"
+ tag = f"v{version}"
+@@ -48,6 +49,10 @@
+         # Published versions are immutable; bump the manifest for the next release.
+         print(f"{tag} already exists; keeping its assets unchanged.")
+         raise SystemExit(0)
+-    subprocess.run(["gh", "release", "create", tag, "--repo", repo, "--target", os.environ["GITHUB_SHA"],
+-                    "--title", f"{manifest['name']} {version}", "--generate-notes",
+-                    *map(str, sorted(out.iterdir()))], check=True)
++    release_args = ["gh", "release", "create", tag, "--repo", repo, "--target", os.environ["GITHUB_SHA"],
++                    "--title", f"{manifest['name']} {version}", "--generate-notes"]
++    if prerelease:
++        release_args.append("--prerelease")
++    if os.environ.get("RELEASE_DRAFT", "false").lower() == "true":
++        release_args.append("--draft")
++    subprocess.run([*release_args, *map(str, sorted(out.iterdir()))], check=True)

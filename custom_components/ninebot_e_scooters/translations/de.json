@@ -1,0 +1,231 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ninebot/Xiaomi Scooter auswählen",
+        "description": "Home Assistant sucht mit seinem integrierten Bluetooth-Stack nach Xiaomi M365/1S Scootern in der Nähe.",
+        "data": {
+          "address": "Scooter",
+          "model": "Scooter-Modell (falls unbekannt: Automatisch)"
+        }
+      },
+      "bluetooth_confirm": {
+        "title": "Ninebot/Xiaomi Scooter gefunden",
+        "description": "{name} zu Home Assistant hinzufügen? Das genaue Modell wird nach der ersten erfolgreichen BLE-Verbindung erkannt.",
+        "data": {
+          "model": "Scooter-Modell (falls unbekannt: Automatisch)"
+        }
+      },
+      "reconfigure": {
+        "title": "Ninebot/Xiaomi Scooter neu konfigurieren",
+        "description": "Bluetooth-Gerät auswählen.",
+        "data": {
+          "address": "Scooter"
+        }
+      },
+      "init": {
+        "title": "Ninebot/Xiaomi Scooter Optionen",
+        "description": "Abfrageintervall und Scooter-Modell wählen. Automatische Erkennung braucht eine bekannte vollständige Seriennummer. Bei ungeprüften Modellen bleiben Steuerfunktionen deaktiviert.",
+        "data": {
+          "poll_interval": "Abfrageintervall",
+          "model": "Scooter-Modell"
+        }
+      },
+      "retry_scan": {
+        "title": "Ninebot/Xiaomi Scooter erneut suchen",
+        "description": "Gerade sendet kein passender Scooter. Leeres Formular absenden, um erneut zu suchen. Nur falls das nicht klappt: Bluetooth-MAC und exakten Bluetooth-Namen eingeben. Scannerfehler: {scan_error}",
+        "data": {
+          "manual_address": "Bluetooth-Adresse (optional)",
+          "manual_name": "Exakter Bluetooth-Name (optional)",
+          "model": "Scooter-Modell (falls unbekannt: Automatisch)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Die Bluetooth-Verbindung zum Scooter konnte nicht hergestellt werden.",
+      "invalid_address": "Ungültige Bluetooth-Adresse",
+      "name_required": "Exakten Bluetooth-Namen eingeben",
+      "no_devices_found": "Kein Scooter gefunden. Suche wiederholen.",
+      "model_required": "Bitte wähle das Modell oder die Ninebot-Serie aus."
+    },
+    "abort": {
+      "no_devices_found": "Es wurde kein unterstützter Ninebot/Xiaomi Scooter in der Nähe gefunden.",
+      "already_configured": "Dieser Scooter ist bereits eingerichtet.",
+      "not_supported": "Das gefundene Bluetooth-Gerät ist kein unterstützter Ninebot/Xiaomi Scooter."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery_percent": {
+        "name": "Akku"
+      },
+      "speed": {
+        "name": "Geschwindigkeit"
+      },
+      "average_speed": {
+        "name": "Durchschnittsgeschwindigkeit"
+      },
+      "odometer": {
+        "name": "Gesamtkilometer"
+      },
+      "trip_distance": {
+        "name": "Fahrstrecke"
+      },
+      "remaining_range": {
+        "name": "Restreichweite laut Scooter"
+      },
+      "battery_voltage": {
+        "name": "Akkuspannung"
+      },
+      "battery_current": {
+        "name": "Akkustrom"
+      },
+      "battery_power": {
+        "name": "Akkuleistung"
+      },
+      "battery_capacity": {
+        "name": "Akkukapazität"
+      },
+      "battery_temperature_1": {
+        "name": "Akkutemperatur 1"
+      },
+      "battery_temperature_2": {
+        "name": "Akkutemperatur 2"
+      },
+      "frame_temperature": {
+        "name": "Rahmentemperatur"
+      },
+      "uptime": {
+        "name": "Betriebszeit"
+      },
+      "cell_min_voltage": {
+        "name": "Minimale Zellspannung"
+      },
+      "cell_max_voltage": {
+        "name": "Maximale Zellspannung"
+      },
+      "cell_voltage_delta": {
+        "name": "Zellspannungsdifferenz"
+      },
+      "firmware_version": {
+        "name": "Firmware-Version"
+      },
+      "bms_version": {
+        "name": "BMS-Version"
+      },
+      "serial": {
+        "name": "Seriennummer"
+      },
+      "detected_model": {
+        "name": "Scooter-Modell"
+      },
+      "battery_manufacture_date": {
+        "name": "Batterie-Herstellungsdatum"
+      },
+      "work_mode": {
+        "name": "Betriebsmodus"
+      },
+      "error_flags": {
+        "name": "Fehler-Flags"
+      },
+      "warning_flags": {
+        "name": "Warn-Flags"
+      },
+      "status_flags": {
+        "name": "Status-Flags"
+      },
+      "cell_1": {
+        "name": "Zelle 1"
+      },
+      "cell_2": {
+        "name": "Zelle 2"
+      },
+      "cell_3": {
+        "name": "Zelle 3"
+      },
+      "cell_4": {
+        "name": "Zelle 4"
+      },
+      "cell_5": {
+        "name": "Zelle 5"
+      },
+      "cell_6": {
+        "name": "Zelle 6"
+      },
+      "cell_7": {
+        "name": "Zelle 7"
+      },
+      "cell_8": {
+        "name": "Zelle 8"
+      },
+      "cell_9": {
+        "name": "Zelle 9"
+      },
+      "cell_10": {
+        "name": "Zelle 10"
+      },
+      "last_telemetry": {
+        "name": "Letzte Telemetrie"
+      },
+      "ble_version": {
+        "name": "BLE-Version"
+      },
+      "bms_status_flags": {
+        "name": "BMS-Status-Flags"
+      },
+      "battery_charge_cycles": {
+        "name": "Ladezyklen"
+      },
+      "battery_health_percent": {
+        "name": "Batteriegesundheit"
+      },
+      "reference_range": {
+        "name": "Hersteller-Referenzreichweite (Schätzung)"
+      }
+    },
+    "binary_sensor": {
+      "problem": {
+        "name": "Problem"
+      },
+      "telemetry_stale": {
+        "name": "Telemetrie veraltet"
+      },
+      "connected": {
+        "name": "Verbindung"
+      }
+    },
+    "switch": {
+      "tail_light": {
+        "name": "Rücklicht"
+      },
+      "cruise_control": {
+        "name": "Tempomat"
+      }
+    },
+    "lock": {
+      "scooter_lock": {
+        "name": "Roller-Sperre"
+      }
+    },
+    "select": {
+      "kers_level": {
+        "name": "KERS-Stufe"
+      },
+      "ride_mode": {
+        "name": "Fahrmodus"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Ninebot/Xiaomi Scooter Optionen",
+        "description": "Abfrageintervall und Modellbezeichnung wählen. Modellabhängige Einstellungen sind noch nicht bei allen Varianten geprüft.",
+        "data": {
+          "poll_interval": "Abfrageintervall",
+          "model": "Scooter-Modell"
+        }
+      }
+    }
+  }
+}
