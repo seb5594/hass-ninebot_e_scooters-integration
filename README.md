@@ -10,7 +10,7 @@
 [![Buy Me a Coffee](https://img.shields.io/static/v1?label=Support&message=Buy%20Me%20a%20Coffee&color=FFDD00&logo=buy-me-a-coffee&logoColor=black&style=flat)](https://buymeacoffee.com/seb5594) [![PayPal](https://img.shields.io/static/v1?label=Support&message=PayPal&color=0070BA&logo=paypal&logoColor=white&style=flat)](https://www.paypal.com/donate/?hosted_button_id=QMQPNRENXDN26)
 <!-- badges:end -->
 
-**v1.0.0 Beta 1** · Lokale Home-Assistant-Integration für Ninebot/Segway E-Scooter
+Lokale Home-Assistant-Integration für Ninebot/Segway E-Scooter
 und kompatible Xiaomi-Modelle. Kein Cloud-Konto erforderlich.
 
 Die Referenz ist ein Xiaomi 1S mit BLE 1.29 und DRV 1.28. Weitere Profile sind
