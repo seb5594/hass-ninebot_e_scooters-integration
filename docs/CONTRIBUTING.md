@@ -17,7 +17,7 @@ python .github/checks/frontend_cache_version.py
 ```
 
 Tests live in `.github/tests`. The pull request pipeline runs the same checks through the
-shared engine and builds the HACS and manual ZIPs.
+shared engine and builds the installation ZIP.
 
 The suite uses pure protocol modules and HA doubles. It does not connect to hardware.
 Follow [TESTING.md](TESTING.md) before marking a model/firmware verified.

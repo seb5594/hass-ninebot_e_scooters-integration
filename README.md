@@ -3,7 +3,7 @@
 <!-- badges:begin (generated from project metadata) -->
 [![version](https://img.shields.io/static/v1?label=version&message=1.0.0b1&color=1877A5&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases) [![released](https://img.shields.io/github/release-date-pre/seb5594/hass-ninebot_e_scooters-integration?label=released&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases) [![checks](https://img.shields.io/github/actions/workflow/status/seb5594/hass-ninebot_e_scooters-integration/ci.yml?branch=main&label=checks&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/actions/workflows/ci.yml)
 
-[![stars](https://img.shields.io/github/stars/seb5594/hass-ninebot_e_scooters-integration?label=stars&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/stargazers) [![forks](https://img.shields.io/github/forks/seb5594/hass-ninebot_e_scooters-integration?label=forks&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/forks) [![issues](https://img.shields.io/github/issues/seb5594/hass-ninebot_e_scooters-integration?label=issues&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues) [![updated](https://img.shields.io/github/last-commit/seb5594/hass-ninebot_e_scooters-integration?label=updated&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/commits/main)
+[![stars](https://img.shields.io/github/stars/seb5594/hass-ninebot_e_scooters-integration?label=stars&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/stargazers) [![issues](https://img.shields.io/github/issues/seb5594/hass-ninebot_e_scooters-integration?label=issues&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues) [![updated](https://img.shields.io/github/last-commit/seb5594/hass-ninebot_e_scooters-integration?label=updated&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/commits/main)
 
 [![downloads](https://img.shields.io/github/downloads/seb5594/hass-ninebot_e_scooters-integration/total?label=downloads&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases) [![latest release](https://img.shields.io/github/downloads/seb5594/hass-ninebot_e_scooters-integration/latest/total?label=latest%20release&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/latest)
 
@@ -11,7 +11,7 @@
 
 ![tests](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fseb5594%2Fhass-ninebot_e_scooters-integration%2Fbadges%2Ftests.json&style=flat) ![HACS zip](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fseb5594%2Fhass-ninebot_e_scooters-integration%2Fbadges%2Fzip-size.json&style=flat) ![last build](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fseb5594%2Fhass-ninebot_e_scooters-integration%2Fbadges%2Flast-build.json&style=flat)
 
-[![Add to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=seb5594&repository=hass-ninebot_e_scooters-integration&category=integration) [![Buy Me a Coffee](https://img.shields.io/static/v1?label=Support&message=Buy%20Me%20a%20Coffee&color=FFDD00&logo=buy-me-a-coffee&logoColor=black&style=flat)](https://buymeacoffee.com/seb5594) [![PayPal](https://img.shields.io/static/v1?label=Support&message=PayPal&color=0070BA&logo=paypal&logoColor=white&style=flat)](https://www.paypal.com/donate/?hosted_button_id=QMQPNRENXDN26)
+[![HACS](https://img.shields.io/static/v1?label=HACS&message=Add%20integration&color=41BDF5&style=flat&logo=homeassistantcommunitystore&logoColor=white)](https://my.home-assistant.io/redirect/hacs_repository/?owner=seb5594&repository=hass-ninebot_e_scooters-integration&category=integration) [![Buy Me a Coffee](https://img.shields.io/static/v1?label=Support&message=Buy%20Me%20a%20Coffee&color=FFDD00&logo=buy-me-a-coffee&logoColor=black&style=flat)](https://buymeacoffee.com/seb5594) [![PayPal](https://img.shields.io/static/v1?label=Support&message=PayPal&color=0070BA&logo=paypal&logoColor=white&style=flat)](https://www.paypal.com/donate/?hosted_button_id=QMQPNRENXDN26)
 <!-- badges:end -->
 
 **v1.0.0 Beta 1** · Lokale Home-Assistant-Integration für Ninebot/Segway E-Scooter
@@ -49,18 +49,28 @@ sind noch nicht implementiert. Fehlende Werte bleiben unbekannt.
 Voraussetzungen: **Home Assistant 2026.9 oder neuer**, Bluetooth-Adapter oder aktiver
 ESPHome-Bluetooth-Proxy. Andere Scooter-Apps vor der Einrichtung trennen.
 
-1. Unter [Releases](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases)
-   das **manual.zip** herunterladen und entpacken.
-2. `custom_components/ninebot_e_scooters` nach
-   `/config/custom_components/ninebot_e_scooters` kopieren und Home Assistant neu starten.
-3. Unter **Einstellungen → Geräte & Dienste → Integration hinzufügen** nach
+1. Per HACS installieren (siehe unten) oder manuell im Terminal von Home Assistant
+   (SSH-/Terminal-App) die gewünschte Version aus den
+   [Releases](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases) laden:
+
+   ```bash
+   cd /config
+   mkdir -p custom_components/ninebot_e_scooters
+   wget -O /tmp/ninebot_e_scooters.zip \
+     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0b1/ninebot_e_scooters.zip
+   unzip -o /tmp/ninebot_e_scooters.zip -d custom_components/ninebot_e_scooters
+   rm /tmp/ninebot_e_scooters.zip
+   ```
+
+   `v1.0.0b1` durch die gewünschte Version ersetzen. Danach Home Assistant neu starten.
+2. Unter **Einstellungen → Geräte & Dienste → Integration hinzufügen** nach
    **Ninebot E-Scooters** suchen. Scooter einschalten und passendes Modell auswählen.
-4. Erst beim zentrierten Pairing-Hinweis einmal kurz die Einschalttaste drücken.
+3. Erst beim zentrierten Pairing-Hinweis einmal kurz die Einschalttaste drücken.
 
 Für HACS nach einer öffentlichen Veröffentlichung: dieses Repository als
 **Benutzerdefiniertes Repository → Integration** hinzufügen; Beta-Versionen aktivieren.
-Das HACS-Asset `ninebot_e_scooters.zip` enthält die Integration direkt im ZIP-Wurzelordner;
-für manuelle Installation ist das **manual.zip** vorgesehen.
+Die Datei `ninebot_e_scooters.zip` enthält die Integration direkt im ZIP-Wurzelordner und
+dient HACS wie der manuellen Installation.
 
 **Umstieg von `xiaomi_scooter`:** Die neue technische Domain ist `ninebot_e_scooters`.
 Dies ist kein automatisches Update des alten Config Entries. Zuerst eine HA-Sicherung

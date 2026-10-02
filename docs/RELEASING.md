@@ -22,8 +22,7 @@ Die Veröffentlichung verwendet `GITHUB_TOKEN` mit `contents: write`.
 
 | Datei | Zweck |
 | --- | --- |
-| `ninebot_e_scooters.zip` | HACS, Integration direkt im ZIP-Wurzelordner |
-| `ninebot_e_scooters-1.0.0b1-manual.zip` | Manuelle Installation mit `custom_components/…` |
+| `ninebot_e_scooters.zip` | HACS und manuelle Installation (`wget`), Integration direkt im ZIP-Wurzelordner |
 | `SHA256SUMS.txt` | Prüfsummen der ZIP-Dateien |
 
 **Nächste Beta:** Manifest auf `1.0.0b2` setzen, Cache-Version des Pairing-Moduls in
