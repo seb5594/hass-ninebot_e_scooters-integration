@@ -5,8 +5,7 @@
 ![home assistant](https://img.shields.io/static/v1?label=home%20assistant&message=%E2%89%A5%202026.9.0&color=1877A5&style=flat) [![version](https://img.shields.io/static/v1?label=version&message=1.0.0b1&color=1877A5&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases) [![released](https://img.shields.io/github/release-date-pre/seb5594/hass-ninebot_e_scooters-integration?label=released&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases) [![checks](https://img.shields.io/github/actions/workflow/status/seb5594/hass-ninebot_e_scooters-integration/ci.yml?branch=main&label=checks&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/actions/workflows/ci.yml)<br>
 [![downloads](https://img.shields.io/github/downloads/seb5594/hass-ninebot_e_scooters-integration/total?label=downloads&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases) [![latest release](https://img.shields.io/github/downloads/seb5594/hass-ninebot_e_scooters-integration/latest/total?label=latest%20release&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/latest)<br>
 [![stars](https://img.shields.io/github/stars/seb5594/hass-ninebot_e_scooters-integration?label=stars&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/stargazers) [![issues](https://img.shields.io/github/issues/seb5594/hass-ninebot_e_scooters-integration?label=issues&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues) [![updated](https://img.shields.io/github/last-commit/seb5594/hass-ninebot_e_scooters-integration?label=updated&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/commits/main)<br>
-![tests](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fseb5594%2Fhass-ninebot_e_scooters-integration%2Fbadges%2Ftests.json&style=flat) ![HACS zip](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fseb5594%2Fhass-ninebot_e_scooters-integration%2Fbadges%2Fzip-size.json&style=flat) ![last build](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fseb5594%2Fhass-ninebot_e_scooters-integration%2Fbadges%2Flast-build.json&style=flat)<br>
-[![Buy Me a Coffee](https://img.shields.io/static/v1?label=Support&message=Buy%20Me%20a%20Coffee&color=FFDD00&logo=buy-me-a-coffee&logoColor=black&style=flat)](https://buymeacoffee.com/seb5594) [![PayPal](https://img.shields.io/static/v1?label=Support&message=PayPal&color=0070BA&logo=paypal&logoColor=white&style=flat)](https://www.paypal.com/donate/?hosted_button_id=QMQPNRENXDN26)
+![tests](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fseb5594%2Fhass-ninebot_e_scooters-integration%2Fbadges%2Ftests.json&style=flat) ![HACS zip](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fseb5594%2Fhass-ninebot_e_scooters-integration%2Fbadges%2Fzip-size.json&style=flat) ![last build](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fseb5594%2Fhass-ninebot_e_scooters-integration%2Fbadges%2Flast-build.json&style=flat)
 <!-- badges:end -->
 
 [English](README.md) · [Deutsch](docs/README.de.md)
@@ -145,3 +144,13 @@ The project license has not been decided yet. The publication is prepared until 
 clarified; this grants no general permission to use. Existing third-party rights remain in
 effect. See the [license decision](docs/LICENSING.md) and the
 [provenance notes](docs/THIRD_PARTY.md).
+
+<!-- support:begin (generated, shared text) -->
+## Say thanks
+
+All my projects are built in my spare time, just for the fun of it. Still, they take a lot of time and care, and many of the smart home gadgets I buy end up here because I want to make them cloud-free and smart-home ready. Every bit of support means a lot to me.
+
+If my work helped you or turned out to be useful, show your appreciation with a hot drink for my next sleepless night.
+
+[![Buy Me a Coffee](https://img.shields.io/static/v1?label=Support&message=Buy%20Me%20a%20Coffee&color=FFDD00&logo=buy-me-a-coffee&logoColor=black&style=for-the-badge)](https://buymeacoffee.com/seb5594) [![PayPal](https://img.shields.io/static/v1?label=Support&message=PayPal&color=0070BA&logo=paypal&logoColor=white&style=for-the-badge)](https://www.paypal.com/donate/?hosted_button_id=QMQPNRENXDN26)
+<!-- support:end -->
