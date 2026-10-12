@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 from datetime import timedelta
-from functools import partial
 import logging
 from pathlib import Path
 import time
@@ -78,19 +77,14 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     return True
 
 
-async def _async_options_updated(
-    hass: HomeAssistant,
-    entry: NinebotScooterConfigEntry,
-    *,
-    applied_sensor_groups: frozenset[str] = frozenset(),
-) -> None:
+async def _async_options_updated(hass: HomeAssistant, entry: NinebotScooterConfigEntry) -> None:
     """Apply polling, model and sensor group options through one clean BLE reconnect."""
     # Pairing also updates entry.data. Reload only when the user changes an
     # actual option, or the first successful pairing would tear down its link.
     coordinator = entry.runtime_data
     if (coordinator.poll_interval != int(entry.options.get(CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL))
             or coordinator.model != entry.options.get(CONF_MODEL, MODEL)
-            or selected_sensor_groups(entry.options) != applied_sensor_groups):
+            or coordinator.sensor_groups != selected_sensor_groups(entry.options)):
         await hass.config_entries.async_reload(entry.entry_id)
 
 
@@ -108,11 +102,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntr
     await coordinator.async_restore_saved_data()
     entry.runtime_data = coordinator
     if hasattr(entry, "add_update_listener"):
-        # Sensor groups decide which entities exist, so remember the ones in use.
-        entry.async_on_unload(entry.add_update_listener(partial(
-            _async_options_updated,
-            applied_sensor_groups=selected_sensor_groups(entry.options),
-        )))
+        # Releases before 2023.12 keep only a weak reference to the listener,
+        # so it has to be a module-level function rather than a closure.
+        entry.async_on_unload(entry.add_update_listener(_async_options_updated))
 
     bluetooth_activated = False
     refresh_task: asyncio.Task | None = None

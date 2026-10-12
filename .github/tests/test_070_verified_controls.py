@@ -192,7 +192,8 @@ def test_saved_pairing_key_does_not_reload_scooter_entry():
 
         hass = SimpleNamespace(config_entries=SimpleNamespace(async_reload=reload))
         entry = SimpleNamespace(entry_id="scooter", options={},
-            runtime_data=SimpleNamespace(poll_interval=10, model="Mi Electric Scooter 1S"))
+            runtime_data=SimpleNamespace(poll_interval=10, model="Mi Electric Scooter 1S",
+                                         sensor_groups=frozenset()))
         await namespace["_async_options_updated"](hass, entry)
         assert reloaded == []
         entry.options = {"poll_interval": 15}
@@ -202,9 +203,9 @@ def test_saved_pairing_key_does_not_reload_scooter_entry():
         # Ticking or unticking a sensor group adds or removes entities.
         reloaded.clear()
         entry.options = {"sensor_groups": ["riding"]}
-        await namespace["_async_options_updated"](
-            hass, entry, applied_sensor_groups=frozenset({"riding"}))
-        assert reloaded == []
+        await namespace["_async_options_updated"](hass, entry)
+        assert reloaded == ["scooter"]
+        entry.runtime_data.sensor_groups = frozenset({"riding"})
         await namespace["_async_options_updated"](hass, entry)
         assert reloaded == ["scooter"]
 
