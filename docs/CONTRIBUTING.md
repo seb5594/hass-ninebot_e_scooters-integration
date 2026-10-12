@@ -8,13 +8,16 @@ files. Keep `ninebot_e_scooters` and entity unique IDs stable after Beta 1.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements-dev.txt
-python -m pytest -q
+python -m pip install -r .github/dev/requirements-dev.txt
+python -m pytest -c .github/dev/pyproject.toml --rootdir . -q
 python -m compileall -q custom_components
-python -m pycodestyle --ignore=E501,W503 custom_components
-node --test tests/frontend/*.test.cjs
-python scripts/build_release.py
+python -m pycodestyle --max-line-length=100 --ignore=E501,W503 custom_components
+node --test .github/tests/frontend/*.test.cjs
+python .github/checks/frontend_cache_version.py
 ```
+
+Tests live in `.github/tests`; their tooling configuration (`pyproject.toml`, `requirements-dev.txt`) lives in `.github/dev`. The pull request pipeline runs the same checks through the
+shared engine and builds the installation ZIP.
 
 The suite uses pure protocol modules and HA doubles. It does not connect to hardware.
 Follow [TESTING.md](TESTING.md) before marking a model/firmware verified.
@@ -71,7 +74,7 @@ intentional and owned by its transport profile.
 Controls require separate evidence: register, legal values, current stationary
 telemetry and confirmed readback. Never reuse Xiaomi lock/light/mode values on
 Ninebot solely because a register number matches. A readable status bit does not
-authorize a write. Review [THIRD_PARTY.md](../THIRD_PARTY.md) before publication.
+authorize a write. Review [THIRD_PARTY.md](THIRD_PARTY.md) before publication.
 
 ## Submit a change
 

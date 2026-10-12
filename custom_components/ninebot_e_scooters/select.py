@@ -3,14 +3,13 @@ from __future__ import annotations
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.helpers.entity import EntityCategory
+from .const import RIDE_MODE_LABELS_1S
 from .coordinator import ScooterCoordinator
 from .entity import ScooterEntity
 
 KERS_LABELS = {0: "Schwach", 1: "Mittel", 2: "Stark"}
 KERS_VALUES = {label: number for number, label in KERS_LABELS.items()}
 
-# The 1S 0x75 mapping must stay separate from other scooter families.
-RIDE_MODE_LABELS_1S = {0: "Drive", 1: "Eco", 2: "Sport"}
 RIDE_MODE_VALUES_1S = {label: number for number, label in RIDE_MODE_LABELS_1S.items()}
 
 

@@ -6,14 +6,22 @@
         "description": "Home Assistant sucht mit seinem integrierten Bluetooth-Stack nach Xiaomi M365/1S Scootern in der Nähe.",
         "data": {
           "address": "Scooter",
-          "model": "Scooter-Modell (falls unbekannt: Automatisch)"
+          "model": "Scooter-Modell (falls unbekannt: Automatisch)",
+          "sensor_groups": "Zusätzliche Sensoren"
+        },
+        "data_description": {
+          "sensor_groups": "Akku, Gesamtkilometer, Reichweite und Verbindung sind immer dabei. Die Gruppen darunter ändern sich bei einem abgestellten Scooter kaum und sind deshalb zunächst aus. Das lässt sich später in den Optionen ändern."
         }
       },
       "bluetooth_confirm": {
         "title": "Ninebot/Xiaomi Scooter gefunden",
         "description": "{name} zu Home Assistant hinzufügen? Das genaue Modell wird nach der ersten erfolgreichen BLE-Verbindung erkannt.",
         "data": {
-          "model": "Scooter-Modell (falls unbekannt: Automatisch)"
+          "model": "Scooter-Modell (falls unbekannt: Automatisch)",
+          "sensor_groups": "Zusätzliche Sensoren"
+        },
+        "data_description": {
+          "sensor_groups": "Akku, Gesamtkilometer, Reichweite und Verbindung sind immer dabei. Die Gruppen darunter ändern sich bei einem abgestellten Scooter kaum und sind deshalb zunächst aus. Das lässt sich später in den Optionen ändern."
         }
       },
       "reconfigure": {
@@ -37,7 +45,11 @@
         "data": {
           "manual_address": "Bluetooth-Adresse (optional)",
           "manual_name": "Exakter Bluetooth-Name (optional)",
-          "model": "Scooter-Modell (falls unbekannt: Automatisch)"
+          "model": "Scooter-Modell (falls unbekannt: Automatisch)",
+          "sensor_groups": "Zusätzliche Sensoren"
+        },
+        "data_description": {
+          "sensor_groups": "Akku, Gesamtkilometer, Reichweite und Verbindung sind immer dabei. Die Gruppen darunter ändern sich bei einem abgestellten Scooter kaum und sind deshalb zunächst aus. Das lässt sich später in den Optionen ändern."
         }
       }
     },
@@ -116,14 +128,16 @@
       "serial": {
         "name": "Seriennummer"
       },
-      "detected_model": {
-        "name": "Scooter-Modell"
-      },
       "battery_manufacture_date": {
         "name": "Batterie-Herstellungsdatum"
       },
       "work_mode": {
-        "name": "Betriebsmodus"
+        "name": "Betriebsmodus",
+        "state": {
+          "drive": "Drive",
+          "eco": "Eco",
+          "sport": "Sport"
+        }
       },
       "error_flags": {
         "name": "Fehler-Flags"
@@ -164,9 +178,6 @@
       "cell_10": {
         "name": "Zelle 10"
       },
-      "last_telemetry": {
-        "name": "Letzte Telemetrie"
-      },
       "ble_version": {
         "name": "BLE-Version"
       },
@@ -184,12 +195,6 @@
       }
     },
     "binary_sensor": {
-      "problem": {
-        "name": "Problem"
-      },
-      "telemetry_stale": {
-        "name": "Telemetrie veraltet"
-      },
       "connected": {
         "name": "Verbindung"
       }
@@ -220,11 +225,26 @@
     "step": {
       "init": {
         "title": "Ninebot/Xiaomi Scooter Optionen",
-        "description": "Abfrageintervall und Modellbezeichnung wählen. Modellabhängige Einstellungen sind noch nicht bei allen Varianten geprüft.",
+        "description": "Abfrageintervall, Modellbezeichnung und zusätzliche Sensoren wählen. Modellabhängige Einstellungen sind noch nicht bei allen Varianten geprüft.",
         "data": {
           "poll_interval": "Abfrageintervall",
-          "model": "Scooter-Modell"
+          "model": "Scooter-Modell",
+          "sensor_groups": "Zusätzliche Sensoren"
+        },
+        "data_description": {
+          "sensor_groups": "Akku, Gesamtkilometer, Reichweite und Verbindung sind immer dabei. Sensoren einer abgewählten Gruppe werden beim Speichern entfernt."
         }
+      }
+    }
+  },
+  "selector": {
+    "sensor_groups": {
+      "options": {
+        "riding": "Fahrdaten: Geschwindigkeit, Fahrstrecke, Betriebsmodus, Betriebszeit",
+        "temperatures": "Temperaturen: Akku und Rahmen",
+        "battery_health": "Akkuzustand: Batteriegesundheit, Ladezyklen, Zellspannungen",
+        "device_info": "Geräteinformationen: Firmware-, BMS- und BLE-Version, Batteriedatum, Seriennummer",
+        "status_codes": "Statuscodes: Fehler-, Warn- und Statusregister als Rohwert für Fehlerberichte"
       }
     }
   }

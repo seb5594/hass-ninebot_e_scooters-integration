@@ -2,8 +2,22 @@
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
+from datetime import timezone
 import math
+
+try:
+    timeout = asyncio.timeout
+except AttributeError:  # Python 3.10, used by Home Assistant before 2023.8
+    from async_timeout import timeout
+
+# datetime.UTC only exists from Python 3.11 on.
+UTC = timezone.utc
+
+# Python 3.10 raises asyncio.TimeoutError, which is not the builtin TimeoutError
+# there. Both names are the same class from Python 3.11 on.
+TIMEOUT_ERRORS = (asyncio.TimeoutError, TimeoutError)
 
 
 def parse_app_key(value: object) -> bytes:

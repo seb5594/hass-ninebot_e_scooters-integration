@@ -16,6 +16,7 @@ from .protocols.legacy import LegacyM365Link
 from .protocols.ninebot.crypto import NinebotCrypto
 from .protocols.ninebot.packet import DeviceId, NinebotPacket
 from .models.profiles import AUTO_MODEL, identify_model
+from .sensor_groups import selected_sensor_groups
 from .protocols.xiaomi import ScooterData
 from .storage import storage_key
 from .runtime.constants import GATT_RETRY_COOLDOWN
@@ -45,6 +46,8 @@ class ScooterCoordinator(DeviceMixin, ConnectionMixin, SessionMixin, RequestsMix
         self._model_conflict = False
         self._registered_model: str | None = None
         self.poll_interval = poll_interval
+        # Fixed for the lifetime of this coordinator; changing them reloads the entry.
+        self.sensor_groups = selected_sensor_groups(entry.options)
         self.entry = entry
         self._backoff = ConnectionBackoff()
         transport = self.transport_profile

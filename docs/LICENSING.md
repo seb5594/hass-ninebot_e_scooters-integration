@@ -23,4 +23,4 @@ nachweislich eigenständige Implementierung auf Basis der Protokollspezifikation
 Bis zur Entscheidung bleibt die Projektlizenz offen und es wird keine neue
 Nutzungserlaubnis für Drittanbietercode behauptet. Eine spätere Contributor-Regelung
 muss zum Lizenzmodell passen, insbesondere wenn kommerzielle Doppellizenzierung
-geplant ist. [THIRD_PARTY.md](../THIRD_PARTY.md) dokumentiert den Prüfbedarf.
+geplant ist. [THIRD_PARTY.md](THIRD_PARTY.md) dokumentiert den Prüfbedarf.

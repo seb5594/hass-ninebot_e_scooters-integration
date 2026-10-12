@@ -6,14 +6,22 @@
         "description": "Home Assistant searches for nearby Ninebot and Xiaomi scooters using its built-in Bluetooth stack.",
         "data": {
           "address": "Scooter",
-          "model": "Scooter model (automatic if unknown)"
+          "model": "Scooter model (automatic if unknown)",
+          "sensor_groups": "Additional sensors"
+        },
+        "data_description": {
+          "sensor_groups": "Battery, odometer, range and connection are always included. The groups below barely change while the scooter is parked, so they start switched off. You can change this later in the options."
         }
       },
       "bluetooth_confirm": {
         "title": "Ninebot/Xiaomi scooter found",
         "description": "Add {name} to Home Assistant? The exact model is detected after the first successful BLE session.",
         "data": {
-          "model": "Scooter model (automatic if unknown)"
+          "model": "Scooter model (automatic if unknown)",
+          "sensor_groups": "Additional sensors"
+        },
+        "data_description": {
+          "sensor_groups": "Battery, odometer, range and connection are always included. The groups below barely change while the scooter is parked, so they start switched off. You can change this later in the options."
         }
       },
       "reconfigure": {
@@ -37,7 +45,11 @@
         "data": {
           "manual_address": "Bluetooth address (optional)",
           "manual_name": "Exact Bluetooth name (optional)",
-          "model": "Scooter model (automatic if unknown)"
+          "model": "Scooter model (automatic if unknown)",
+          "sensor_groups": "Additional sensors"
+        },
+        "data_description": {
+          "sensor_groups": "Battery, odometer, range and connection are always included. The groups below barely change while the scooter is parked, so they start switched off. You can change this later in the options."
         }
       }
     },
@@ -116,14 +128,16 @@
       "serial": {
         "name": "Serial number"
       },
-      "detected_model": {
-        "name": "Scooter model"
-      },
       "battery_manufacture_date": {
         "name": "Battery manufacture date"
       },
       "work_mode": {
-        "name": "Work mode"
+        "name": "Work mode",
+        "state": {
+          "drive": "Drive",
+          "eco": "Eco",
+          "sport": "Sport"
+        }
       },
       "error_flags": {
         "name": "Error flags"
@@ -164,9 +178,6 @@
       "cell_10": {
         "name": "Cell 10"
       },
-      "last_telemetry": {
-        "name": "Last telemetry"
-      },
       "ble_version": {
         "name": "BLE version"
       },
@@ -184,12 +195,6 @@
       }
     },
     "binary_sensor": {
-      "problem": {
-        "name": "Problem"
-      },
-      "telemetry_stale": {
-        "name": "Telemetry stale"
-      },
       "connected": {
         "name": "Connection"
       }
@@ -220,11 +225,26 @@
     "step": {
       "init": {
         "title": "Ninebot/Xiaomi scooter options",
-        "description": "Choose the polling interval and scooter model label. Settings have not been verified on every variant.",
+        "description": "Choose the polling interval, the scooter model label and the additional sensors. Settings have not been verified on every variant.",
         "data": {
           "poll_interval": "Polling interval",
-          "model": "Scooter model"
+          "model": "Scooter model",
+          "sensor_groups": "Additional sensors"
+        },
+        "data_description": {
+          "sensor_groups": "Battery, odometer, range and connection are always included. Sensors of a group you untick are removed when you save."
         }
+      }
+    }
+  },
+  "selector": {
+    "sensor_groups": {
+      "options": {
+        "riding": "Riding: speed, trip distance, work mode, uptime",
+        "temperatures": "Temperatures: battery and frame",
+        "battery_health": "Battery health: health, charge cycles, cell voltages",
+        "device_info": "Device information: firmware, BMS and BLE versions, battery date, serial number",
+        "status_codes": "Status codes: raw error, warning and status registers for bug reports"
       }
     }
   }

@@ -10,7 +10,8 @@ custom_components/ninebot_e_scooters/
   config_flow.py     Discovery, model choice, options and reconfiguration
   coordinator.py     Session ownership and HA coordinator initialization
   discovery.py       Conservative advertisement identification
-  utilities.py       Key/numeric validation and retry policy
+  utilities.py       Key/numeric validation, retry policy and Python 3.10 shims
+  compat.py          Everything that differs between Home Assistant releases
   storage.py         Last verified telemetry, without crypto material
   models/
     profiles.py      Model/serial evidence and write capabilities
@@ -35,9 +36,11 @@ custom_components/ninebot_e_scooters/
     device.py        Identity, capabilities and diagnostics
     constants.py     Timing and the retained Xiaomi probe schedule
     errors.py        Shared session error
-  entity.py          Common HA device metadata
+  entity.py          Common HA device metadata and registry cleanup
+  sensor_groups.py   Optional sensor groups chosen in setup and options
   sensor.py / binary_sensor.py / switch.py / lock.py / select.py
   diagnostics.py     Export redaction
+  brand/             Icon and logo for discovery (Home Assistant 2026.3+)
 ```
 
 Runtime mixins share one coordinator and one command lock. Authentication and

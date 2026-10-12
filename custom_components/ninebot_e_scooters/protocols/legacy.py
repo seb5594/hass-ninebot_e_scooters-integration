@@ -12,6 +12,7 @@ from collections.abc import Awaitable, Callable
 
 from ..protocols.ninebot.packet import DeviceId, LegacyM365Reply, PacketOpcode
 from ..protocols.xiaomi import PacketParser, ScooterCommand, ScooterMessage
+from ..utilities import TIMEOUT_ERRORS, timeout as async_timeout
 
 
 class LegacyM365Link:
@@ -52,7 +53,7 @@ class LegacyM365Link:
         frame = ScooterCommand(target, PacketOpcode.READ, register, bytes((length,))).build()
         await self._write(frame)
         try:
-            async with asyncio.timeout(timeout):
+            async with async_timeout(timeout):
                 while True:
                     message = await self._received.get()
                     if (message.direction in expected_sources
@@ -60,5 +61,5 @@ class LegacyM365Link:
                             and message.read_write in (PacketOpcode.READ, PacketOpcode.READ_ACK)
                             and len(message.payload) >= min(length, 2)):
                         return message
-        except TimeoutError:
+        except TIMEOUT_ERRORS:
             return None

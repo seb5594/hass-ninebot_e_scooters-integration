@@ -16,7 +16,7 @@ Hardware-Abnahme noch fehlt. Für einen ersten Bericht ist kein Programmieren n�
    starten, Scooter aus-/einschalten und kurz aus der Reichweite bewegen.
    Wiederherstellung, Wartezeit, Signaltöne und erneute Pairing-Hinweise notieren.
 5. **Bericht senden:** Im Integrationsmenü die Diagnose herunterladen und über
-   [Modell-Kompatibilität](https://github.com/seb5594/hass-ninebot_e-scooters-integration/issues/new?template=model-support.yml)
+   [Modell-Kompatibilität](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=model-support.yml)
    berichten. Vor dem Upload auf MAC-Adressen, Seriennummern und Schlüssel prüfen.
    Debug-Logs können zusätzliche persönliche Angaben enthalten und brauchen eine
    eigene Bereinigung; niemals `app_key` veröffentlichen.

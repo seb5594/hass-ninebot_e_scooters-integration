@@ -3,11 +3,12 @@
 from __future__ import annotations
 import asyncio
 from dataclasses import replace
-from datetime import UTC, datetime
+from datetime import datetime
 import time
 from homeassistant.components import persistent_notification
 from homeassistant.core import CoreState
 from homeassistant.helpers.update_coordinator import UpdateFailed
+from ..utilities import UTC
 from ..const import MODEL
 from ..protocols.ninebot.packet import (
     CMD_READ,

@@ -1,74 +1,42 @@
-name: CI
+name: Validate and release integration
 
 on:
   push:
+    branches: [main, dev]
+    tags: ['v*']
   pull_request:
+  schedule:
+    - cron: '23 4 * * 1' # Weekly: refreshes badge metrics and README values.
   workflow_dispatch:
+    inputs:
+      draft:
+        description: Create the release as a draft for review
+        type: boolean
+        default: false
 
 permissions:
-  contents: read
-
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  actions: read # Lets the README refresh see whether the workflow has run.
+  contents: write
 
 jobs:
-  regression:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      matrix:
-        python: ["3.12", "3.14"]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python }}
-          cache: pip
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - run: python -m pip install -r requirements-dev.txt
-      - run: python -m compileall -q custom_components
-      - run: python -m pytest -q
-      - run: node --test tests/frontend/*.test.cjs
-      - run: python -m pycodestyle --ignore=E501,W503 custom_components
-      - run: python scripts/check_metadata.py
-      - run: python scripts/build_release.py
-      - uses: actions/upload-artifact@v4
-        if: matrix.python == '3.12'
-        with:
-          name: beta-packages
-          path: dist/
-
-  engine:
-    needs: regression
+  pipeline:
+    # Repository secrets are not passed to untrusted fork pull requests.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      ENGINE_TOKEN: ${{ secrets.ORCHESTRATION_PAT }}
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Check out shared private engine
-        if: env.ENGINE_TOKEN != ''
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: seb5594/hass-workflows
-          ref: c5bbbd6ed9b70ab7d05452b2b285f2538cb12c9b
+          ref: e91bf56ab0a6e94eb138068795243e41aff75ddd
           token: ${{ secrets.ORCHESTRATION_PAT }}
           path: .engine
           persist-credentials: false
-      - name: Apply pinned beta adapter
-        if: env.ENGINE_TOKEN != ''
-        run: git -C .engine apply "$GITHUB_WORKSPACE/.github/engine-beta.patch"
-      - name: HACS and shared integration checks
-        if: env.ENGINE_TOKEN != ''
-        uses: ./.engine/.actions/integration-ci
-      - name: Explain optional engine setup
-        if: env.ENGINE_TOKEN == ''
-        run: echo 'Local checks passed. Set ORCHESTRATION_PAT to enable the private HACS workflow engine.'
+      - uses: ./.engine/.actions/project
+        with:
+          token: ${{ github.token }}
+          draft: ${{ inputs.draft }}
+          catalog-token: ${{ secrets.ORCHESTRATION_PAT }}

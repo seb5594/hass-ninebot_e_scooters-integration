@@ -7,15 +7,22 @@ from datetime import timedelta
 import logging
 from pathlib import Path
 import time
+from typing import TypeAlias
 
 from homeassistant.components import bluetooth
 from homeassistant.components.frontend import add_extra_js_url
-from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import CoreState, HomeAssistant, callback
 from homeassistant.helpers.event import async_track_time_interval
 
+from .compat import (
+    async_register_scooter_callback,
+    async_register_static_files,
+    async_request_active_scan,
+    clear_advertisement_history,
+    create_background_task,
+)
 from .const import (
     CONF_MODEL,
     CONF_POLL_INTERVAL,
@@ -24,10 +31,12 @@ from .const import (
     PLATFORMS,
 )
 from .coordinator import ScooterCoordinator
+from .sensor_groups import selected_sensor_groups
 
 _LOGGER = logging.getLogger(__name__)
 
-type NinebotScooterConfigEntry = ConfigEntry[ScooterCoordinator]
+# A string, because ConfigEntry only became subscriptable in Home Assistant 2024.8.
+NinebotScooterConfigEntry: TypeAlias = "ConfigEntry[ScooterCoordinator]"
 
 # HA deduplicates identical broadcasts for integration callbacks.  Its last
 # service_info timestamp is still updated by the scanner; check it on a cheap
@@ -56,32 +65,26 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the integration without opening a Bluetooth connection."""
     # Serve the bundled animation from the user's HA origin. Every frontend
     # session can render the same image without writing into /config/www.
-    await hass.http.async_register_static_paths([
-        StaticPathConfig(
-            "/api/ninebot_e_scooters/power_button.gif",
-            str(Path(__file__).parent / "assets" / "power_button.gif"),
-            True,
-        ),
-        StaticPathConfig(
-            "/api/ninebot_e_scooters/pairing_dialog.js",
-            str(Path(__file__).parent / "assets" / "pairing_dialog.js"),
-            True,
-        ),
+    assets = Path(__file__).parent / "assets"
+    await async_register_static_files(hass, [
+        ("/api/ninebot_e_scooters/power_button.gif", assets / "power_button.gif"),
+        ("/api/ninebot_e_scooters/pairing_dialog.js", assets / "pairing_dialog.js"),
     ])
     # Home Assistant loads the module on each frontend page without editing
     # configuration.yaml or individual dashboards. It watches only our
     # pairing notices; the stored app key never enters the browser.
-    add_extra_js_url(hass, "/api/ninebot_e_scooters/pairing_dialog.js?v=1.0.0b1")
+    add_extra_js_url(hass, "/api/ninebot_e_scooters/pairing_dialog.js?v=1.0.0b2")
     return True
 
 
 async def _async_options_updated(hass: HomeAssistant, entry: NinebotScooterConfigEntry) -> None:
-    """Apply polling and model options through one clean BLE reconnect."""
+    """Apply polling, model and sensor group options through one clean BLE reconnect."""
     # Pairing also updates entry.data. Reload only when the user changes an
     # actual option, or the first successful pairing would tear down its link.
     coordinator = entry.runtime_data
     if (coordinator.poll_interval != int(entry.options.get(CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL))
-            or coordinator.model != entry.options.get(CONF_MODEL, MODEL)):
+            or coordinator.model != entry.options.get(CONF_MODEL, MODEL)
+            or coordinator.sensor_groups != selected_sensor_groups(entry.options)):
         await hass.config_entries.async_reload(entry.entry_id)
 
 
@@ -99,6 +102,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntr
     await coordinator.async_restore_saved_data()
     entry.runtime_data = coordinator
     if hasattr(entry, "add_update_listener"):
+        # Releases before 2023.12 keep only a weak reference to the listener,
+        # so it has to be a module-level function rather than a closure.
         entry.async_on_unload(entry.add_update_listener(_async_options_updated))
 
     bluetooth_activated = False
@@ -117,13 +122,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntr
         if refresh_task is not None and not refresh_task.done():
             return
         if coordinator.async_on_live_advertisement(service_info):
-            refresh_task = entry.async_create_background_task(
+            refresh_task = create_background_task(
+                entry,
                 hass,
                 # Do not use request_refresh() here: its debouncer can delay
                 # work long enough to invalidate the exact BlueZ BLEDevice.
                 coordinator.async_refresh(),
                 f"ninebot_e_scooters_live_gatt_{entry.entry_id}",
-                eager_start=False,
             )
 
     @callback
@@ -168,14 +173,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntr
             return
         bluetooth_activated = True
         entry.async_on_unload(
-            bluetooth.async_register_callback(
+            # The newest cached sighting is replayed where supported; it is vetted
+            # by its timestamp, unlike blindly trying a cached address from a
+            # previous HA run.
+            async_register_scooter_callback(
                 hass,
                 _scooter_advertised,
-                {"address": coordinator.address, "connectable": True},
-                bluetooth.BluetoothScanningMode.ACTIVE,
-                # Replay is vetted by the timestamp, unlike blindly trying a
-                # cached Bluetooth address from a previous HA run.
-                replay=bluetooth.BluetoothCallbackReplay.NEWEST_FIRST,
+                coordinator.address,
                 scan_interval=60.0,  # habluetooth minimum; not a connect delay.
                 scan_duration=10.0,
             )
@@ -190,7 +194,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntr
         entry.async_on_unload(
             async_track_time_interval(hass, _check_latest_advertisement, ADVERTISEMENT_CHECK_INTERVAL)
         )
-        bluetooth.async_clear_advertisement_history(hass, coordinator.address)
+        clear_advertisement_history(hass, coordinator.address)
         _LOGGER.info(
             "Xiaomi Scooter Bluetooth activated after HA startup in %.2fs; "
             "checking HA's current advertisement now",
@@ -205,17 +209,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntr
             ) or coordinator._pending_ble_device is not None or coordinator._command_lock.locked():
                 return
             try:
-                await bluetooth.async_request_active_scan(hass, duration=4.0)
+                await async_request_active_scan(hass, duration=4.0)
             except Exception:
                 _LOGGER.debug("Scooter initial active scan failed", exc_info=True)
             if not coordinator._shutting_down:
                 _check_latest_advertisement()
 
-        entry.async_create_background_task(
+        create_background_task(
+            entry,
             hass,
             _scan_now(),
             f"ninebot_e_scooters_immediate_scan_{entry.entry_id}",
-            eager_start=False,
         )
 
     # HA requires these platform setups to be awaited. No platform initiates

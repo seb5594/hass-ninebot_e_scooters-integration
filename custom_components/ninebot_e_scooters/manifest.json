@@ -28,9 +28,9 @@
     "frontend",
     "http"
   ],
-  "documentation": "https://github.com/seb5594/hass-ninebot_e-scooters-integration",
+  "documentation": "https://github.com/seb5594/hass-ninebot_e_scooters-integration",
   "integration_type": "device",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/seb5594/hass-ninebot_e-scooters-integration/issues",
-  "version": "1.0.0b1"
+  "issue_tracker": "https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues",
+  "version": "1.0.0b2"
 }

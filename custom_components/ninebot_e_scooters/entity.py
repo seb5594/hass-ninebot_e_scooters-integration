@@ -2,14 +2,33 @@
 
 from __future__ import annotations
 
-from homeassistant.helpers.device_registry import DeviceInfo
+from collections.abc import Iterable
+
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .compat import DeviceInfo, EntityNameFallback
 from .const import DOMAIN, MANUFACTURER
 from .coordinator import ScooterCoordinator
 
 
-class ScooterEntity(CoordinatorEntity[ScooterCoordinator]):
+def async_remove_entities(
+    hass: HomeAssistant, platform: str, address: str, keys: Iterable[str]
+) -> None:
+    """Drop registry entries this scooter no longer provides.
+
+    Covers entities removed in an update as well as optional sensors the user
+    switched off, so neither lingers as "no longer provided" on the device page.
+    """
+    registry = entity_registry.async_get(hass)
+    for key in keys:
+        entity_id = registry.async_get_entity_id(platform, DOMAIN, f"{address}_{key}")
+        if entity_id is not None:
+            registry.async_remove(entity_id)
+
+
+class ScooterEntity(EntityNameFallback, CoordinatorEntity[ScooterCoordinator]):
     """Base class for scooter entities."""
 
     _attr_has_entity_name = True

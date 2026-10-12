@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import fields
-from datetime import UTC, date, datetime
+from datetime import date, datetime
 from typing import Any
 
 from .protocols.data import ScooterData
-from .utilities import finite_number
+from .utilities import UTC, finite_number
 
 
 def storage_key(address: str) -> str:

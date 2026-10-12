@@ -3,9 +3,11 @@
 from __future__ import annotations
 import asyncio
 from dataclasses import replace
-from datetime import UTC, datetime
+from datetime import datetime
 import time
 from homeassistant.components import bluetooth
+from ..utilities import UTC
+from ..compat import async_request_active_scan
 from ..protocols.ninebot.packet import (
     CMD_READ,
     CMD_READ_ACK,
@@ -166,7 +168,7 @@ class ControlsMixin:
                         service_info = info
                         break
                 if attempt < 2:
-                    await bluetooth.async_request_active_scan(self.hass, duration=3.5)
+                    await async_request_active_scan(self.hass, duration=3.5)
             if service_info is None:
                 self._rearm_advertisements()
                 raise ScooterConnectionError("Nach dem Trennen kein aktuelles Bluetooth-Advertisement für die Sperre gefunden")
