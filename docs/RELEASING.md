@@ -1,7 +1,7 @@
 # Beta veröffentlichen
 
-**Vorbereitet:** Anzeigename v1.0.0 Beta 1, Manifest-Version `1.0.0b1`, Git-Tag
-`v1.0.0b1`. Diese Schreibweise ist für Home Assistant und Python eindeutig; Versionen
+**Vorbereitet:** Anzeigename Beta 2, Manifest-Version `1.0.0b2`, Git-Tag
+`v1.0.0b2`. Diese Schreibweise ist für Home Assistant und Python eindeutig; Versionen
 mit `a`, `b` oder `rc` werden automatisch als Pre-release veröffentlicht.
 
 1. Änderungen auf `main` übernehmen und den grünen **CI**-Lauf prüfen.
@@ -13,7 +13,8 @@ mit `a`, `b` oder `rc` werden automatisch als Pre-release veröffentlicht.
    starten und `draft` aktiviert lassen: Es entsteht ein Release-Entwurf mit ZIPs und
    Prüfsummen.
 5. Unter **Releases** den Entwurf öffnen, kurze Änderungen ergänzen und die Dateien
-   prüfen, dann veröffentlichen.
+   prüfen, dann veröffentlichen. Den Titel setzt die Engine aus Name und Manifest-Version
+   (`Ninebot E-Scooters 1.0.0b2`); der Anzeigename aus dem Changelog lässt sich hier ergänzen.
 
 Die gesamte Pipeline kommt aus `seb5594/hass-workflows`; `.github/workflows/ci.yml`
 ruft sie mit einem festen Commit auf und darf nicht lokal angepasst werden. Ein neuer
@@ -25,7 +26,7 @@ Die Veröffentlichung verwendet `GITHUB_TOKEN` mit `contents: write`.
 | `ninebot_e_scooters.zip` | HACS und manuelle Installation (`wget`), Integration direkt im ZIP-Wurzelordner |
 | `SHA256SUMS.txt` | Prüfsummen der ZIP-Dateien |
 
-**Nächste Beta:** Manifest auf `1.0.0b2` setzen, Cache-Version des Pairing-Moduls in
+**Nächste Beta:** Manifest auf `1.0.0b3` setzen, Cache-Version des Pairing-Moduls in
 `__init__.py` und Changelog aktualisieren, prüfen. Ein vorhandenes Release wird nicht
 überschrieben. Für die stabile Version `1.0.0` verwenden. Ein Tag markiert eine feste
 Codeversion; ein Release ergänzt Titel, Hinweise und herunterladbare Dateien.

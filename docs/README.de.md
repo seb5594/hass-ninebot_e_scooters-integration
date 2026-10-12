@@ -47,14 +47,15 @@ wartet dann auf die nächste Aussendung des Scooters. Alles andere verhält sich
    cd /config
    mkdir -p custom_components/ninebot_e_scooters
    wget -O /tmp/ninebot_e_scooters.zip \
-     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0b1/ninebot_e_scooters.zip
+     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0b2/ninebot_e_scooters.zip
    unzip -o /tmp/ninebot_e_scooters.zip -d custom_components/ninebot_e_scooters
    rm /tmp/ninebot_e_scooters.zip
    ```
 
-   `v1.0.0b1` durch die gewünschte Version ersetzen. Danach Home Assistant neu starten.
+   `v1.0.0b2` durch die gewünschte Version ersetzen. Danach Home Assistant neu starten.
 2. Unter **Einstellungen → Geräte & Dienste → Integration hinzufügen** nach
-   **Ninebot E-Scooters** suchen. Scooter einschalten und passendes Modell auswählen.
+   **Ninebot E-Scooters** suchen. Scooter einschalten, passendes Modell auswählen und bei
+   Bedarf zusätzliche Sensoren ankreuzen (siehe unten).
 3. Erst beim zentrierten Pairing-Hinweis einmal kurz die Einschalttaste drücken.
 
 Für HACS nach einer öffentlichen Veröffentlichung: dieses Repository als
@@ -86,10 +87,16 @@ Wiederholte Fehler verlängern die Pause; ein nicht bestätigtes Pairing wird fr
 nach einer Minute erneut versucht. Das soll unnötige Verbindungswechsel reduzieren.
 Firmwaregesteuerte Verbindungstöne können trotzdem auftreten.
 
-„Verbindung“, „Telemetrie veraltet“ und „Letzte Telemetrie“ zeigen den Verbindungs- und
-Datenstatus. Messwerte besitzen `last_live_telemetry` und `value_is_cached`. Nach mehr
-als zehn Minuten werden alte Messwerte nicht mehr als verfügbar markiert. Die
-1S-Referenzreichweite ist eine einfache Akkuprozent-Schätzung.
+Akkustand, Akkukapazität, -spannung, -strom und -leistung, Gesamtkilometer, Reichweite
+und Verbindung werden immer angelegt. Weitere Sensoren sind in Gruppen zusammengefasst und
+zunächst aus, weil sie sich bei einem abgestellten Scooter kaum ändern: Fahrdaten,
+Temperaturen, Akkuzustand, Geräteinformationen und Statuscodes als Rohwert. Sie lassen sich
+bei der Einrichtung oder später unter **Konfigurieren** ankreuzen; eine abgewählte Gruppe
+entfernt ihre Sensoren wieder. Modell und Firmware stehen zusätzlich auf der Geräteseite.
+
+Messwerte besitzen `last_live_telemetry` und `value_is_cached`. Nach mehr als zehn Minuten
+werden alte Messwerte nicht mehr als verfügbar markiert. Die 1S-Referenzreichweite ist eine
+einfache Akkuprozent-Schätzung.
 
 Schloss, Rücklicht, Rekuperation, Fahrmodus und Tempomat bleiben auf das bestätigte
 Xiaomi-1S-Profil begrenzt. Steuerungen benötigen aktuelle Stillstandstelemetrie und
