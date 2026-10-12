@@ -36,9 +36,11 @@ custom_components/ninebot_e_scooters/
     device.py        Identity, capabilities and diagnostics
     constants.py     Timing and the retained Xiaomi probe schedule
     errors.py        Shared session error
-  entity.py          Common HA device metadata
+  entity.py          Common HA device metadata and registry cleanup
+  sensor_groups.py   Optional sensor groups chosen in setup and options
   sensor.py / binary_sensor.py / switch.py / lock.py / select.py
   diagnostics.py     Export redaction
+  brand/             Icon and logo for discovery (Home Assistant 2026.3+)
 ```
 
 Runtime mixins share one coordinator and one command lock. Authentication and

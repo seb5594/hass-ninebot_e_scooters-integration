@@ -2,6 +2,7 @@ from source_helpers import parse_source
 import ast, asyncio, dataclasses, re, secrets, types, logging
 from pathlib import Path
 from custom_components.ninebot_e_scooters.discovery import is_scooter_advertisement, needs_explicit_model
+from custom_components.ninebot_e_scooters import sensor_groups
 src = Path(__file__).resolve().parents[2] / 'custom_components' / 'ninebot_e_scooters'
 parsed=parse_source((src/'config_flow.py').read_text())
 configs=[n for n in parsed.body if isinstance(n,(ast.FunctionDef,ast.ClassDef))]
@@ -58,6 +59,11 @@ namespace={'__name__':'fake_flow','__builtins__':__builtins__, 'Any':object,
     'callback':lambda func:func,
     'Store': FakeStore, 'storage_key': lambda addr:addr,
     'restore': lambda payload, _address: (types.SimpleNamespace(serial=payload),None) if payload else (None,None),
+    'CONF_SENSOR_GROUPS': sensor_groups.CONF_SENSOR_GROUPS,
+    'OPTIONAL_SENSOR_GROUPS': sensor_groups.OPTIONAL_SENSOR_GROUPS,
+    'sensor_groups_option': sensor_groups.sensor_groups_option,
+    'SelectSelector': lambda config: config, 'SelectSelectorConfig': dict,
+    'SelectSelectorMode': types.SimpleNamespace(LIST='list'),
     'is_scooter_advertisement': is_scooter_advertisement,
     'needs_explicit_model': needs_explicit_model,
     'identify_model': lambda serial, _name: types.SimpleNamespace(model='Mi Electric Scooter 1S' if serial.startswith('25700/') else None)}
@@ -85,9 +91,15 @@ async def main():
     r=await got.async_step_user()
     assert r['step_id']=='user' and 'MIScooter5977' in list(r['data_schema'].values())[0]['D8:9B:B1:50:DD:25']
     assert 'model' in r['data_schema']
+    assert r['data_schema']['sensor_groups']['multiple'] is True
     r=await got.async_step_user({'address':'D8:9B:B1:50:DD:25'})
     assert r['type']=='entry' and r['data']['bluetooth_name']=='MIScooter5977'
-    assert r['options']['model']=='Automatisch'
+    assert r['options']=={'model':'Automatisch','sensor_groups':[]}
+    picked=Flow();picked.hass=object();picked.context={}
+    await picked.async_step_user()
+    r=await picked.async_step_user({'address':'D8:9B:B1:50:DD:25',
+        'sensor_groups':['temperatures','riding','retired_group']})
+    assert r['options']['sensor_groups']==['riding','temperatures']
     FakeStore.contents['D8:9B:B1:50:DD:25']='25700/12345678'
     saved=Flow();saved.hass=object();saved.context={}
     r=await saved.async_step_user()

@@ -51,17 +51,13 @@ def test_sensor_availability_does_not_follow_last_update_success():
     assert available(state) is True
     state.coordinator.data = None
     assert available(state) is False
-    state.entity_description.key = "last_telemetry"
-    assert available(state) is True
 
 
-def test_binary_freshness_indicator_visible_without_telemetry():
-    available = method("binary_sensor.py", "ScooterBinarySensor", "available")
-    is_on = method("binary_sensor.py", "ScooterBinarySensor", "is_on")
+def test_connection_sensor_visible_without_telemetry():
+    available = method("binary_sensor.py", "ScooterConnectionSensor", "available")
+    is_on = method("binary_sensor.py", "ScooterConnectionSensor", "is_on")
     coordinator = SimpleNamespace(data=None, telemetry_stale=True, telemetry_cache_valid=False)
-    state = SimpleNamespace(entity_description=SimpleNamespace(key="telemetry_stale"), coordinator=coordinator)
-    assert available(state) is True and is_on(state) is True
-    state.entity_description.key = "connected"
+    state = SimpleNamespace(coordinator=coordinator)
     coordinator._client = None
     coordinator._session_ready = False
     assert available(state) is True and is_on(state) is False

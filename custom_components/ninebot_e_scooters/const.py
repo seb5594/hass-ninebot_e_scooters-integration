@@ -81,6 +81,8 @@ LEGACY_XIAOMI_MODELS = (
     "Automatisch",
 )
 REFERENCE_RANGE_KM = {MODEL: 30.0}
+# The 1S 0x75 mapping must stay separate from other scooter families.
+RIDE_MODE_LABELS_1S = {0: "Drive", 1: "Eco", 2: "Sport"}
 CONFIGURABLE_MODELS = (AUTO_MODEL,) + tuple(
     profile.name for profile in PROFILES if profile.protocol != UNVERIFIED
 )

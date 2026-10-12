@@ -25,6 +25,7 @@ from custom_components.ninebot_e_scooters.const import (  # noqa: E402
     CONF_POLL_INTERVAL,
     DOMAIN,
 )
+from custom_components.ninebot_e_scooters.sensor_groups import CONF_SENSOR_GROUPS  # noqa: E402
 
 from real_scooter import ADDRESS, NAME  # noqa: E402
 
@@ -56,6 +57,7 @@ async def test_user_flow_lists_the_scooter_and_creates_the_entry(hass):
     assert result["type"] == "create_entry"
     assert result["title"] == NAME
     assert result["data"][CONF_ADDRESS] == ADDRESS
+    assert result["options"][CONF_SENSOR_GROUPS] == []
 
 
 async def test_options_flow_receives_the_entry_on_every_release(hass, entry):
@@ -122,6 +124,39 @@ async def test_setup_serves_assets_registers_for_advertisements_and_names_entiti
     assert await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.NOT_LOADED
+
+
+async def test_optional_sensor_groups_appear_and_disappear_with_the_options(hass, entry):
+    registry = entity_registry.async_get(hass)
+
+    def provided_keys():
+        return {
+            item.unique_id.removeprefix(f"{ADDRESS}_")
+            for item in entity_registry.async_entries_for_config_entry(registry, entry.entry_id)
+        }
+
+    async def choose_sensor_groups(groups):
+        result = await hass.config_entries.options.async_init(entry.entry_id)
+        await hass.config_entries.options.async_configure(result["flow_id"], {
+            CONF_POLL_INTERVAL: 10, CONF_MODEL: "Mi Electric Scooter 1S", CONF_SENSOR_GROUPS: groups,
+        })
+        await hass.async_block_till_done()
+
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    parked = provided_keys()
+    assert {"battery_percent", "odometer", "connected"} <= parked
+    assert not parked & {"speed", "battery_temperature_1", "firmware_version", "error_flags"}
+    assert not parked & {"problem", "telemetry_stale", "last_telemetry", "detected_model"}
+
+    await choose_sensor_groups(["riding", "temperatures"])
+    assert {"speed", "trip_distance", "battery_temperature_1"} <= provided_keys()
+
+    await choose_sensor_groups([])
+    assert provided_keys() == parked
+
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
 
 
 async def test_diagnostics_redact_through_the_release_specific_helper(hass, entry):

@@ -72,7 +72,9 @@ def test_date_diagnostic_and_lock_view_share_no_control_logic():
     assert "SensorDeviceClass.DATE" in date_description
     binary = (PACKAGE_PATH / "binary_sensor.py").read_text()
     assert 'key="connected"' in binary
-    assert "registry.async_remove(obsolete)" in binary
+    assert "async_remove_entities(" in binary
+    assert '"problem", "telemetry_stale"' in binary
+    assert "registry.async_remove(entity_id)" in (PACKAGE_PATH / "entity.py").read_text()
     assert json.loads((PACKAGE_PATH / "translations/de.json").read_text())["entity"]["sensor"]["battery_manufacture_date"]["name"] == "Batterie-Herstellungsdatum"
 
 

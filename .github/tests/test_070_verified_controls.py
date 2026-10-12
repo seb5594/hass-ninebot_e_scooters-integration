@@ -14,6 +14,7 @@ from test_protocol import protocol
 from test_pairing_queue import PKT
 from test_ninebot_crypto import NinebotCrypto
 from protocol_scope import add_protocol_symbols
+from custom_components.ninebot_e_scooters.sensor_groups import selected_sensor_groups
 
 
 ROOT = Path(__file__).resolve().parents[2] / "custom_components" / "ninebot_e_scooters"
@@ -179,7 +180,8 @@ def test_saved_pairing_key_does_not_reload_scooter_entry():
     module = ast.Module(body=[ast.ImportFrom(module="__future__",
         names=[ast.alias(name="annotations")], level=0), method], type_ignores=[])
     namespace = dict(CONF_POLL_INTERVAL="poll_interval", DEFAULT_POLL_INTERVAL=10,
-                     CONF_MODEL="model", MODEL="Mi Electric Scooter 1S")
+                     CONF_MODEL="model", MODEL="Mi Electric Scooter 1S",
+                     selected_sensor_groups=selected_sensor_groups)
     exec(compile(ast.fix_missing_locations(module), "<options-test>", "exec"), namespace)
 
     async def check():
@@ -194,6 +196,15 @@ def test_saved_pairing_key_does_not_reload_scooter_entry():
         await namespace["_async_options_updated"](hass, entry)
         assert reloaded == []
         entry.options = {"poll_interval": 15}
+        await namespace["_async_options_updated"](hass, entry)
+        assert reloaded == ["scooter"]
+
+        # Ticking or unticking a sensor group adds or removes entities.
+        reloaded.clear()
+        entry.options = {"sensor_groups": ["riding"]}
+        await namespace["_async_options_updated"](
+            hass, entry, applied_sensor_groups=frozenset({"riding"}))
+        assert reloaded == []
         await namespace["_async_options_updated"](hass, entry)
         assert reloaded == ["scooter"]
 

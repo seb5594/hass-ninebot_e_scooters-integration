@@ -6,6 +6,7 @@ import asyncio
 import logging
 import re
 import secrets
+from collections.abc import Iterable, Mapping
 from typing import Any
 
 import voluptuous as vol
@@ -14,6 +15,11 @@ from homeassistant.components import bluetooth
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.const import CONF_ADDRESS
 from homeassistant.core import callback
+from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 from homeassistant.helpers.storage import Store
 
 from .compat import (
@@ -34,6 +40,11 @@ from .const import (
 from .models.profiles import AUTO_MODEL
 from .models.profiles import identify_model
 from .discovery import is_scooter_advertisement, needs_explicit_model
+from .sensor_groups import (
+    CONF_SENSOR_GROUPS,
+    OPTIONAL_SENSOR_GROUPS,
+    sensor_groups_option,
+)
 from .storage import restore, storage_key
 
 _LOGGER = logging.getLogger(__name__)
@@ -51,6 +62,39 @@ def _device_name(service_info: Any) -> str:
 def _is_supported(service_info: Any) -> bool:
     """Identify scooter names without matching every Nordic UART peripheral."""
     return is_scooter_advertisement(service_info)
+
+
+def _sensor_groups_field(selected: Iterable[str]) -> dict[Any, Any]:
+    """Checkbox list of the optional sensor groups, labelled by the translations."""
+    return {
+        vol.Optional(CONF_SENSOR_GROUPS, default=list(selected)): SelectSelector(
+            SelectSelectorConfig(
+                options=list(OPTIONAL_SENSOR_GROUPS),
+                multiple=True,
+                mode=SelectSelectorMode.LIST,
+                translation_key=CONF_SENSOR_GROUPS,
+            )
+        )
+    }
+
+
+def _setup_fields(previous: Mapping[str, Any] | None = None) -> dict[Any, Any]:
+    """Fields every setup form shares, prefilled with an earlier answer."""
+    previous = previous or {}
+    return {
+        vol.Optional(CONF_MODEL, default=previous.get(CONF_MODEL, AUTO_MODEL)): vol.In(
+            LEGACY_XIAOMI_MODELS
+        ),
+        **_sensor_groups_field(sensor_groups_option(previous)),
+    }
+
+
+def _setup_options(user_input: Mapping[str, Any]) -> dict[str, Any]:
+    """Entry options chosen in a setup form; unanswered fields keep their defaults."""
+    return {
+        CONF_MODEL: user_input.get(CONF_MODEL, AUTO_MODEL),
+        CONF_SENSOR_GROUPS: sensor_groups_option(user_input),
+    }
 
 
 class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -128,19 +172,12 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
         return found
 
     def _async_create_entry_from_values(
-        self, address: str, name: str, model: str = AUTO_MODEL
+        self, address: str, name: str, options: dict[str, Any]
     ) -> ConfigFlowResult:
         """Save a discovered scooter without requiring a second BLE connection."""
-        if model == AUTO_MODEL and needs_explicit_model(name):
-            return self.async_show_form(
-                step_id="retry_scan",
-                data_schema=vol.Schema({
-                    vol.Optional("manual_address", default=address): str,
-                    vol.Optional("manual_name", default=name): str,
-                    vol.Optional(CONF_MODEL, default=AUTO_MODEL): vol.In(LEGACY_XIAOMI_MODELS),
-                }),
-                errors={CONF_MODEL: "model_required"},
-                description_placeholders={"scan_error": "-"},
+        if options[CONF_MODEL] == AUTO_MODEL and needs_explicit_model(name):
+            return self._async_show_retry_scan_form(
+                address, name, options, errors={CONF_MODEL: "model_required"}
             )
         self.context["title_placeholders"] = {"name": name}
         return self.async_create_entry(
@@ -150,11 +187,30 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
                 "bluetooth_name": name,
                 "app_key": secrets.token_hex(16),
             },
-            options={CONF_MODEL: model},
+            options=options,
+        )
+
+    def _async_show_retry_scan_form(
+        self,
+        address: str = "",
+        name: str = "",
+        previous: Mapping[str, Any] | None = None,
+        errors: dict[str, str] | None = None,
+    ) -> ConfigFlowResult:
+        """Offer a rescan, or the manual address and name as a last resort."""
+        return self.async_show_form(
+            step_id="retry_scan",
+            data_schema=vol.Schema({
+                vol.Optional("manual_address", default=address): str,
+                vol.Optional("manual_name", default=name): str,
+                **_setup_fields(previous),
+            }),
+            errors=errors or {},
+            description_placeholders={"scan_error": self._scan_error or "-"},
         )
 
     async def _async_test_and_create_entry(
-        self, address: str, model: str = AUTO_MODEL
+        self, address: str, options: dict[str, Any]
     ) -> ConfigFlowResult:
         """Create a config entry for a device already found by HA Bluetooth."""
         service_info = self._discovered_devices.get(address.upper())
@@ -169,7 +225,7 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
         address = address.upper()
         await self.async_set_unique_id(address)
         self._abort_if_unique_id_configured()
-        return self._async_create_entry_from_values(address, name, model)
+        return self._async_create_entry_from_values(address, name, options)
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -177,7 +233,7 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
         """Select a discovered Xiaomi scooter by its broadcast Bluetooth name."""
         if user_input is not None:
             return await self._async_test_and_create_entry(
-                user_input[CONF_ADDRESS], user_input.get(CONF_MODEL, AUTO_MODEL)
+                user_input[CONF_ADDRESS], _setup_options(user_input)
             )
 
         devices = await self._async_scan()
@@ -194,7 +250,7 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema({
                 vol.Required(CONF_ADDRESS): vol.In(choices),
-                vol.Optional(CONF_MODEL, default=AUTO_MODEL): vol.In(LEGACY_XIAOMI_MODELS),
+                **_setup_fields(),
             }),
         )
 
@@ -216,23 +272,12 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
                     await self.async_set_unique_id(manual_address)
                     self._abort_if_unique_id_configured()
                     return self._async_create_entry_from_values(
-                        manual_address, manual_name, user_input.get(CONF_MODEL, AUTO_MODEL)
+                        manual_address, manual_name, _setup_options(user_input)
                     )
             else:
                 return await self.async_step_user()
 
-        return self.async_show_form(
-            step_id="retry_scan",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional("manual_address", default=""): str,
-                    vol.Optional("manual_name", default=""): str,
-                    vol.Optional(CONF_MODEL, default=AUTO_MODEL): vol.In(LEGACY_XIAOMI_MODELS),
-                }
-            ),
-            errors=errors,
-            description_placeholders={"scan_error": self._scan_error or "-"},
-        )
+        return self._async_show_retry_scan_form(previous=user_input, errors=errors)
 
     async def async_step_bluetooth(
         self,
@@ -263,16 +308,14 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_show_form(
                 step_id="bluetooth_confirm",
                 description_placeholders=self.context["title_placeholders"],
-                data_schema=vol.Schema({
-                    vol.Optional(CONF_MODEL, default=AUTO_MODEL): vol.In(LEGACY_XIAOMI_MODELS),
-                }),
+                data_schema=vol.Schema(_setup_fields()),
             )
 
         if self._discovery_address is None:
             return self.async_abort(reason="cannot_connect")
 
         return await self._async_test_and_create_entry(
-            self._discovery_address, user_input.get(CONF_MODEL, AUTO_MODEL)
+            self._discovery_address, _setup_options(user_input)
         )
 
     async def async_step_reconfigure(
@@ -348,17 +391,20 @@ class NinebotScooterOptionsFlow(OptionsFlow):
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
-        """Manage polling options."""
+        """Manage polling, model and optional sensor groups."""
         if user_input is not None:
-            return self.async_create_entry(data=user_input)
+            return self.async_create_entry(
+                data={**user_input, CONF_SENSOR_GROUPS: sensor_groups_option(user_input)}
+            )
 
+        options = self._entry.options
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
                     vol.Required(
                         CONF_POLL_INTERVAL,
-                        default=self._entry.options.get(
+                        default=options.get(
                             CONF_POLL_INTERVAL,
                             DEFAULT_POLL_INTERVAL,
                         ),
@@ -371,8 +417,9 @@ class NinebotScooterOptionsFlow(OptionsFlow):
                     ),
                     vol.Required(
                         CONF_MODEL,
-                        default=self._entry.options.get(CONF_MODEL, MODEL),
+                        default=options.get(CONF_MODEL, MODEL),
                     ): vol.In(LEGACY_XIAOMI_MODELS),
+                    **_sensor_groups_field(sensor_groups_option(options)),
                 }
             ),
         )

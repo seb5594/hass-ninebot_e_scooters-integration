@@ -2,52 +2,25 @@
 
 from __future__ import annotations
 
-from typing import Callable
-
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers import entity_registry
+from homeassistant.const import Platform
 
-from .compat import description_dataclass
 from .coordinator import ScooterCoordinator
-from .entity import ScooterEntity
+from .entity import ScooterEntity, async_remove_entities
 
+# Binary sensors of earlier releases; their registry entries are cleaned up on setup.
+# "problem" only repeated the undecoded status codes, "telemetry_stale" is covered
+# by the value_is_cached attribute every measurement carries.
+OBSOLETE_BINARY_SENSOR_KEYS = ("cruise_control", "lock", "problem", "telemetry_stale")
 
-@description_dataclass
-class ScooterBinaryDescription(BinarySensorEntityDescription):
-    """Describe a scooter binary sensor."""
-
-    value_fn: Callable[[object], bool | None] = lambda _data: None
-
-
-BINARY_SENSORS = (
-    ScooterBinaryDescription(
-        key="connected",
-        translation_key="connected",
-        device_class=BinarySensorDeviceClass.CONNECTIVITY,
-        value_fn=lambda _data: None,
-    ),
-    ScooterBinaryDescription(
-        key="telemetry_stale",
-        translation_key="telemetry_stale",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda _data: None,
-    ),
-    ScooterBinaryDescription(
-        key="problem",
-        translation_key="problem",
-        device_class=BinarySensorDeviceClass.PROBLEM,
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda data: (
-            None
-            if data.error_flags is None and data.warning_flags is None
-            else bool(data.error_flags or data.warning_flags)
-        ),
-    ),
+CONNECTION = BinarySensorEntityDescription(
+    key="connected",
+    translation_key="connected",
+    device_class=BinarySensorDeviceClass.CONNECTIVITY,
 )
 
 
@@ -56,58 +29,31 @@ async def async_setup_entry(
     entry,
     async_add_entities,
 ) -> None:
-    """Set up scooter binary sensors."""
+    """Set up the scooter's connection sensor."""
     coordinator: ScooterCoordinator = entry.runtime_data
-    registry = entity_registry.async_get(hass)
-    obsolete = registry.async_get_entity_id(
-        "binary_sensor", "ninebot_e_scooters", f"{coordinator.address}_cruise_control"
+    async_remove_entities(
+        hass, Platform.BINARY_SENSOR, coordinator.address, OBSOLETE_BINARY_SENSOR_KEYS
     )
-    if obsolete is not None:
-        registry.async_remove(obsolete)
-    for obsolete_key in ("lock",):
-        old_entity = registry.async_get_entity_id(
-            "binary_sensor", "ninebot_e_scooters", f"{coordinator.address}_{obsolete_key}"
-        )
-        if old_entity is not None:
-            registry.async_remove(old_entity)
-    async_add_entities(
-        ScooterBinarySensor(coordinator, description)
-        for description in BINARY_SENSORS
-    )
+    async_add_entities([ScooterConnectionSensor(coordinator)])
 
 
-class ScooterBinarySensor(ScooterEntity, BinarySensorEntity):
-    """Representation of a scooter binary sensor."""
+class ScooterConnectionSensor(ScooterEntity, BinarySensorEntity):
+    """Whether an authenticated Bluetooth session to the scooter is open."""
 
-    entity_description: ScooterBinaryDescription
+    entity_description = CONNECTION
 
-    def __init__(
-        self,
-        coordinator: ScooterCoordinator,
-        description: ScooterBinaryDescription,
-    ) -> None:
-        """Initialize the scooter binary sensor."""
+    def __init__(self, coordinator: ScooterCoordinator) -> None:
+        """Initialize the connection sensor."""
         super().__init__(coordinator)
-        self.entity_description = description
-        self._attr_unique_id = (
-            f"{coordinator.address}_{description.key}"
-        )
+        self._attr_unique_id = f"{coordinator.address}_{CONNECTION.key}"
 
     @property
     def available(self) -> bool:
-        """Keep the freshness indicator visible even while BLE is offline."""
-        if self.entity_description.key in ("telemetry_stale", "connected"):
-            return True
-        return self.coordinator.data is not None
+        """A switched-off scooter is a valid answer, not a missing one."""
+        return True
 
     @property
-    def is_on(self) -> bool | None:
-        """Return the binary sensor state."""
-        if self.entity_description.key == "telemetry_stale":
-            return self.coordinator.telemetry_stale
-        if self.entity_description.key == "connected":
-            client = self.coordinator._client
-            return bool(self.coordinator._session_ready and client is not None and client.is_connected)
-        if not self.coordinator.data:
-            return None
-        return self.entity_description.value_fn(self.coordinator.data)
+    def is_on(self) -> bool:
+        """Return True while the session can exchange telemetry."""
+        client = self.coordinator._client
+        return bool(self.coordinator._session_ready and client is not None and client.is_connected)
