@@ -1,5 +1,14 @@
 # Changelog
 
+## Beta 3 (`1.0.0b3`)
+
+- Renamed scooters are discovered: besides the Bluetooth name, discovery now recognizes the
+  manufacturer data of the Ninebot BLE module (company IDs 0x424E and 0x434E) and serial-style
+  names of newer Ninebot generations. Unrelated devices with the Nordic UART service alone are
+  still ignored.
+- The manufacturer reference range moved into the optional riding group and is no longer
+  created by default; existing installations drop it until the group is ticked.
+
 ## Beta 2 (`1.0.0b2`)
 
 - Leaner device page: only battery, odometer, range and connection sensors are created by

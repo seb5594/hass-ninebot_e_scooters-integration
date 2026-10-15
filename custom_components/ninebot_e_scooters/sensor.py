@@ -180,13 +180,14 @@ SENSORS: tuple[ScooterSensorDescription, ...] = (
         entity_registry_enabled_default=False,
         **DISTANCE_KILOMETERS,
     ),
+    # Riding: zero or unchanged while the scooter is parked.
     # Computed from the model in ScooterSensor.native_value.
     _reading(
         key="reference_range",
+        sensor_group=RIDING,
         entity_category=EntityCategory.DIAGNOSTIC,
         **DISTANCE_KILOMETERS,
     ),
-    # Riding: zero or unchanged while the scooter is parked.
     _reading(
         key="speed",
         sensor_group=RIDING,

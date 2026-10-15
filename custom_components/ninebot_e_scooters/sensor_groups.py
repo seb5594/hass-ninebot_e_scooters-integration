@@ -1,9 +1,9 @@
 """Optional sensor groups for values that rarely matter while the scooter is parked.
 
 A parked scooter keeps reporting zero speed, the same temperatures and the same
-firmware versions. Only the battery, odometer and range sensors are created by
-default; everything else belongs to a group the user can tick during setup or
-later in the integration options.
+firmware versions. Only the battery, odometer and scooter-reported range sensors
+are created by default; everything else belongs to a group the user can tick
+during setup or later in the integration options.
 """
 
 from __future__ import annotations

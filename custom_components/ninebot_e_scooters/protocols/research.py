@@ -80,6 +80,11 @@ class NinebotSerialHint:
     revision: str
 
 
+# Legacy 14-character ESC serial, e.g. N4GEC2110C1234: series and variant,
+# production year and week, revision, sequence number.
+NINEBOT_SERIAL = re.compile(r"[A-Z0-9]{5}[0-9]{4}[A-Z0-9][0-9]{4}")
+
+
 def inspect_ninebot_serial(serial: str | bytes | None) -> NinebotSerialHint | None:
     """Inspect a legacy 14-character serial without changing live discovery."""
     if isinstance(serial, bytes):
@@ -87,7 +92,7 @@ def inspect_ninebot_serial(serial: str | bytes | None) -> NinebotSerialHint | No
             serial = serial.rstrip(b"\x00").decode("ascii")
         except UnicodeDecodeError:
             return None
-    if not isinstance(serial, str) or not re.fullmatch(r"[A-Z0-9]{5}[0-9]{4}[A-Z0-9][0-9]{4}", serial):
+    if not isinstance(serial, str) or not NINEBOT_SERIAL.fullmatch(serial):
         return None
     known = NINEBOT_SERIAL_HINTS.get(serial[:3])
     if known is None:

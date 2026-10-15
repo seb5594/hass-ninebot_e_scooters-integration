@@ -240,7 +240,7 @@
   "selector": {
     "sensor_groups": {
       "options": {
-        "riding": "Riding: speed, trip distance, work mode, uptime",
+        "riding": "Riding: speed, trip distance, work mode, uptime, reference range estimate",
         "temperatures": "Temperatures: battery and frame",
         "battery_health": "Battery health: health, charge cycles, cell voltages",
         "device_info": "Device information: firmware, BMS and BLE versions, battery date, serial number",

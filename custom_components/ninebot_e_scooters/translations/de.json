@@ -240,7 +240,7 @@
   "selector": {
     "sensor_groups": {
       "options": {
-        "riding": "Fahrdaten: Geschwindigkeit, Fahrstrecke, Betriebsmodus, Betriebszeit",
+        "riding": "Fahrdaten: Geschwindigkeit, Fahrstrecke, Betriebsmodus, Betriebszeit, Referenzreichweite",
         "temperatures": "Temperaturen: Akku und Rahmen",
         "battery_health": "Akkuzustand: Batteriegesundheit, Ladezyklen, Zellspannungen",
         "device_info": "Geräteinformationen: Firmware-, BMS- und BLE-Version, Batteriedatum, Seriennummer",
