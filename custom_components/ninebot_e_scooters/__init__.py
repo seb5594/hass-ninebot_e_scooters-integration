@@ -73,7 +73,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     # Home Assistant loads the module on each frontend page without editing
     # configuration.yaml or individual dashboards. It watches only our
     # pairing notices; the stored app key never enters the browser.
-    add_extra_js_url(hass, "/api/ninebot_e_scooters/pairing_dialog.js?v=1.0.0b2")
+    add_extra_js_url(hass, "/api/ninebot_e_scooters/pairing_dialog.js?v=1.0.0b3")
     return True
 
 

@@ -47,12 +47,12 @@ wartet dann auf die nächste Aussendung des Scooters. Alles andere verhält sich
    cd /config
    mkdir -p custom_components/ninebot_e_scooters
    wget -O /tmp/ninebot_e_scooters.zip \
-     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0b2/ninebot_e_scooters.zip
+     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0b3/ninebot_e_scooters.zip
    unzip -o /tmp/ninebot_e_scooters.zip -d custom_components/ninebot_e_scooters
    rm /tmp/ninebot_e_scooters.zip
    ```
 
-   `v1.0.0b2` durch die gewünschte Version ersetzen. Danach Home Assistant neu starten.
+   `v1.0.0b3` durch die gewünschte Version ersetzen. Danach Home Assistant neu starten.
 2. Unter **Einstellungen → Geräte & Dienste → Integration hinzufügen** nach
    **Ninebot E-Scooters** suchen. Scooter einschalten, passendes Modell auswählen und bei
    Bedarf zusätzliche Sensoren ankreuzen (siehe unten).
@@ -71,8 +71,9 @@ Pairing wird dabei neu bestätigt. Anschließend Entity-IDs und Automationen pr�
 Die beiden Integrationen dürfen nicht gleichzeitig denselben Scooter verbinden.
 Keine Dateien unter `.storage` von Hand bearbeiten.
 
-Wenn kein Gerät gefunden wird: erneut suchen oder Bluetooth-Adresse und den exakten
-ausgesendeten Bluetooth-Namen eingeben. Der Name ist Teil der Verschlüsselung und
+Scooter werden an den Herstellerdaten ihres Bluetooth-Moduls erkannt, auch ein
+umbenannter Scooter wird also gefunden. Wenn kein Gerät gefunden wird: erneut suchen
+oder Bluetooth-Adresse und den exakten ausgesendeten Bluetooth-Namen eingeben. Der Name ist Teil der Verschlüsselung und
 kann von deiner frei gewählten Gerätebezeichnung abweichen.
 
 ## Verbindung und Werte
@@ -87,9 +88,10 @@ Wiederholte Fehler verlängern die Pause; ein nicht bestätigtes Pairing wird fr
 nach einer Minute erneut versucht. Das soll unnötige Verbindungswechsel reduzieren.
 Firmwaregesteuerte Verbindungstöne können trotzdem auftreten.
 
-Akkustand, Akkukapazität, -spannung, -strom und -leistung, Gesamtkilometer, Reichweite
-und Verbindung werden immer angelegt. Weitere Sensoren sind in Gruppen zusammengefasst und
-zunächst aus, weil sie sich bei einem abgestellten Scooter kaum ändern: Fahrdaten,
+Akkustand, Akkukapazität, -spannung, -strom und -leistung, Gesamtkilometer, die vom
+Scooter gemeldete Reichweite und Verbindung werden immer angelegt. Weitere Sensoren sind in
+Gruppen zusammengefasst und zunächst aus, weil sie sich bei einem abgestellten Scooter kaum
+ändern: Fahrdaten (inklusive Referenzreichweite),
 Temperaturen, Akkuzustand, Geräteinformationen und Statuscodes als Rohwert. Sie lassen sich
 bei der Einrichtung oder später unter **Konfigurieren** ankreuzen; eine abgewählte Gruppe
 entfernt ihre Sensoren wieder. Modell und Firmware stehen zusätzlich auf der Geräteseite.

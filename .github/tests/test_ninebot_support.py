@@ -22,8 +22,21 @@ def test_named_scooters_are_discoverable(name):
     assert is_scooter_advertisement(SimpleNamespace(name=name))
 
 
+@pytest.mark.parametrize("company", [0x424E, 0x434E])
+def test_renamed_scooters_are_found_by_their_ble_module(company):
+    renamed = SimpleNamespace(name="Kellerflitzer", manufacturer_data={company: b"\x21\x00"})
+    assert is_scooter_advertisement(renamed)
+    assert is_scooter_advertisement(SimpleNamespace(name=None, manufacturer_data={company: b""}))
+
+
+def test_serial_style_names_of_newer_ninebot_generations_are_discoverable():
+    assert is_scooter_advertisement(SimpleNamespace(name="1TEFE2517C0419"))
+    assert not is_scooter_advertisement(SimpleNamespace(name="1TEFE2517C041"))
+
+
 def test_uart_alone_cannot_trigger_scooter_pairing():
     assert not is_scooter_advertisement(SimpleNamespace(name="HeartRate", service_uuids=["6e400001-b5a3-f393-e0a9-e50e24dcca9e"]))
+    assert not is_scooter_advertisement(SimpleNamespace(name="Kellerflitzer", manufacturer_data={0x004C: b"\x02"}))
     assert needs_explicit_model("NBScooter1234")
     assert not needs_explicit_model("MIScooter1234")
 

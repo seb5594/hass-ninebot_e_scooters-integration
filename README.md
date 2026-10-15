@@ -2,7 +2,7 @@
 
 <!-- badges:begin (generated from project metadata) -->
 [![HACS](https://img.shields.io/static/v1?label=HACS&message=Add%20integration&color=41BDF5&style=flat&logo=homeassistantcommunitystore&logoColor=white)](https://my.home-assistant.io/redirect/hacs_repository/?owner=seb5594&repository=hass-ninebot_e_scooters-integration&category=integration) ![setup](https://img.shields.io/static/v1?label=setup&message=UI%20config%20flow&color=157F71&style=flat)<br>
-![home assistant](https://img.shields.io/static/v1?label=home%20assistant&message=%E2%89%A5%202023.2.0&color=1877A5&style=flat) [![version](https://img.shields.io/static/v1?label=version&message=1.0.0b2&color=1877A5&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases) [![released](https://img.shields.io/github/release-date-pre/seb5594/hass-ninebot_e_scooters-integration?label=released&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases) [![checks](https://img.shields.io/github/actions/workflow/status/seb5594/hass-ninebot_e_scooters-integration/ci.yml?branch=main&label=checks&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/actions/workflows/ci.yml)<br>
+![home assistant](https://img.shields.io/static/v1?label=home%20assistant&message=%E2%89%A5%202023.2.0&color=1877A5&style=flat) [![version](https://img.shields.io/static/v1?label=version&message=1.0.0b3&color=1877A5&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases) [![released](https://img.shields.io/github/release-date-pre/seb5594/hass-ninebot_e_scooters-integration?label=released&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases) [![checks](https://img.shields.io/github/actions/workflow/status/seb5594/hass-ninebot_e_scooters-integration/ci.yml?branch=main&label=checks&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/actions/workflows/ci.yml)<br>
 [![updated](https://img.shields.io/github/last-commit/seb5594/hass-ninebot_e_scooters-integration?label=updated&style=flat)](https://github.com/seb5594/hass-ninebot_e_scooters-integration/commits/main)<br>
 ![tests](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fseb5594%2Fhass-ninebot_e_scooters-integration%2Fbadges%2Ftests.json&style=flat) ![HACS zip](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fseb5594%2Fhass-ninebot_e_scooters-integration%2Fbadges%2Fzip-size.json&style=flat) ![last build](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fseb5594%2Fhass-ninebot_e_scooters-integration%2Fbadges%2Flast-build.json&style=flat)
 <!-- badges:end -->
@@ -53,12 +53,12 @@ the scooter's next advertisement instead. Everything else behaves the same.
    cd /config
    mkdir -p custom_components/ninebot_e_scooters
    wget -O /tmp/ninebot_e_scooters.zip \
-     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0b2/ninebot_e_scooters.zip
+     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0b3/ninebot_e_scooters.zip
    unzip -o /tmp/ninebot_e_scooters.zip -d custom_components/ninebot_e_scooters
    rm /tmp/ninebot_e_scooters.zip
    ```
 
-   Replace `v1.0.0b2` with the version you want, then restart Home Assistant.
+   Replace `v1.0.0b3` with the version you want, then restart Home Assistant.
 2. Go to **Settings → Devices & services → Add integration** and search for
    **Ninebot E-Scooters**. Switch the scooter on, select the matching model and tick any
    additional sensors you want (see below).
@@ -75,8 +75,9 @@ new one and set the scooter up again. Pairing has to be confirmed again. Afterwa
 IDs and automations. Both integrations must not connect to the same scooter at the same time.
 Do not edit files under `.storage` by hand.
 
-If no device is found: search again, or enter the Bluetooth address and the exact advertised
-Bluetooth name. The name is part of the encryption and can differ from the device name you
+Scooters are recognized by the manufacturer data of their Bluetooth module, so a renamed
+scooter is discovered as well. If no device is found: search again, or enter the Bluetooth
+address and the exact advertised Bluetooth name. The name is part of the encryption and can differ from the device name you
 chose yourself.
 
 ## Connection and values
@@ -90,9 +91,10 @@ app key. Repeated failures lengthen the pause; an unconfirmed pairing is retried
 minute at the earliest. This is meant to reduce unnecessary reconnects. Connection tones
 triggered by the firmware can still occur.
 
-Battery level, capacity, voltage, current and power, the odometer, the range and the
-connection are always created. Further sensors come in groups that start switched off, because
-they barely change while the scooter is parked: riding data, temperatures, battery health,
+Battery level, capacity, voltage, current and power, the odometer, the range reported by the
+scooter and the connection are always created. Further sensors come in groups that start switched
+off, because they barely change while the scooter is parked: riding data (including the reference
+range estimate), temperatures, battery health,
 device information and raw status codes. Tick them during setup or later under **Configure**;
 unticking a group removes its sensors again. The model and firmware are also shown on the
 device page.
