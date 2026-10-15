@@ -17,6 +17,14 @@
     {
       "connectable": true,
       "local_name": "Segway*"
+    },
+    {
+      "connectable": true,
+      "manufacturer_id": 16974
+    },
+    {
+      "connectable": true,
+      "manufacturer_id": 17230
     }
   ],
   "codeowners": [
