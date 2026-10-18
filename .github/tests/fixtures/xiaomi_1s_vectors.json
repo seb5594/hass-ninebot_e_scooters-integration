@@ -1,0 +1,18 @@
+{
+  "provenance": "Synthetic vectors from the unchanged supplied 0.9.13 crypto implementation; not radio captures.",
+  "name": "MIScooter5977",
+  "vectors": [
+    {
+      "logical": "5aa5003e215b00",
+      "encrypted": "5aa50005cfede7000045ff0000"
+    },
+    {
+      "logical": "5aa5103e215c00000102030405060708090a0b0c0d0e0f",
+      "encrypted": "5aa5104b1617eea83e0dda970a9574df14efe3cf4ba993dae35f300002"
+    },
+    {
+      "logical": "5aa5013e2001b020",
+      "encrypted": "5aa50121de462583b1da95180003"
+    }
+  ]
+}
