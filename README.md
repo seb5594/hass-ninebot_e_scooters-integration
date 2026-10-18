@@ -2,10 +2,7 @@
 <h1 align="center">Ninebot E-Scooters</h1>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/seb5594/hass-ninebot_e_scooters-integration/main/custom_components/ninebot_e_scooters/brand/dark_logo@2x.png">
-    <img src="https://raw.githubusercontent.com/seb5594/hass-ninebot_e_scooters-integration/main/custom_components/ninebot_e_scooters/brand/logo@2x.png" alt="Ninebot E-Scooters" width="160" height="160">
-  </picture>
+  <img src="https://raw.githubusercontent.com/seb5594/hass-ninebot_e_scooters-integration/main/custom_components/ninebot_e_scooters/brand/logo@2x.png" alt="Ninebot E-Scooters" width="160" height="160">
 </p>
 
 ---
