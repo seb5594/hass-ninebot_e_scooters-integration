@@ -76,9 +76,10 @@ the scooter's next advertisement instead. Everything else behaves the same.
    additional sensors you want (see below).
 3. Press the power button once, briefly, only when the centered pairing prompt appears.
 
-For HACS, once the repository is public: add it as a **custom repository → Integration** and
-enable beta versions. `ninebot_e_scooters.zip` contains the integration directly in the ZIP root
-and serves HACS and manual installs alike.
+For HACS, add the repository as a **custom repository → Integration**. While only beta releases
+exist, HACS installs the current state of the `main` branch; to pin a tagged beta, enable
+**Show beta versions** in the HACS redownload dialog. `ninebot_e_scooters.zip` contains the
+integration directly in the ZIP root and serves manual installs.
 
 **Migrating from `xiaomi_scooter`:** the new technical domain is `ninebot_e_scooters`. This is
 not an automatic update of the old config entry. Create a Home Assistant backup first, note your
