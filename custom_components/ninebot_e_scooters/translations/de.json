@@ -15,7 +15,7 @@
       },
       "bluetooth_confirm": {
         "title": "Ninebot/Xiaomi Scooter gefunden",
-        "description": "{name} zu Home Assistant hinzufügen? Das genaue Modell wird nach der ersten erfolgreichen BLE-Verbindung erkannt.",
+        "description": "{name} zu Home Assistant hinzufügen? Das genaue Modell wird nach der ersten erfolgreichen BLE-Verbindung erkannt. Sag mir nach der Einrichtung bitte [in zwei Minuten]({report_url}), ob dein Scooter funktioniert. Daran entscheidet sich, welche Modelle als geprüft gelten.",
         "data": {
           "model": "Scooter-Modell (falls unbekannt: Automatisch)",
           "sensor_groups": "Zusätzliche Sensoren"
@@ -246,6 +246,12 @@
         "device_info": "Geräteinformationen: Firmware-, BMS- und BLE-Version, Batteriedatum, Seriennummer",
         "status_codes": "Statuscodes: Fehler-, Warn- und Statusregister als Rohwert für Fehlerberichte"
       }
+    }
+  },
+  "issues": {
+    "scooter_feedback": {
+      "title": "Funktioniert dein {model}?",
+      "description": "Dein {model} liefert seit einigen Tagen Werte, dieses Modell ist aber noch nicht auf echter Hardware geprüft. Bitte [melde in zwei Minuten]({report_url}), wie es bei dir läuft; „alles funktioniert“ hilft genauso wie ein Fehlerbericht. Du kannst diesen Hinweis ausblenden."
     }
   }
 }

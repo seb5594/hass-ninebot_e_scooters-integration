@@ -12,6 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import CONF_MODEL, DEFAULT_POLL_INTERVAL, MODEL
+from .feedback import FeedbackInvitation
 from .protocols.legacy import LegacyM365Link
 from .protocols.ninebot.crypto import NinebotCrypto
 from .protocols.ninebot.packet import DeviceId, NinebotPacket
@@ -84,6 +85,7 @@ class ScooterCoordinator(DeviceMixin, ConnectionMixin, SessionMixin, RequestsMix
         self._last_error: str | None = None
         self._last_telemetry_at: datetime | None = None
         self._telemetry_store = Store(hass, 1, storage_key(address), private=True)
+        self._feedback_invitation = FeedbackInvitation(hass, entry.entry_id, address)
         self._saved_snapshot: dict[str, Any] | None = None
         self._last_saved_at = 0.0
         self._last_speed_at: datetime | None = None

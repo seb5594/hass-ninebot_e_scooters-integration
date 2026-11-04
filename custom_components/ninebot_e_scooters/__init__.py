@@ -31,6 +31,7 @@ from .const import (
     PLATFORMS,
 )
 from .coordinator import ScooterCoordinator
+from .feedback import withdraw_invitation
 from .sensor_groups import selected_sensor_groups
 
 _LOGGER = logging.getLogger(__name__)
@@ -259,6 +260,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntr
         )
         entry.async_on_unload(_cancel_start_listener)
     return True
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntry) -> None:
+    """Drop the feedback invitation together with the scooter."""
+    withdraw_invitation(hass, entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntry) -> bool:
