@@ -9,7 +9,7 @@ mit `a`, `b` oder `rc` werden automatisch als Pre-release veröffentlicht.
 3. Unter **Settings → Secrets and variables → Actions** `ORCHESTRATION_PAT` setzen:
    ein Token mit Leserechten für das private Repository `seb5594/hass-workflows`.
 4. Ein neues Release entsteht, sobald die Manifest-Version auf `main` neu ist. Für eine
-   Prüfung vorab **Actions → Validate and release integration → Run workflow** auf `main`
+   Prüfung vorab **Actions → Home Assistant CI → Run workflow** auf `main`
    starten und `draft` aktiviert lassen: Es entsteht ein Release-Entwurf mit ZIPs und
    Prüfsummen.
 5. Unter **Releases** den Entwurf öffnen, kurze Änderungen ergänzen und die Dateien
