@@ -1,0 +1,85 @@
+name: Scooter report (works / does not work)
+description: Two minutes, mostly clicking. Tell me whether your scooter works - good news is just as useful as bad news.
+title: "[Report]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for testing! Most models were implemented from public protocol documentation
+        and only one has been verified on real hardware, so **every report decides which
+        model is marked as working**. A one-line "works" helps as much as a bug report.
+
+        Deutsch ist willkommen.
+  - type: dropdown
+    id: model
+    attributes:
+      label: Your scooter
+      options:
+        - Xiaomi Mi Electric Scooter 1S
+        - Xiaomi Mi Electric Scooter Pro 2
+        - Xiaomi Mi Electric Scooter Essential
+        - Xiaomi M365 (four-dot display)
+        - Xiaomi M365 Pro
+        - Ninebot ES1 / ES2 / ES3 / ES4
+        - Ninebot Max G30 family
+        - Ninebot E22 / E25 / E45
+        - Ninebot F20 / F25 / F30 / F40
+        - Other (please name it below)
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: How did it go?
+      options:
+        - Everything works
+        - Works, but some values or controls are missing or wrong
+        - Found only after adding it manually
+        - Pairing or connecting fails
+        - Does not work at all
+    validations:
+      required: true
+  - type: checkboxes
+    id: working
+    attributes:
+      label: What works for you?
+      description: Tick everything that works. Leave out what does not.
+      options:
+        - label: The scooter was found automatically
+        - label: Setup and pairing finished
+        - label: Battery level and odometer match the manufacturer app
+        - label: Speed, trip distance and riding data (if enabled)
+        - label: It reconnects by itself after a Home Assistant restart
+        - label: Lock, cruise control or tail light can be switched (Xiaomi only)
+  - type: dropdown
+    id: bluetooth
+    attributes:
+      label: How does Home Assistant reach the scooter?
+      options:
+        - Bluetooth adapter of the Home Assistant device
+        - USB Bluetooth adapter
+        - ESPHome Bluetooth proxy
+        - Other Bluetooth proxy
+        - I do not know
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Home Assistant and this integration, for example "2026.10.4 / 1.0.0b4".
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Anything else?
+      description: What happened, what you expected, or the name your scooter shows in Bluetooth if it was renamed. Optional.
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics file
+      description: |
+        Open **Settings → Devices & services → Ninebot E-Scooters → three dots → Download diagnostics**
+        and drag the file into this box. Address, serial number and keys are removed automatically.
+        Optional for "everything works", very helpful for everything else.
