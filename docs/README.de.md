@@ -1,6 +1,6 @@
 # Ninebot E-Scooters
 
-[English](../README.md) · [Deutsch](README.de.md)
+[🇬🇧 English](../README.md) · [🇩🇪 Deutsch](README.de.md)
 
 > [!IMPORTANT]
 > **Bisher ist nur 1 von 8 Modellgruppen auf echter Hardware geprüft.** Du besitzt ein anderes?
