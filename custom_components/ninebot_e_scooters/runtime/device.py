@@ -83,6 +83,12 @@ class DeviceMixin:
         """Expose a detected model without changing the user's saved selection."""
         return self.detected_model or ("Xiaomi Scooter (BLE129)" if self.model == AUTO_MODEL else self.model)
 
+    @property
+    def has_hardware_tested_profile(self) -> bool:
+        """Whether the effective model profile was verified on real hardware."""
+        profile = effective_profile(self.model, self._model_identification)
+        return bool(profile and profile.hardware_tested)
+
     def supports_action(self, field: str) -> bool:
         """Gate every write by a vetted profile and any conflicting evidence."""
         return not self._model_conflict and supports_write(self.model, self._model_identification, field)
@@ -192,7 +198,7 @@ class DeviceMixin:
     def diagnostics(self) -> dict[str, Any]:
         """Return diagnostics information."""
         return {
-            "hardware_tested_profile": (profile.hardware_tested if (profile := effective_profile(self.model, self._model_identification)) else False),
+            "hardware_tested_profile": self.has_hardware_tested_profile,
             "consecutive_failed_sessions": self._backoff.failures,
             "retry_cooldown_remaining_s": round(max(0, self._retry_not_before - asyncio.get_running_loop().time()), 1),
             "address": self.address,

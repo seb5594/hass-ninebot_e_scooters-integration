@@ -36,6 +36,7 @@ from .const import (
     MIN_POLL_INTERVAL,
     LEGACY_XIAOMI_MODELS,
     MODEL,
+    REPORT_URL,
 )
 from .models.profiles import AUTO_MODEL
 from .models.profiles import identify_model
@@ -307,7 +308,7 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is None:
             return self.async_show_form(
                 step_id="bluetooth_confirm",
-                description_placeholders=self.context["title_placeholders"],
+                description_placeholders={**self.context["title_placeholders"], "report_url": REPORT_URL},
                 data_schema=vol.Schema(_setup_fields()),
             )
 
