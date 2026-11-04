@@ -1,5 +1,13 @@
 # Changelog
 
+## Beta 4 (`1.0.0b4`)
+
+- Renamed Xiaomi scooters are discovered: they advertise only a MiBeacon frame, so the
+  manifest now matches the Xiaomi service data UUID and discovery checks the product ID
+  inside the frame (Mi Electric Scooter 1S: `0x061C`). Other Xiaomi devices are rejected
+  without a notification. Product IDs of further models are added to
+  `XIAOMI_SCOOTER_PRODUCT_IDS` in `discovery.py`.
+
 ## Beta 3 (`1.0.0b3`)
 
 - Renamed scooters are discovered: besides the Bluetooth name, discovery now recognizes the
