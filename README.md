@@ -21,7 +21,7 @@
 </p>
 <!-- header:end -->
 
-[English](README.md) · [Deutsch](docs/README.de.md)
+[🇬🇧 English](README.md) · [🇩🇪 Deutsch](docs/README.de.md)
 
 > [!IMPORTANT]
 > **Only 1 of 8 model groups has been verified on real hardware so far.** Do you own another
