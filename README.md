@@ -59,7 +59,7 @@ Bluetooth proxy. Disconnect other scooter apps before setup. Releases before 202
 request a one-shot active scan or replay the newest sighting; the integration then waits for
 the scooter's next advertisement instead. Everything else behaves the same.
 
-1. Install through HACS (see below), or manually from the Home Assistant terminal (SSH or
+1. Install through HACS or the Marketplace (see below), or manually from the Home Assistant terminal (SSH or
    Terminal app) with the version you want from the
    [releases](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases):
 
@@ -78,8 +78,9 @@ the scooter's next advertisement instead. Everything else behaves the same.
    additional sensors you want (see below).
 3. Press the power button once, briefly, only when the centered pairing prompt appears.
 
-For HACS, add the repository as a **custom repository → Integration** and download it; HACS
-installs the newest release. `ninebot_e_scooters.zip` contains the integration directly in the
+For HACS (Home Assistant 2026.10 and older) or the Marketplace (2026.11 and newer, built in under
+**Settings → Marketplace**), use the **HACS · Marketplace** button above or add the repository as a
+**custom repository → Integration**, then download it; the newest release is installed. `ninebot_e_scooters.zip` contains the integration directly in the
 ZIP root and serves HACS and manual installs alike.
 
 **Migrating from `xiaomi_scooter`:** the new technical domain is `ninebot_e_scooters`. This is
