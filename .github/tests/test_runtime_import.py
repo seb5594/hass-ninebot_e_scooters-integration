@@ -72,7 +72,9 @@ def runtime(monkeypatch):
     module("homeassistant.exceptions", HomeAssistantError=HAError)
     registry = module("homeassistant.helpers.device_registry", DeviceInfo=dict,
                       async_get=lambda hass: SimpleNamespace(async_get_device=lambda **kwargs: None))
-    module("homeassistant.helpers", device_registry=registry)
+    issues = module("homeassistant.helpers.issue_registry", async_create_issue=lambda *args, **kwargs: None,
+                    async_delete_issue=lambda *args, **kwargs: None, IssueSeverity=SimpleNamespace(WARNING="warning"))
+    module("homeassistant.helpers", device_registry=registry, issue_registry=issues)
     module("homeassistant.helpers.entity", Entity=type("Entity", (), {"_name_translation_key": None}))
     module("homeassistant.helpers.redact", async_redact_data=lambda data, keys: data)
     module("homeassistant.helpers.storage", Store=Store)
@@ -80,7 +82,7 @@ def runtime(monkeypatch):
     # Reload only the HA-facing modules so every dependency uses these doubles.
     names = ["custom_components.ninebot_e_scooters.runtime." + name
              for name in ("errors", "device", "connection", "session", "requests", "telemetry", "controls")]
-    names.append("custom_components.ninebot_e_scooters.coordinator")
+    names.extend(("custom_components.ninebot_e_scooters.feedback", "custom_components.ninebot_e_scooters.coordinator"))
     for name in names:
         monkeypatch.delitem(sys.modules, name, raising=False)
     implementation = importlib.import_module(names[-1])
