@@ -3,7 +3,7 @@
 [English](../README.md) · [Deutsch](README.de.md)
 
 > [!IMPORTANT]
-> **Bisher ist nur ein Scooter-Modell auf echter Hardware geprüft.** Du besitzt ein anderes?
+> **Bisher ist nur 1 von 8 Modellgruppen auf echter Hardware geprüft.** Du besitzt ein anderes?
 > Dann [melde in zwei Minuten, ob es funktioniert](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml).
 > Es ist ein kurzes Formular, und eine Meldung „alles läuft“ hilft genauso wie ein Fehlerbericht.
 
@@ -19,13 +19,13 @@ funktionierende Bluetooth-Sitzung und nutzt gespeicherte Schlüssel erneut.
 | Modell/Familie | Protokoll/Firmware | Funktionen | Prüfstatus |
 | --- | --- | --- | --- |
 | Xiaomi 1S | 5A A5, BLE129 / DRV1.28 | Telemetrie und abgesicherte Steuerung | Referenzgerät der Basis |
-| Xiaomi Pro 2 / Essential | 5A A5, BLE129 | Telemetrie | Hardwaretest ausstehend |
-| Xiaomi M365, Vier-Punkte-Anzeige | Unverschlüsseltes 55 AA | Telemetrie | Hardwaretest ausstehend |
-| Xiaomi M365 Pro | 5A A5, BLE110/122 | Telemetrie | Hardwaretest ausstehend |
-| Ninebot ES1 / ES2 / ES3 / ES4 | 5A A5, BLE109/110 | Lesende Wortregister | Experimentell |
-| Ninebot Max G30 / G30P / G30D / G30E / G30LP / G30LE / G30LD | 5A A5, BLE110/113/114 | Lesende Wortregister | Experimentell |
-| Ninebot E22 / E25 / E45 | 5A A5, BLE209/213 | Lesende Wortregister | Experimentell |
-| Ninebot F20 / F25 / F30 / F40 | 5A A5, BLE307, PC-Adresse | Lesende Wortregister | Experimentell |
+| Xiaomi Pro 2 / Essential | 5A A5, BLE129 | Telemetrie | Hardwaretest ausstehend · [melden](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Xiaomi%20Mi%20Electric%20Scooter%20Pro%202) |
+| Xiaomi M365, Vier-Punkte-Anzeige | Unverschlüsseltes 55 AA | Telemetrie | Hardwaretest ausstehend · [melden](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Xiaomi%20M365%20%28four-dot%20display%29) |
+| Xiaomi M365 Pro | 5A A5, BLE110/122 | Telemetrie | Hardwaretest ausstehend · [melden](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Xiaomi%20M365%20Pro) |
+| Ninebot ES1 / ES2 / ES3 / ES4 | 5A A5, BLE109/110 | Lesende Wortregister | Experimentell · [melden](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20ES1%20%2F%20ES2%20%2F%20ES3%20%2F%20ES4) |
+| Ninebot Max G30 / G30P / G30D / G30E / G30LP / G30LE / G30LD | 5A A5, BLE110/113/114 | Lesende Wortregister | Experimentell · [melden](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20Max%20G30%20family) |
+| Ninebot E22 / E25 / E45 | 5A A5, BLE209/213 | Lesende Wortregister | Experimentell · [melden](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20E22%20%2F%20E25%20%2F%20E45) |
+| Ninebot F20 / F25 / F30 / F40 | 5A A5, BLE307, PC-Adresse | Lesende Wortregister | Experimentell · [melden](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20F20%20%2F%20F25%20%2F%20F30%20%2F%20F40) |
 
 Diese BLE-Versionen stammen aus öffentlichen Implementierungen. Sie garantieren keine
 Kompatibilität mit jeder Regions-, Dashboard- oder Firmwarevariante. Xiaomi BLE132 mit
