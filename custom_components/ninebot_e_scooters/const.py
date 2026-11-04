@@ -56,6 +56,12 @@ from .models.profiles import AUTO_MODEL, PROFILES, UNVERIFIED
 
 DOMAIN = "ninebot_e_scooters"
 
+# Short form for owners to report whether their scooter works.
+REPORT_URL = (
+    "https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new"
+    "?template=scooter-report.yml"
+)
+
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.BINARY_SENSOR,

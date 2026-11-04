@@ -15,7 +15,7 @@
       },
       "bluetooth_confirm": {
         "title": "Ninebot/Xiaomi scooter found",
-        "description": "Add {name} to Home Assistant? The exact model is detected after the first successful BLE session.",
+        "description": "Add {name} to Home Assistant? The exact model is detected after the first successful BLE session. After setup, please [tell me in two minutes]({report_url}) whether your scooter works. It decides which models are marked as verified.",
         "data": {
           "model": "Scooter model (automatic if unknown)",
           "sensor_groups": "Additional sensors"
@@ -246,6 +246,12 @@
         "device_info": "Device information: firmware, BMS and BLE versions, battery date, serial number",
         "status_codes": "Status codes: raw error, warning and status registers for bug reports"
       }
+    }
+  },
+  "issues": {
+    "scooter_feedback": {
+      "title": "Does your {model} work?",
+      "description": "Your {model} has delivered readings for a few days, but this model has not been verified on real hardware yet. Please [tell me in two minutes]({report_url}) how it works for you; \"everything works\" is just as useful as a problem report. You can dismiss this notice."
     }
   }
 }
