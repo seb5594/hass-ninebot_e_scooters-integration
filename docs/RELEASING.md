@@ -1,7 +1,7 @@
 # Beta veröffentlichen
 
-**Vorbereitet:** Anzeigename Beta 3, Manifest-Version `1.0.0b3`, Git-Tag
-`v1.0.0b3`. Diese Schreibweise ist für Home Assistant und Python eindeutig; Versionen
+**Vorbereitet:** Anzeigename Beta 4, Manifest-Version `1.0.0b4`, Git-Tag
+`v1.0.0b4`. Diese Schreibweise ist für Home Assistant und Python eindeutig; Versionen
 mit `a`, `b` oder `rc` werden automatisch als Pre-release veröffentlicht.
 
 1. Änderungen auf `main` übernehmen und den grünen **CI**-Lauf prüfen.
@@ -14,7 +14,7 @@ mit `a`, `b` oder `rc` werden automatisch als Pre-release veröffentlicht.
    Prüfsummen.
 5. Unter **Releases** den Entwurf öffnen, kurze Änderungen ergänzen und die Dateien
    prüfen, dann veröffentlichen. Den Titel setzt die Engine aus Name und Manifest-Version
-   (`Ninebot E-Scooters 1.0.0b3`); der Anzeigename aus dem Changelog lässt sich hier ergänzen.
+   (`Ninebot E-Scooters 1.0.0b4`); der Anzeigename aus dem Changelog lässt sich hier ergänzen.
 
 Die gesamte Pipeline kommt aus `seb5594/hass-workflows`; `.github/workflows/ci.yml`
 ruft sie mit einem festen Commit auf und darf nicht lokal angepasst werden. Ein neuer
