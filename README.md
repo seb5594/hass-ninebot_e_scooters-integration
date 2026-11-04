@@ -23,6 +23,11 @@
 
 [English](README.md) · [Deutsch](docs/README.de.md)
 
+> [!IMPORTANT]
+> **Only one scooter model has been verified on real hardware so far.** Do you own another
+> one? Please [tell me in two minutes whether it works](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml).
+> It is a short form, and a report that everything works helps as much as a bug report.
+
 Local Home Assistant integration for Ninebot/Segway e-scooters and compatible Xiaomi models.
 No cloud account required.
 
