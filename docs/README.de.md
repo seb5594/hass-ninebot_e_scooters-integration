@@ -47,12 +47,12 @@ wartet dann auf die nächste Aussendung des Scooters. Alles andere verhält sich
    cd /config
    mkdir -p custom_components/ninebot_e_scooters
    wget -O /tmp/ninebot_e_scooters.zip \
-     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0b3/ninebot_e_scooters.zip
+     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0b4/ninebot_e_scooters.zip
    unzip -o /tmp/ninebot_e_scooters.zip -d custom_components/ninebot_e_scooters
    rm /tmp/ninebot_e_scooters.zip
    ```
 
-   `v1.0.0b3` durch die gewünschte Version ersetzen. Danach Home Assistant neu starten.
+   `v1.0.0b4` durch die gewünschte Version ersetzen. Danach Home Assistant neu starten.
 2. Unter **Einstellungen → Geräte & Dienste → Integration hinzufügen** nach
    **Ninebot E-Scooters** suchen. Scooter einschalten, passendes Modell auswählen und bei
    Bedarf zusätzliche Sensoren ankreuzen (siehe unten).

@@ -1,7 +1,9 @@
 """Behavioral checks for model boundaries and the new read-only adapter."""
 
 import asyncio
+import json
 from dataclasses import replace
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -16,6 +18,8 @@ from custom_components.ninebot_e_scooters.protocols.ninebot.registers import REG
 from custom_components.ninebot_e_scooters.runtime.ninebot import NinebotMixin
 from custom_components.ninebot_e_scooters.utilities import ConnectionBackoff, parse_app_key
 
+MANIFEST = Path(__file__).parents[2] / "custom_components" / "ninebot_e_scooters" / "manifest.json"
+
 
 @pytest.mark.parametrize("name", ["MIScooter1234", "Ninebot1234", "NBScooter1234", "Segway1234"])
 def test_named_scooters_are_discoverable(name):
@@ -27,6 +31,27 @@ def test_renamed_scooters_are_found_by_their_ble_module(company):
     renamed = SimpleNamespace(name="Kellerflitzer", manufacturer_data={company: b"\x21\x00"})
     assert is_scooter_advertisement(renamed)
     assert is_scooter_advertisement(SimpleNamespace(name=None, manufacturer_data={company: b""}))
+
+
+MIBEACON_1S = bytes.fromhex("30581c060125dd50b19bd808")
+XIAOMI_UUID = "0000fe95-0000-1000-8000-00805f9b34fb"
+
+
+def test_renamed_xiaomi_scooter_is_found_by_its_mibeacon_product_id():
+    beacon_only = SimpleNamespace(name="Rfxpro2", manufacturer_data={}, service_data={XIAOMI_UUID: MIBEACON_1S})
+    assert is_scooter_advertisement(beacon_only)
+
+
+def test_other_xiaomi_beacons_and_truncated_frames_are_ignored():
+    thermometer = bytes.fromhex("5020aa01") + b"\x00" * 8
+    assert not is_scooter_advertisement(SimpleNamespace(name="LYWSD03MMC", service_data={XIAOMI_UUID: thermometer}))
+    assert not is_scooter_advertisement(SimpleNamespace(name="x", service_data={XIAOMI_UUID: MIBEACON_1S[:3]}))
+    assert not is_scooter_advertisement(SimpleNamespace(name="x", service_data={}))
+
+
+def test_manifest_matches_the_xiaomi_beacon_uuid():
+    manifest = json.loads(MANIFEST.read_text())
+    assert {"connectable": True, "service_data_uuid": XIAOMI_UUID} in manifest["bluetooth"]
 
 
 def test_serial_style_names_of_newer_ninebot_generations_are_discoverable():
