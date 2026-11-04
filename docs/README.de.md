@@ -39,7 +39,7 @@ ESPHome-Bluetooth-Proxy. Andere Scooter-Apps vor der Einrichtung trennen. Vor 20
 weder einen einmaligen aktiven Scan noch die Wiedergabe der letzten Sichtung; die Integration
 wartet dann auf die nächste Aussendung des Scooters. Alles andere verhält sich gleich.
 
-1. Per HACS installieren (siehe unten) oder manuell im Terminal von Home Assistant
+1. Per HACS oder Marketplace installieren (siehe unten) oder manuell im Terminal von Home Assistant
    (SSH-/Terminal-App) die gewünschte Version aus den
    [Releases](https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases) laden:
 
@@ -58,10 +58,11 @@ wartet dann auf die nächste Aussendung des Scooters. Alles andere verhält sich
    Bedarf zusätzliche Sensoren ankreuzen (siehe unten).
 3. Erst beim zentrierten Pairing-Hinweis einmal kurz die Einschalttaste drücken.
 
-Für HACS nach einer öffentlichen Veröffentlichung: dieses Repository als
+Für HACS (Home Assistant 2026.10 und älter) oder den Marketplace (ab 2026.11 eingebaut unter
+**Einstellungen → Marketplace**) nach einer öffentlichen Veröffentlichung: dieses Repository als
 **Benutzerdefiniertes Repository → Integration** hinzufügen; Beta-Versionen aktivieren.
 Die Datei `ninebot_e_scooters.zip` enthält die Integration direkt im ZIP-Wurzelordner und
-dient HACS wie der manuellen Installation.
+dient HACS und dem Marketplace wie der manuellen Installation.
 
 **Umstieg von `xiaomi_scooter`:** Die neue technische Domain ist `ninebot_e_scooters`.
 Dies ist kein automatisches Update des alten Config Entries. Zuerst eine HA-Sicherung
