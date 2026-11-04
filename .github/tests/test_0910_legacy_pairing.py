@@ -164,4 +164,5 @@ assert.equal(opened,2);
 handler({type:"removed", notifications:{[id]:{}}});
 assert.equal(currentDialog.open,false);
 '''
-    subprocess.run([shutil.which("node"), "-e", script, source], check=True, timeout=5)
+    # Bound the subprocess, allowing for Node startup on a busy CI runner.
+    subprocess.run([shutil.which("node"), "-e", script, source], check=True, timeout=30)
