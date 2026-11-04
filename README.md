@@ -16,7 +16,7 @@
   <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/stargazers"><img src="https://img.shields.io/github/stars/seb5594/hass-ninebot_e_scooters-integration?label=stars&amp;style=flat" alt="stars" height="20"></a>
   <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases"><img src="https://img.shields.io/github/downloads/seb5594/hass-ninebot_e_scooters-integration/v1.0.0b4/total?label=downloads&amp;color=1877A5&amp;style=flat" alt="downloads" height="20"></a>
   <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues"><img src="https://img.shields.io/github/issues/seb5594/hass-ninebot_e_scooters-integration?label=issues&amp;style=flat" alt="issues" height="20"></a>
-  <img src="https://img.shields.io/static/v1?label=tests&amp;message=221%20passed&amp;color=2F855A&amp;style=flat" alt="tests" height="20">
+  <img src="https://img.shields.io/static/v1?label=tests&amp;message=229%20passed&amp;color=2F855A&amp;style=flat" alt="tests" height="20">
   <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/seb5594/hass-ninebot_e_scooters-integration/ci.yml?branch=main&amp;label=checks&amp;style=flat" alt="checks" height="20"></a>
 </p>
 <!-- header:end -->
