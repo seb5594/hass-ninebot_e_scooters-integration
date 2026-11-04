@@ -42,6 +42,7 @@ class TelemetryMixin:
     async def async_restore_saved_data(self) -> None:
         """Restore verified readings without treating them as a live BLE session."""
         try:
+            await self._feedback_invitation.async_load()
             payload = await self._telemetry_store.async_load()
             data, last_read_at = restore(payload, self.address)
         except (OSError, ValueError, TypeError):
@@ -242,6 +243,7 @@ class TelemetryMixin:
         )
         self._last_telemetry_at = datetime.now(UTC)
         self._saved_snapshot = snapshot(self.address, data, self._last_telemetry_at)
+        self._feedback_invitation.note_live_reading(self.display_model, self.has_hardware_tested_profile)
         now = time.monotonic()
         if now - self._last_saved_at >= 60 or (
             self.data is not None
