@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: seb5594/hass-workflows
-          ref: 53cf64421dfe4bdfdccb4441691d2bdf48117fc2
+          ref: e0b4b61fd2ad16b903cd3f1760f59107c2625a60
           token: ${{ secrets.ORCHESTRATION_PAT }}
           path: .engine
           persist-credentials: false
@@ -43,6 +43,7 @@ jobs:
           repository: ${{ github.repository }}
           comment: 'false'
       - name: Validate Home Assistant integration
+        if: ${{ !cancelled() }} # Report hassfest findings even when the HACS checks failed.
         uses: home-assistant/actions/hassfest@master
       - name: Prepare catalog submission
         env:
