@@ -1,6 +1,6 @@
 # Lizenz
 
-Das Projekt steht seit Version 1.0.0 unter der [MIT-Lizenz](../LICENSE): Jede Person darf den
+Das Projekt steht unter der [MIT-Lizenz](../LICENSE): Jede Person darf den
 Code frei nutzen, verändern und weitergeben, auch kommerziell.
 
 **Offener Punkt:** Der Crypto-Pfad beruht laut Ausgangsprojekt auf AGPL-3.0-Code
