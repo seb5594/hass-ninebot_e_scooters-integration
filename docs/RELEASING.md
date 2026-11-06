@@ -1,32 +1,26 @@
-# Beta veröffentlichen
+# Release veröffentlichen
 
-**Vorbereitet:** Anzeigename Beta 4, Manifest-Version `1.0.0b4`, Git-Tag
-`v1.0.0b4`. Diese Schreibweise ist für Home Assistant und Python eindeutig; Versionen
-mit `a`, `b` oder `rc` werden automatisch als Pre-release veröffentlicht.
+Ein neues Release entsteht, sobald die Manifest-Version
+(`custom_components/ninebot_e_scooters/manifest.json`) auf `main` neu ist. Tag und Titel
+lauten `v<Version>`; Versionen mit `a`, `b` oder `rc` erscheinen unter ihrer Stufe
+(zum Beispiel `Beta 4`). Die Prüfsumme der ZIP-Datei steht als letzte Zeile in den
+Release-Hinweisen.
 
-1. Änderungen auf `main` übernehmen und den grünen **CI**-Lauf prüfen.
-2. Die Lizenz-/Rechtefrage klären. Das private Repository erst danach öffentlich stellen.
-3. Unter **Settings → Secrets and variables → Actions** `ORCHESTRATION_PAT` setzen:
-   ein Token mit Leserechten für das private Repository `seb5594/hass-workflows`.
-4. Ein neues Release entsteht, sobald die Manifest-Version auf `main` neu ist. Für eine
-   Prüfung vorab **Actions → Home Assistant CI → Run workflow** auf `main`
-   starten und `draft` aktiviert lassen: Es entsteht ein Release-Entwurf mit ZIPs und
-   Prüfsummen.
-5. Unter **Releases** den Entwurf öffnen, kurze Änderungen ergänzen und die Dateien
-   prüfen, dann veröffentlichen. Den Titel setzt die Engine aus Name und Manifest-Version
-   (`Ninebot E-Scooters 1.0.0b4`); der Anzeigename aus dem Changelog lässt sich hier ergänzen.
+1. Manifest-Version erhöhen, die Cache-Version des Pairing-Moduls in `__init__.py`
+   (`pairing_dialog.js?v=…`) angleichen und `CHANGELOG.md` ergänzen.
+2. Änderungen auf `main` übernehmen und den grünen **CI**-Lauf abwarten.
+3. Die Pipeline veröffentlicht das Release mit `ninebot_e_scooters.zip`. Ein vorhandenes
+   Release wird nicht überschrieben.
 
-Die gesamte Pipeline kommt aus `seb5594/hass-workflows`; `.github/workflows/ci.yml`
-ruft sie mit einem festen Commit auf und darf nicht lokal angepasst werden. Ein neuer
-Pin wird durch Kopieren der Vorlage `.templates/integration/ci.yml.tpl` übernommen.
-Die Veröffentlichung verwendet `GITHUB_TOKEN` mit `contents: write`.
+Für eine Prüfung vorab **Actions → Home Assistant CI → Run workflow** auf `main` starten und
+`draft` aktiviert lassen: Es entsteht ein Release-Entwurf, den du ergänzen und
+veröffentlichen kannst.
+
+Die gesamte Pipeline kommt aus `seb5594/hass-workflows`; `.github/workflows/ci.yml` ruft sie
+mit einem festen Commit auf und darf nicht lokal angepasst werden. Neue Pins kommen über
+`managed.py sync` der Engine. Für die Veröffentlichung wird `ORCHESTRATION_PAT` (Leserecht auf
+das private Engine-Repository) benötigt.
 
 | Datei | Zweck |
 | --- | --- |
 | `ninebot_e_scooters.zip` | HACS und manuelle Installation (`wget`), Integration direkt im ZIP-Wurzelordner |
-| `SHA256SUMS.txt` | Prüfsummen der ZIP-Dateien |
-
-**Nächste Beta:** Manifest auf `1.0.0b4` setzen, Cache-Version des Pairing-Moduls in
-`__init__.py` und Changelog aktualisieren, prüfen. Ein vorhandenes Release wird nicht
-überschrieben. Für die stabile Version `1.0.0` verwenden. Ein Tag markiert eine feste
-Codeversion; ein Release ergänzt Titel, Hinweise und herunterladbare Dateien.
