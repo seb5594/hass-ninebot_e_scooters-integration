@@ -12,12 +12,13 @@
   <a href="https://buymeacoffee.com/seb5594"><img src="https://img.shields.io/static/v1?label=Support&amp;message=Buy%20Me%20a%20Coffee&amp;color=FFDD00&amp;logo=buy-me-a-coffee&amp;logoColor=black&amp;style=for-the-badge" alt="Buy Me a Coffee" height="40"></a><br>
   <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=seb5594&amp;repository=hass-ninebot_e_scooters-integration&amp;category=integration"><img src="https://img.shields.io/static/v1?label=HACS%20%C2%B7%20Marketplace&amp;message=Add%20integration&amp;color=41BDF5&amp;logo=homeassistantcommunitystore&amp;logoColor=white&amp;style=for-the-badge" alt="HACS · Marketplace" height="28"></a>
   <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/actions/workflows/compat.yml"><img src="https://img.shields.io/static/v1?label=home%20assistant&amp;message=%E2%89%A5%202023.2.0&amp;color=1877A5&amp;style=for-the-badge" alt="home assistant" height="28"></a>
-  <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/tag/v1.0.0b4"><img src="https://img.shields.io/static/v1?label=version&amp;message=1.0.0b4&amp;color=1877A5&amp;style=for-the-badge" alt="version" height="28"></a><br>
+  <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/tag/v1.0.0"><img src="https://img.shields.io/static/v1?label=version&amp;message=1.0.0&amp;color=1877A5&amp;style=for-the-badge" alt="version" height="28"></a><br>
   <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/stargazers"><img src="https://img.shields.io/github/stars/seb5594/hass-ninebot_e_scooters-integration?label=stars&amp;style=flat" alt="stars" height="20"></a>
-  <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases"><img src="https://img.shields.io/github/downloads/seb5594/hass-ninebot_e_scooters-integration/v1.0.0b4/total?label=downloads&amp;color=1877A5&amp;style=flat" alt="downloads" height="20"></a>
+  <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases"><img src="https://img.shields.io/github/downloads/seb5594/hass-ninebot_e_scooters-integration/v1.0.0/total?label=downloads&amp;color=1877A5&amp;style=flat" alt="downloads" height="20"></a>
   <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues"><img src="https://img.shields.io/github/issues/seb5594/hass-ninebot_e_scooters-integration?label=issues&amp;style=flat" alt="issues" height="20"></a>
   <img src="https://img.shields.io/static/v1?label=tests&amp;message=229%20passed&amp;color=2F855A&amp;style=flat" alt="tests" height="20">
   <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/seb5594/hass-ninebot_e_scooters-integration/ci.yml?branch=main&amp;label=checks&amp;style=flat" alt="checks" height="20"></a>
+  <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration#license"><img src="https://img.shields.io/github/license/seb5594/hass-ninebot_e_scooters-integration?label=license&amp;style=flat" alt="license" height="20"></a>
 </p>
 <!-- header:end -->
 
@@ -179,3 +180,11 @@ If my work helped you or turned out to be useful, show your appreciation with a 
 
 [![PayPal](https://img.shields.io/static/v1?label=Support&message=PayPal&color=0070BA&logo=paypal&logoColor=white&style=for-the-badge)](https://paypal.me/seb5594) [![Buy Me a Coffee](https://img.shields.io/static/v1?label=Support&message=Buy%20Me%20a%20Coffee&color=FFDD00&logo=buy-me-a-coffee&logoColor=black&style=for-the-badge)](https://buymeacoffee.com/seb5594)
 <!-- support:end -->
+
+<!-- license:begin (generated from the license file) -->
+## License
+
+[![license](https://img.shields.io/static/v1?label=license&message=MIT&color=5B6770&style=flat)](LICENSE)
+
+Published under the [MIT License](LICENSE).
+<!-- license:end -->
