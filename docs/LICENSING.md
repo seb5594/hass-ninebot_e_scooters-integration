@@ -1,26 +1,11 @@
-# Lizenzentscheidung
+# Lizenz
 
-Eine Privatperson kann Software lizenzieren und kommerzielle Lizenzverträge
-abschließen. Entscheidend sind deine Rechte am Code, nicht die Größe des Projekts.
+Das Projekt steht seit Version 1.0.0 unter der [MIT-Lizenz](../LICENSE): Jede Person darf den
+Code frei nutzen, verändern und weitergeben, auch kommerziell.
 
-| Ziel | Passende Richtung | Folge |
-| --- | --- | --- |
-| Einfache, freie Wiederverwendung | MIT / Apache-2.0 | Auch große Firmen dürfen kostenlos wiederverwenden. |
-| Offene Weiterentwicklung, auch bei Netzwerkangeboten | AGPL-3.0 | Kommerzielle Nutzung bleibt erlaubt; einschlägige Weitergabe- und Netzwerkpflichten verlangen Quellcodezugang. Keine allgemeine Pflicht zu Lizenzgebühren. |
-| Kommerzielle Nutzung nur gegen Vertrag/Gebühr | Kommerzielle Lizenz oder Doppellizenz | Du brauchst die entsprechenden Rechte an allen betroffenen Teilen. Eine selbst formulierte Einschränkung ist keine anerkannte Open-Source-Lizenz. |
-
-**Für den gewünschten Gebührenanspruch:** Erst die Herkunft des vorhandenen Codes
-prüfen, danach ein kommerzielles oder duales Modell fachlich ausarbeiten lassen.
-„Große Projekte“ braucht eine eindeutige Definition; MIT und AGPL erfüllen diesen
-Gebührenwunsch nicht. Ein Dual-Modell erlaubt eine offene Lizenz und eine zusätzliche
-kommerzielle Lizenz für Kunden, die deren Pflichten vermeiden möchten.
-
-Der aktuelle Crypto-Pfad beruht laut Ausgangsprojekt auf AGPL-Code. Solche Teile
-kannst du nicht allein durch Umbenennen, Optimieren oder Umformulieren proprietär
-umlizenzieren. Dafür brauchst du entsprechende zusätzliche Rechte oder eine
-nachweislich eigenständige Implementierung auf Basis der Protokollspezifikation.
-
-Bis zur Entscheidung bleibt die Projektlizenz offen und es wird keine neue
-Nutzungserlaubnis für Drittanbietercode behauptet. Eine spätere Contributor-Regelung
-muss zum Lizenzmodell passen, insbesondere wenn kommerzielle Doppellizenzierung
-geplant ist. [THIRD_PARTY.md](THIRD_PARTY.md) dokumentiert den Prüfbedarf.
+**Offener Punkt:** Der Crypto-Pfad beruht laut Ausgangsprojekt auf AGPL-3.0-Code
+(ScooterHacking/NinebotCrypto). Die MIT-Lizenz ersetzt dessen Pflichten nicht: Teile, die
+daraus abgeleitet sind, bleiben unter AGPL-3.0, solange sie nicht nachweislich eigenständig
+auf Basis der Protokollspezifikation neu geschrieben wurden. Bis das geklärt ist, ist die
+MIT-Lizenz für diese Teile nur so weit gültig, wie die Rechte daran reichen.
+[THIRD_PARTY.md](THIRD_PARTY.md) dokumentiert die Herkunft.

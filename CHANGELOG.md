@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.0
+
+First stable release. It contains everything from the betas below and adds no functional
+changes on top of Beta 4. The project is now published under the MIT License.
+
 ## Beta 4 (`1.0.0b4`)
 
 - Renamed Xiaomi scooters are discovered: they advertise only a MiBeacon frame, so the

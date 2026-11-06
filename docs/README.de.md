@@ -52,12 +52,12 @@ wartet dann auf die nächste Aussendung des Scooters. Alles andere verhält sich
    cd /config
    mkdir -p custom_components/ninebot_e_scooters
    wget -O /tmp/ninebot_e_scooters.zip \
-     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0b4/ninebot_e_scooters.zip
+     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0/ninebot_e_scooters.zip
    unzip -o /tmp/ninebot_e_scooters.zip -d custom_components/ninebot_e_scooters
    rm /tmp/ninebot_e_scooters.zip
    ```
 
-   `v1.0.0b4` durch die gewünschte Version ersetzen. Danach Home Assistant neu starten.
+   `v1.0.0` durch die gewünschte Version ersetzen. Danach Home Assistant neu starten.
 2. Unter **Einstellungen → Geräte & Dienste → Integration hinzufügen** nach
    **Ninebot E-Scooters** suchen. Scooter einschalten, passendes Modell auswählen und bei
    Bedarf zusätzliche Sensoren ankreuzen (siehe unten).
@@ -153,7 +153,6 @@ Diese Dokumentation bildet die wichtigste Protokollgrundlage des Projekts.
 
 ## Lizenz
 
-Die Projektlizenz ist noch nicht festgelegt. Die Veröffentlichung ist bis zur
-Klärung der Rechte vorbereitet; daraus entsteht keine allgemeine Nutzungserlaubnis.
-Vorhandene Drittanbieterrechte bleiben bestehen. Siehe
-[Lizenzentscheidung](LICENSING.md) und [Herkunftshinweise](THIRD_PARTY.md).
+Das Projekt steht unter der [MIT-Lizenz](../LICENSE). Rechte Dritter an übernommenem
+Material bleiben bestehen, siehe [Lizenzentscheidung](LICENSING.md) und
+[Herkunftshinweise](THIRD_PARTY.md).

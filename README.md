@@ -72,12 +72,12 @@ the scooter's next advertisement instead. Everything else behaves the same.
    cd /config
    mkdir -p custom_components/ninebot_e_scooters
    wget -O /tmp/ninebot_e_scooters.zip \
-     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0b4/ninebot_e_scooters.zip
+     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0/ninebot_e_scooters.zip
    unzip -o /tmp/ninebot_e_scooters.zip -d custom_components/ninebot_e_scooters
    rm /tmp/ninebot_e_scooters.zip
    ```
 
-   Replace `v1.0.0b4` with the version you want, then restart Home Assistant.
+   Replace `v1.0.0` with the version you want, then restart Home Assistant.
 2. Go to **Settings → Devices & services → Add integration** and search for
    **Ninebot E-Scooters**. Switch the scooter on, select the matching model and tick any
    additional sensors you want (see below).
@@ -166,13 +166,8 @@ feedback as well.
 Many thanks to **ScooterHacking** for the reverse engineering, the
 [wiki](https://wiki.scooterhacking.org/doku.php?id=nbdocs) and the detailed
 [Ninebot ES Scooter Protocol PDF](https://wiki.scooterhacking.org/lib/exe/fetch.php?media=ninebot_es_scooter_protocol_918.pdf).
-This documentation is the project's most important protocol source.
-
-## License
-
-The project license has not been decided yet. The publication is prepared until the rights are
-clarified; this grants no general permission to use. Existing third-party rights remain in
-effect. See the [license decision](docs/LICENSING.md) and the
+This documentation is the project's most important protocol source. Where the code
+originates and which third-party licenses apply is listed in the
 [provenance notes](docs/THIRD_PARTY.md).
 
 <!-- support:begin (generated, shared text) -->
