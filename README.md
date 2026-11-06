@@ -73,12 +73,12 @@ the scooter's next advertisement instead. Everything else behaves the same.
    cd /config
    mkdir -p custom_components/ninebot_e_scooters
    wget -O /tmp/ninebot_e_scooters.zip \
-     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0/ninebot_e_scooters.zip
+     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0b4/ninebot_e_scooters.zip
    unzip -o /tmp/ninebot_e_scooters.zip -d custom_components/ninebot_e_scooters
    rm /tmp/ninebot_e_scooters.zip
    ```
 
-   Replace `v1.0.0` with the version you want, then restart Home Assistant.
+   Replace `v1.0.0b4` with the version you want, then restart Home Assistant.
 2. Go to **Settings → Devices & services → Add integration** and search for
    **Ninebot E-Scooters**. Switch the scooter on, select the matching model and tick any
    additional sensors you want (see below).
