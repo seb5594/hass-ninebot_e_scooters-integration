@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.0b5
+
+- Prepare a release validated by the shared HASS Marketplace workflow, including HACS and Hassfest without ignored checks.
+- Keep the generated Marketplace submission files available as a workflow artifact.
+
 ## Beta 4 (`1.0.0b4`)
 
 - Renamed Xiaomi scooters are discovered: they advertise only a MiBeacon frame, so the
