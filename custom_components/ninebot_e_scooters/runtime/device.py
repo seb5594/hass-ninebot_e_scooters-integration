@@ -6,17 +6,22 @@ from datetime import datetime
 from typing import Any
 from homeassistant.components import persistent_notification
 from homeassistant.helpers import device_registry
-from ..utilities import UTC
+from ..helpers.utilities import UTC
 from ..const import CONF_MODEL, DOMAIN, MANUFACTURER
 from ..models.profiles import (
     AUTO_MODEL,
     M365_LEGACY,
     M365_PRO_CRYPTO,
+    XIAOMI_1S_WRITABLE_SETTINGS,
+    SEGWAY_NINEBOT,
     effective_profile,
+    identify_generation,
     identify_model,
     supports_write,
+    uses_ninebot_word_registers,
 )
-from ..models.transports import transport_for_family
+from ..models.transports import CLASSIC_HANDSHAKE, transport_for_family
+from ..protocols.ninebot.packet import DeviceId
 from .constants import TELEMETRY_CACHE_SECONDS
 import logging
 
@@ -73,6 +78,32 @@ class DeviceMixin:
         if finding.model or (finding.serial_prefix and not previous.model):
             self._model_identification = finding
 
+    def _identify_handshake_board(self, answering_board: int) -> None:
+        """Let the answering Bluetooth module name the generation of an unidentified scooter.
+
+        A serial that names a model outranks this: it is the more specific evidence.
+        """
+        finding = identify_generation(answering_board)
+        if finding is not None and self._model_identification.model is None:
+            self._model_identification = finding
+
+    @property
+    def _handshake_boards(self) -> tuple[DeviceId, ...]:
+        """Bluetooth modules to ask for the 0x5B challenge, in order."""
+        transport = self.transport_profile
+        if transport is not None:
+            return transport.handshake_boards
+        # No profile yet: a Ninebot may belong to either board numbering,
+        # anything else is treated as the Xiaomi it has always been.
+        if self._model_identification.brand == SEGWAY_NINEBOT:
+            return CLASSIC_HANDSHAKE
+        return (DeviceId.DASHBOARD,)
+
+    @property
+    def app_key_hex(self) -> str:
+        """The session password in use, as it is stored in the config entry."""
+        return self._app_key.hex()
+
     @property
     def detected_model(self) -> str | None:
         """Return a model only when the serial prefix is documented and consistent."""
@@ -105,10 +136,7 @@ class DeviceMixin:
 
     def _uses_ninebot(self) -> bool:
         """Keep Ninebot word-register reads separate from Xiaomi block reads."""
-        profile = effective_profile(self.model, self._model_identification)
-        return profile is not None and profile.protocol in (
-            "ninebot_es", "ninebot_max", "ninebot_e", "ninebot_f",
-        )
+        return uses_ninebot_word_registers(effective_profile(self.model, self._model_identification))
 
     @property
     def transport_profile(self):
@@ -212,7 +240,7 @@ class DeviceMixin:
             "model_protocol": (profile.protocol if (profile := effective_profile(self.model, self._model_identification)) else None),
             "transport_adapter_implemented": (transport.adapter_implemented if (transport := self.transport_profile) else False),
             "documented_ble_versions": list(transport.documented_ble_versions) if transport else [],
-            "writable_settings": sorted(field for field in ("work_mode", "kers_mode", "is_lock_on", "is_cruise_on", "is_tail_light_on") if self.supports_action(field)),
+            "writable_settings": sorted(field for field in XIAOMI_1S_WRITABLE_SETTINGS if self.supports_action(field)),
             "poll_interval": self.poll_interval,
             "connection_strategy": "ha_recent_advertisement_direct_bledevice_with_bluez_backoff",
             "gatt_attempts": self._gatt_attempts,
@@ -249,7 +277,7 @@ class DeviceMixin:
             "control_ready": self.control_ready,
             "setting_available": {
                 field: self.setting_fresh(field)
-                for field in ("work_mode", "kers_mode", "is_lock_on", "is_cruise_on", "is_tail_light_on")
+                for field in sorted(XIAOMI_1S_WRITABLE_SETTINGS)
             },
             "telemetry_cache_valid": self.telemetry_cache_valid,
             "telemetry_stale": self.telemetry_stale,
@@ -258,6 +286,9 @@ class DeviceMixin:
             "last_reply_command": self._last_reply_command,
             "last_protocol": self._last_protocol,
             "services": list(self._last_services),
+            "characteristics": list(self._last_characteristics),
+            "handshake_board": f"0x{self._handshake_board:02X}",
+            "scooter_has_session_password": self._scooter_has_session_password,
             "last_notification": self._last_notification,
             "raw_notification_count": self._raw_notification_count,
             "notification_callback_errors": self._notification_callback_errors,

@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any
 from bleak.exc import BleakError
 from homeassistant.components import persistent_notification
-from ..const import NUS_NOTIFY_UUID, NUS_WRITE_UUID
+from ..protocols.gatt import describe_characteristics, find_uart_characteristics
 from ..protocols.legacy import LegacyM365Link
 from ..protocols.ninebot.crypto import NinebotCrypto
 from ..protocols.ninebot.packet import (
@@ -22,6 +22,7 @@ from ..protocols.ninebot.packet import (
     make_ping,
     make_read,
 )
+from ..protocols.ninebot.registers import CLASSIC_REGISTERS
 from ..protocols.ninebot.packet import (
     BLE129_APP_KEY_LENGTH,
     BLE129_INIT_REPLY_LENGTH,
@@ -31,7 +32,7 @@ from ..protocols.ninebot.packet import (
     Xiaomi1sEscRegister,
     Xiaomi1sFastTelemetry,
 )
-from ..utilities import UTC, TIMEOUT_ERRORS
+from ..helpers.utilities import UTC, TIMEOUT_ERRORS
 from .errors import ScooterConnectionError
 from .constants import (
     MAX_ADVERTISEMENT_AGE,
@@ -105,10 +106,19 @@ class SessionMixin:
             self._crypto_name_source, self._crypto_name_matches_saved,
         )
         host_id = getattr(self, "_host_id", DeviceId.PHONE)
-        self._crypto = (
-            NinebotCrypto(crypto_name) if host_id == DeviceId.PHONE
-            else NinebotCrypto(crypto_name, host_id=host_id)
-        )
+        handshake_boards = getattr(self, "_handshake_boards", (DeviceId.DASHBOARD,))
+
+        def start_crypto(board: DeviceId) -> None:
+            """Begin a session with the Bluetooth module at one board address."""
+            options = {}
+            if host_id != DeviceId.PHONE:
+                options["host_id"] = host_id
+            if board != DeviceId.DASHBOARD:
+                options["handshake_board"] = board
+            self._handshake_board = board
+            self._crypto = NinebotCrypto(crypto_name, **options)
+
+        start_crypto(handshake_boards[0])
         # Keep optional-probe progress through short reconnects.
         self._next_setting_read_at.clear()
         self._empty_read_count = 0
@@ -135,23 +145,24 @@ class SessionMixin:
                 str(service.uuid).lower()
                 for service in services
             )
+            self._last_characteristics = describe_characteristics(services)
             self._stage = "gatt_characteristics"
             _LOGGER.info("Scooter BLE phase: %s", self._stage)
-            self._tx_char = self._client.services.get_characteristic(NUS_WRITE_UUID)
-            self._rx_char = self._client.services.get_characteristic(NUS_NOTIFY_UUID)
+            self._tx_char, self._rx_char = find_uart_characteristics(
+                self._client.services, getattr(transport, "uart", None))
             if self._tx_char is None or self._rx_char is None:
                 raise ScooterConnectionError(
-                    "Xiaomi BLE UART write/notify characteristics are missing"
+                    "Scooter UART write/notify characteristics are missing"
                 )
 
             _LOGGER.debug(
-                "Xiaomi NUS write characteristic: uuid=%s handle=%s properties=%s",
+                "Scooter UART write characteristic: uuid=%s handle=%s properties=%s",
                 self._tx_char.uuid,
                 getattr(self._tx_char, "handle", None),
                 self._tx_char.properties,
             )
             _LOGGER.debug(
-                "Xiaomi NUS notify characteristic: uuid=%s handle=%s properties=%s",
+                "Scooter UART notify characteristic: uuid=%s handle=%s properties=%s",
                 self._rx_char.uuid,
                 getattr(self._rx_char, "handle", None),
                 self._rx_char.properties,
@@ -190,6 +201,8 @@ class SessionMixin:
             init_request = make_init()
             if host_id != DeviceId.PHONE:
                 init_request = replace(init_request, source=host_id)
+            if self._handshake_board != DeviceId.DASHBOARD:
+                init_request = replace(init_request, target=self._handshake_board)
             init_frame = self._crypto.encrypt(init_request.pack())
             init_response = None
             for init_attempt in range(3):
@@ -224,6 +237,26 @@ class SessionMixin:
                 except (BleakError, *TIMEOUT_ERRORS) as err:
                     _LOGGER.debug("Scooter NUS notification resubscription failed: %s", err)
                     self._stage = "ble129_init_5b"
+            for other_board in handshake_boards[1:]:
+                if (init_response is not None or self._raw_notification_count
+                        or self._client is None or not self._client.is_connected):
+                    break
+                # Complete silence: this scooter may number its boards the
+                # other way. The first frame of a session must carry counter
+                # zero, so each board gets a crypto session of its own.
+                _LOGGER.info("Scooter 0x5B unanswered by board 0x%02X; asking 0x%02X",
+                             self._handshake_board, other_board)
+                start_crypto(other_board)
+                init_request = replace(init_request, target=other_board)
+                init_frame = self._crypto.encrypt(init_request.pack())
+                for init_attempt in range(2):
+                    init_response = await self._async_crypto_request(
+                        init_request, expected_commands={CMD_INIT}, timeout=2.0,
+                        accept_timeout=True, quiet_timeout=True,
+                        encrypted_override=init_frame,
+                    )
+                    if init_response is not None:
+                        break
             if init_response is None:
                 _LOGGER.warning(
                     "Scooter BLE129 0x5B unanswered after retries on one GATT link "
@@ -242,13 +275,33 @@ class SessionMixin:
                 )
 
             self._pairing_serial = init_response.data[BLE129_APP_KEY_LENGTH:BLE129_INIT_REPLY_LENGTH]
+            self._scooter_has_session_password = init_response.index != PairingStatus.PENDING
             self._identify_serial(self._pairing_serial)
+            if (identify_board := getattr(self, "_identify_handshake_board", None)) is not None:
+                identify_board(self._handshake_board)
+                # The answering board may have settled the model, and with it
+                # the profile this session is opened for.
+                transport = getattr(self, "transport_profile", None)
 
             probe_request = make_read(TARGET_ESC, Xiaomi1sEscRegister.FAST_TELEMETRY, RegisterReadSize.FAST_TELEMETRY)
             probe_minimum = Xiaomi1sFastTelemetry.MINIMUM_PAYLOAD
             if getattr(self, "_uses_ninebot", lambda: False)():
-                probe_request = make_read(DeviceId.BMS, 0x32, RegisterReadSize.WORD)
+                probe = getattr(self, "_register_map", CLASSIC_REGISTERS).session_probe
+                probe_request = make_read(probe.target, probe.index, RegisterReadSize.WORD)
                 probe_minimum = RegisterReadSize.WORD
+
+            if self._pairing_completed and getattr(transport, "resumes_with_password", False):
+                # This generation keeps one session password. A host that
+                # knows it logs in with 0x5D alone, as the vendor app does.
+                if not await self._async_login_with_stored_password(probe_request, probe_minimum):
+                    self._stage = "ble129_stored_key_confirmation"
+                    await self._async_pair_current_session(reuse_stored_key=True)
+                    self._authentication_mode = "stored_key_reconfirmed"
+                self._session_ready = True
+                self._control_session_started_at = datetime.now(UTC)
+                self._stage = "ble129_session_ready"
+                _LOGGER.info("Scooter BLE phase: %s (%s)", self._stage, self._authentication_mode)
+                return
 
             if self._pairing_completed:
                 # BLE129 can serve encrypted reads after 0x5B without a new
@@ -542,6 +595,39 @@ class SessionMixin:
             if completed_in_this_attempt:
                 persistent_notification.async_dismiss(self.hass, notification_id)
 
+    async def _async_login_with_stored_password(self, probe_request, probe_minimum: int) -> bool:
+        """Log in with 0x5D under the stored password; False leaves the session unpaired.
+
+        A scooter that knows another password cannot read the frame and stays
+        silent. The crypto then returns to the key both sides still share, so
+        the regular 0x5C exchange can follow on the same connection.
+        """
+        self._stage = "ble129_stored_password_5d"
+        _LOGGER.info("Scooter BLE phase: %s", self._stage)
+        self._crypto.resume_with_password(self._app_key)
+        for attempt in range(2):
+            if attempt:
+                await asyncio.sleep(0.15)
+            login = await self._async_crypto_request(
+                make_pair(self._pairing_serial),
+                expected_commands={CMD_PAIR},
+                timeout=2.0, accept_timeout=True, quiet_timeout=True,
+            )
+            if login is not None and login.index == PairingStatus.CONFIRMED:
+                self._authentication_mode = "stored_password_login"
+                # Not required for the login; it spares the first poll a request.
+                first_values = await self._async_crypto_request(
+                    probe_request,
+                    expected_commands={CMD_READ, CMD_READ_ACK},
+                    timeout=1.5, accept_timeout=True, quiet_timeout=True,
+                )
+                if first_values is not None and len(first_values.data) >= probe_minimum:
+                    self._initial_telemetry = first_values
+                return True
+        _LOGGER.info("Scooter did not accept the stored session password")
+        self._crypto.forget_password()
+        return False
+
     async def _async_confirm_pairing_5d(self) -> None:
         """Finish the documented 0x5C/0x01 -> 0x5D/0x01 BLE129 exchange."""
         if self._pairing_serial is None:
@@ -576,8 +662,8 @@ class SessionMixin:
             self._client = await self._async_establish_client(ble_device)
             client = self._client
             self._last_services = tuple(str(service.uuid).lower() for service in client.services)
-            self._tx_char = client.services.get_characteristic(NUS_WRITE_UUID)
-            self._rx_char = client.services.get_characteristic(NUS_NOTIFY_UUID)
+            self._last_characteristics = describe_characteristics(client.services)
+            self._tx_char, self._rx_char = find_uart_characteristics(client.services)
             if self._tx_char is None or self._rx_char is None:
                 raise ScooterConnectionError("M365 NUS write/notify characteristics are missing")
             self._legacy_link = LegacyM365Link(self._async_write_packet)

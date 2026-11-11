@@ -13,10 +13,7 @@ from test_protocol import PACKAGE_PATH, ScooterData, apply_message, load_module,
 from test_ninebot_crypto import packet_module as packet
 
 
-state = load_module(
-    "custom_components.ninebot_e_scooters.saved_state",
-    PACKAGE_PATH / "saved_state.py",
-)
+state = load_module("helpers.storage")
 
 
 def _reply(source: int, payload: bytes) -> protocol.ScooterMessage:

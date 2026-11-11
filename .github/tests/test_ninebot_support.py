@@ -8,15 +8,18 @@ from types import SimpleNamespace
 
 import pytest
 
-from custom_components.ninebot_e_scooters.discovery import is_scooter_advertisement, needs_explicit_model
+from custom_components.ninebot_e_scooters.helpers.discovery import is_scooter_advertisement, needs_explicit_model
 from custom_components.ninebot_e_scooters.models.profiles import PROFILES_BY_NAME, identify_model, supports_write
 from custom_components.ninebot_e_scooters.models.transports import transport_for_family
 from custom_components.ninebot_e_scooters.protocols.data import ScooterData
 from custom_components.ninebot_e_scooters.protocols.ninebot.crypto import NinebotCrypto
-from custom_components.ninebot_e_scooters.protocols.ninebot.packet import CMD_INIT, CMD_PING, CMD_READ_ACK, DeviceId, NinebotPacket
-from custom_components.ninebot_e_scooters.protocols.ninebot.registers import REGISTERS, REGISTER_BY_ADDRESS, apply_packet
+from custom_components.ninebot_e_scooters.protocols.ninebot.packet import CMD_INIT, CMD_PAIR, CMD_PING, CMD_READ_ACK, DeviceId, NinebotPacket
+from custom_components.ninebot_e_scooters.protocols.ninebot.registers import (
+    CLASSIC_REGISTERS, REGISTER_BY_ADDRESS, REGISTER_MAPS, apply_packet,
+)
 from custom_components.ninebot_e_scooters.runtime.ninebot import NinebotMixin
-from custom_components.ninebot_e_scooters.utilities import ConnectionBackoff, parse_app_key
+from custom_components.ninebot_e_scooters.helpers.utilities import ConnectionBackoff, parse_app_key
+from scooter_simulator import DashboardCrypto
 
 MANIFEST = Path(__file__).parents[2] / "custom_components" / "ninebot_e_scooters" / "manifest.json"
 
@@ -112,11 +115,28 @@ def test_wrong_source_destination_and_incomplete_words_do_not_update_data():
 
 
 def test_ninebot_tables_are_ordered_and_never_read_controller_password():
-    addresses = [(int(spec.target), spec.index) for spec in REGISTERS]
-    assert addresses == sorted(addresses)
-    assert len(addresses) == len(set(addresses))
-    assert all(spec.target != DeviceId.ESC or not(spec.index <= 0x17 < spec.index + spec.words)
-               for spec in REGISTERS)
+    for register_map in REGISTER_MAPS:
+        optional = [(int(spec.target), spec.index) for spec in register_map.optional]
+        assert optional == sorted(optional)
+    every_register = [spec for register_map in REGISTER_MAPS
+                      for spec in (*register_map.core, *register_map.optional)]
+    # One lookup table decodes both generations, so no address may repeat.
+    assert len(REGISTER_BY_ADDRESS) == len(every_register)
+    assert all(spec.target != DeviceId.ESC or not (spec.index <= 0x17 < spec.index + spec.words)
+               for spec in every_register)
+
+
+def test_no_register_block_overlaps_its_neighbour():
+    for register_map in REGISTER_MAPS:
+        claimed = {}
+        for spec in (*register_map.core, *register_map.optional):
+            for index in range(spec.index, spec.index + spec.words):
+                assert claimed.setdefault((spec.target, index), spec) is spec
+
+
+def test_classic_session_probe_is_the_battery_level():
+    probe = CLASSIC_REGISTERS.session_probe
+    assert (probe.target, probe.index, probe.fields) == (DeviceId.BMS, 0x32, ("battery_percent",))
 
 
 def test_block_reads_use_word_offsets_and_discard_partial_blocks():
@@ -147,22 +167,33 @@ def test_block_reads_use_word_offsets_and_discard_partial_blocks():
 
 @pytest.mark.parametrize("host", [DeviceId.PHONE, DeviceId.PC])
 def test_crypto_tracks_host_address_for_ble_and_app_key_transitions(host):
-    tx = NinebotCrypto("NBScooter1234", host_id=host)
-    rx = NinebotCrypto("NBScooter1234", host_id=host)
-    ble_key = bytes(range(16))
-    app_key = bytes(reversed(range(16)))
-    rx.encrypt(NinebotPacket(host, DeviceId.DASHBOARD, CMD_INIT, 0).pack())
-    init = NinebotPacket(DeviceId.DASHBOARD, host, CMD_INIT, 0, ble_key + b"N4GEC2110C1234").pack()
-    assert rx.decrypt(tx.encrypt(init)) == init
-    assert rx._random_ble_data == ble_key
-    rx.encrypt(NinebotPacket(host, DeviceId.DASHBOARD, CMD_PING, 0, app_key).pack())
-    assert rx._random_app_data == app_key
-    tx._random_ble_data = ble_key
-    tx._sha1_key = tx._calc_sha1_key(tx._name, ble_key)
-    tx._msg_it = rx.message_counter
-    confirmed = NinebotPacket(DeviceId.DASHBOARD, host, CMD_PING, 1).pack()
-    assert rx.decrypt(tx.encrypt(confirmed)) == confirmed
-    assert rx._sha1_key == rx._calc_sha1_key(app_key, ble_key)
+    dashboard = DashboardCrypto("NBScooter1234", host_id=host)
+    session = NinebotCrypto("NBScooter1234", host_id=host)
+
+    def to_dashboard(packet):
+        assert dashboard.decrypt(session.encrypt(packet.pack())) == packet.pack()
+
+    def to_host(packet):
+        assert session.decrypt(dashboard.encrypt(packet.pack())) == packet.pack()
+
+    to_dashboard(NinebotPacket(host, DeviceId.DASHBOARD, CMD_INIT, 0))
+    to_host(NinebotPacket(DeviceId.DASHBOARD, host, CMD_INIT, 0, bytes(range(16)) + b"N4GEC2110C1234"))
+    # Each step below only opens if both sides moved to the same next key.
+    to_dashboard(NinebotPacket(host, DeviceId.DASHBOARD, CMD_PING, 0, bytes(reversed(range(16)))))
+    to_host(NinebotPacket(DeviceId.DASHBOARD, host, CMD_PING, 1))
+    to_dashboard(NinebotPacket(host, DeviceId.DASHBOARD, CMD_PAIR, 0, b"N4GEC2110C1234"))
+    to_host(NinebotPacket(DeviceId.DASHBOARD, host, CMD_PAIR, 1))
+    to_dashboard(NinebotPacket(host, DeviceId.BMS, 1, 0x32, b"\x02"))
+    to_host(NinebotPacket(DeviceId.BMS, host, CMD_READ_ACK, 0x32, b"\x50\x00"))
+
+
+def test_a_session_for_the_other_host_address_does_not_follow_the_handshake():
+    dashboard = DashboardCrypto("NBScooter1234", host_id=DeviceId.PC)
+    session = NinebotCrypto("NBScooter1234", host_id=DeviceId.PHONE)
+    challenge = NinebotPacket(DeviceId.DASHBOARD, DeviceId.PC, CMD_INIT, 0, bytes(range(16)) + b"N4GEC2110C1234")
+    assert session.decrypt(dashboard.encrypt(challenge.pack())) == challenge.pack()
+    reply = NinebotPacket(DeviceId.BMS, DeviceId.PC, CMD_READ_ACK, 0x32, b"\x50\x00")
+    assert session.decrypt(dashboard.encrypt(reply.pack())) is None
 
 
 def test_connection_backoff_grows_only_after_failure_and_resets_after_recovery():

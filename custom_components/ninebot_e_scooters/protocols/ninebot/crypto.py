@@ -1,216 +1,275 @@
-"""Ninebot/Xiaomi legacy BLE crypto used by BLE129/BLE132."""
+"""Session encryption of the 5A A5 protocol on Xiaomi and Segway-Ninebot dashboards.
+
+Every frame keeps its three header bytes in the clear. The rest is XORed with
+an AES-128 keystream and followed by six trailer bytes. Until the scooter has
+sent its challenge, frames carry counter zero, share one keystream block and
+end in a plain checksum. Afterwards each frame has its own counter, a
+counter-mode keystream and a four-byte CBC-MAC tag, close to AES-CCM.
+
+The key changes twice during the handshake:
+  0x5B  key = SHA1(device name | firmware seed); the reply holds the challenge
+  0x5C  key = SHA1(device name | challenge); the host sends a session password
+  0x5D  key = SHA1(session password | challenge), kept for the rest of the link
+
+Written from the published description of the scheme and checked against
+frames of the release that runs on the reference scooter:
+  https://nootnooot.codeberg.page/segway-ninebot-ble/encryption/
+  https://nootnooot.codeberg.page/segway-ninebot-ble/authentication/
+"""
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 import hashlib
 
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
-from ...protocols.ninebot.packet import (
+from .packet import (
     BLE129_APP_KEY_LENGTH,
     BLE129_INIT_REPLY_LENGTH,
     DeviceId,
     ENCRYPTED_TRAILER_LENGTH,
-    HEADER as NINEBOT_HEADER,
+    FrameOffset,
+    HEADER,
     PacketOpcode,
     PairingStatus,
 )
 
-FW_DATA = bytes.fromhex("97 CF B8 02 84 41 43 DE 56 00 2B 3B 34 78 0A 5D")
-HEADER = NINEBOT_HEADER
-CRYPTO_ENVELOPE_BYTES = len(HEADER) + 1 + ENCRYPTED_TRAILER_LENGTH
-# These are decrypted logical-frame prefixes. The lengths are payload bytes,
-# not the encrypted frame lengths or the legacy serial checksum bytes.
-BLE129_INIT_REPLY_PREFIX = HEADER + bytes((
-    BLE129_INIT_REPLY_LENGTH, DeviceId.DASHBOARD, DeviceId.PHONE, PacketOpcode.INIT,
-))
-BLE129_PING_CONFIRMED_PREFIX = HEADER + bytes((
-    0, DeviceId.DASHBOARD, DeviceId.PHONE, PacketOpcode.PING, PairingStatus.CONFIRMED,
-))
-BLE129_PING_REQUEST_PREFIX = HEADER + bytes((
-    BLE129_APP_KEY_LENGTH, DeviceId.PHONE, DeviceId.DASHBOARD, PacketOpcode.PING, PairingStatus.PENDING,
-))
+BLOCK_LENGTH = 16
+CLEAR_HEADER_LENGTH = len(HEADER) + 1  # 5A A5 and the payload length
+TAG_LENGTH = 4
+WIRE_COUNTER_LENGTH = 2
+WIRE_COUNTER_MASK = 0xFFFF
+WIRE_COUNTER_TOP_BIT = 0x8000
+CHALLENGE_BYTES_IN_NONCE = 8
+
+# Leading byte of the two kinds of AES input block.
+KEYSTREAM_BLOCK = 0x01
+MAC_START_BLOCK = 0x59
+
+# Constant of the dashboard firmware: second key half and keystream input
+# for the frames exchanged before the scooter has issued its challenge.
+FIRMWARE_SEED = bytes.fromhex("97CFB802844143DE56002B3B34780A5D")
+
+SHORTEST_FRAME_LENGTH = CLEAR_HEADER_LENGTH + ENCRYPTED_TRAILER_LENGTH
+
+# Why decrypt() refused a frame; shown in diagnostics.
+REJECTED_MALFORMED = "invalid_header_or_short_frame"
+REJECTED_FIRST_CHECKSUM = "first_frame_crc_or_name"
+REJECTED_REPLAY = "old_or_replayed_counter"
+REJECTED_TAG = "chained_frame_integrity"
 
 
-def _aes_ecb(data: bytes, key: bytes) -> bytes:
-    """Encrypt one 16-byte block using AES-128 ECB."""
-    cipher = Cipher(algorithms.AES(key), modes.ECB())
-    encryptor = cipher.encryptor()
-    return encryptor.update(data) + encryptor.finalize()
+def _aes(key: bytes, block: bytes) -> bytes:
+    """Encrypt a single block with AES-128."""
+    encryptor = Cipher(algorithms.AES(key), modes.ECB()).encryptor()
+    return encryptor.update(block) + encryptor.finalize()
 
 
-def _xor16(left: bytes, right: bytes) -> bytes:
-    """XOR two 16-byte blocks."""
-    return bytes(a ^ b for a, b in zip(left, right, strict=True))
+def _pad(data: bytes) -> bytes:
+    """Cut or zero-fill to exactly one AES block."""
+    return data[:BLOCK_LENGTH].ljust(BLOCK_LENGTH, b"\x00")
+
+
+def _xor(data: bytes, mask: bytes) -> bytes:
+    """XOR data with the start of a mask at least as long."""
+    return bytes(byte ^ mask_byte for byte, mask_byte in zip(data, mask))
+
+
+def _blocks(data: bytes) -> Iterator[bytes]:
+    """Split into AES blocks; the last one may be shorter."""
+    for start in range(0, len(data), BLOCK_LENGTH):
+        yield data[start:start + BLOCK_LENGTH]
+
+
+def derive_key(first: bytes, second: bytes) -> bytes:
+    """Hash two padded key halves into the AES key of one handshake phase."""
+    return hashlib.sha1(_pad(first) + _pad(second)).digest()[:BLOCK_LENGTH]
+
+
+def first_frame_checksum(payload: bytes) -> bytes:
+    """Inverted 16-bit byte sum that protects frames sent with counter zero."""
+    return (~sum(payload) & 0xFFFF).to_bytes(2, "little")
 
 
 class NinebotCrypto:
-    """Stateful NinebotCrypto implementation."""
+    """Host side of one encrypted session; a new GATT link needs a new instance."""
 
-    def __init__(self, name: str, *, host_id: DeviceId = DeviceId.PHONE) -> None:
-        """Initialize the crypto state."""
-        self._name = name.encode("utf-8", errors="ignore")[:16].ljust(16, b"\x00")
-        self._random_ble_data = bytes(16)
-        self._random_app_data = bytes(16)
-        self._sha1_key = self._calc_sha1_key(self._name, FW_DATA)
-        self._msg_it = 0
+    def __init__(
+        self,
+        name: str,
+        *,
+        host_id: DeviceId = DeviceId.PHONE,
+        handshake_board: DeviceId = DeviceId.DASHBOARD,
+    ) -> None:
+        """Start with the key every host can derive from the advertised name.
+
+        `handshake_board` is the Bluetooth module that answers 0x5B to 0x5D:
+        the dashboard on classic scooters, board 0x04 on the VCU generation.
+        """
         if host_id not in (DeviceId.PHONE, DeviceId.PC):
             raise ValueError("A crypto session requires a phone or PC host address")
         self._host_id = host_id
+        self._handshake_board = handshake_board
+        self._device_name = _pad(name.encode("utf-8", errors="ignore"))
+        self._challenge = bytes(BLOCK_LENGTH)
+        self._session_password = bytes(BLOCK_LENGTH)
+        self._key = derive_key(self._device_name, FIRMWARE_SEED)
+        self._counter = 0
         self.last_rejection_reason: str | None = None
-
-    @staticmethod
-    def _calc_sha1_key(data1: bytes, data2: bytes) -> bytes:
-        """Calculate the first 16 bytes of SHA1(data1 + data2)."""
-        return hashlib.sha1(data1[:16] + data2[:16]).digest()[:16]
 
     @property
     def message_counter(self) -> int:
-        """Return the current crypto message counter."""
-        return self._msg_it
+        """Counter of the newest frame this session sent or accepted."""
+        return self._counter
 
-    def _crypto_first(self, data: bytes) -> bytes:
-        """Apply the first-session crypto operation."""
-        result = bytearray(len(data))
-        for offset in range(0, len(data), 16):
-            chunk = data[offset:offset + 16]
-            stream = _aes_ecb(FW_DATA, self._sha1_key)
-            result[offset:offset + len(chunk)] = _xor16(
-                chunk.ljust(16, b"\x00"), stream
-            )[:len(chunk)]
-        return bytes(result)
-
-    def _crypto_next(self, data: bytes, msg_it: int) -> bytes:
-        """Apply the chained crypto operation."""
-        result = bytearray(len(data))
-        aes_enc_data = bytearray(16)
-        aes_enc_data[0] = 1
-        aes_enc_data[1:5] = msg_it.to_bytes(4, "big")
-        aes_enc_data[5:13] = self._random_ble_data[:8]
-        for block_number, offset in enumerate(range(0, len(data), 16), start=1):
-            aes_enc_data[15] = block_number
-            chunk = data[offset:offset + 16]
-            stream = _aes_ecb(bytes(aes_enc_data), self._sha1_key)
-            result[offset:offset + len(chunk)] = _xor16(
-                chunk.ljust(16, b"\x00"), stream
-            )[:len(chunk)]
-        return bytes(result)
-
-    @staticmethod
-    def _crc_first(data: bytes) -> bytes:
-        """Calculate the first-message CRC."""
-        return ((~sum(data)) & 0xFFFF).to_bytes(2, "little")
-
-    def _crc_next(self, data: bytes, msg_it: int) -> bytes:
-        """Calculate the chained-message CRC."""
-        payload_len = len(data) - 3
-        byte_idx = 3
-        aes_enc_data = bytearray(16)
-        aes_enc_data[0] = 0x59
-        aes_enc_data[1:5] = msg_it.to_bytes(4, "big")
-        aes_enc_data[5:13] = self._random_ble_data[:8]
-        aes_enc_data[15] = payload_len
-
-        xor_data_2 = _aes_ecb(bytes(aes_enc_data), self._sha1_key)
-        xor_data_1 = data[:3].ljust(16, b"\x00")
-        xor_data_2 = _aes_ecb(_xor16(xor_data_1, xor_data_2), self._sha1_key)
-
-        remaining = payload_len
-        while remaining > 0:
-            chunk_len = min(remaining, 16)
-            chunk = data[byte_idx:byte_idx + chunk_len]
-            xor_data_2 = _aes_ecb(
-                _xor16(chunk.ljust(16, b"\x00"), xor_data_2),
-                self._sha1_key,
-            )
-            remaining -= chunk_len
-            byte_idx += chunk_len
-
-        aes_enc_data[0] = 1
-        aes_enc_data[15] = 0
-        xor_data_1 = _aes_ecb(bytes(aes_enc_data), self._sha1_key)
-        return _xor16(xor_data_1, xor_data_2)[:4]
-
-    def decrypt(self, data: bytes) -> bytes | None:
-        """Decrypt a complete Ninebot encrypted frame."""
-        self.last_rejection_reason = None
-        if len(data) < CRYPTO_ENVELOPE_BYTES or data[:len(HEADER)] != HEADER:
-            self.last_rejection_reason = "invalid_header_or_short_frame"
-            return None
-
-        decrypted = bytearray(len(data) - ENCRYPTED_TRAILER_LENGTH)
-        decrypted[:3] = data[:3]
-        new_msg_it = self._msg_it
-        if (new_msg_it & 0x00008000) and (data[-2] >> 7) == 0:
-            new_msg_it += 0x00010000
-        new_msg_it = (new_msg_it & 0xFFFF0000) + (data[-2] << 8) + data[-1]
-
-        payload_len = len(data) - CRYPTO_ENVELOPE_BYTES
-        payload = data[3:3 + payload_len]
-
-        if new_msg_it == 0:
-            payload = self._crypto_first(payload)
-            decrypted[3:3 + payload_len] = payload
-            # NinebotCrypto's upstream decrypt does not authenticate incoming
-            # frames. An incomplete/misaligned notification can otherwise be
-            # mistaken for a high counter and permanently poison this session.
-            # First packets use a 16-bit inverted sum in trailer bytes -4:-2.
-            if self._crc_first(payload) != data[-4:-2]:
-                self.last_rejection_reason = "first_frame_crc_or_name"
-                return None
-            if (decrypted[2] == BLE129_INIT_REPLY_LENGTH
-                    and decrypted[3:6] == bytes((DeviceId.DASHBOARD, self._host_id, PacketOpcode.INIT))):
-                self._random_ble_data = bytes(decrypted[7:23])
-                self._sha1_key = self._calc_sha1_key(self._name, self._random_ble_data)
-            return bytes(decrypted)
-
-        if new_msg_it <= self._msg_it:
-            self.last_rejection_reason = "old_or_replayed_counter"
-            return None
-
-        payload = self._crypto_next(payload, new_msg_it)
-        decrypted[3:3 + payload_len] = payload
-        # Verify the AES-derived 4-byte integrity tag with the candidate
-        # counter BEFORE switching the pairing key or committing that counter.
-        # Do not impose an arbitrary max counter: a valid high counter or an
-        # actual 16-bit rollover must still work.
-        if self._crc_next(bytes(decrypted), new_msg_it) != data[-6:-2]:
-            self.last_rejection_reason = "chained_frame_integrity"
-            return None
-        if decrypted[:7] == HEADER + bytes((0, DeviceId.DASHBOARD, self._host_id, PacketOpcode.PING, PairingStatus.CONFIRMED)):
-            self._sha1_key = self._calc_sha1_key(
-                self._random_app_data, self._random_ble_data
-            )
-        self._msg_it = new_msg_it
-        return bytes(decrypted)
-
-    def encrypt(self, data: bytes) -> bytes:
-        """Encrypt a complete logical Ninebot packet."""
-        if len(data) < 3 or data[:2] != HEADER:
+    def encrypt(self, frame: bytes) -> bytes:
+        """Wrap a logical 5A A5 frame for transmission."""
+        if len(frame) < CLEAR_HEADER_LENGTH or frame[:len(HEADER)] != HEADER:
             raise ValueError("Ninebot packet must start with 5A A5")
+        header, payload = frame[:CLEAR_HEADER_LENGTH], frame[CLEAR_HEADER_LENGTH:]
 
-        encrypted = bytearray(len(data) + ENCRYPTED_TRAILER_LENGTH)
-        encrypted[:3] = data[:3]
-        payload = data[3:]
+        if self._counter == 0:
+            self._counter = 1
+            encrypted = (
+                header + self._first_keystream_xor(payload)
+                + b"\x00\x00" + first_frame_checksum(payload) + b"\x00\x00"
+            )
+            self._frame_sent(frame, before_challenge=True)
+            return encrypted
 
-        if self._msg_it == 0:
-            crc = self._crc_first(payload)
-            payload = self._crypto_first(payload)
-            encrypted[3:3 + len(payload)] = payload
-            encrypted[len(data):len(data) + 2] = b"\x00\x00"
-            encrypted[len(data) + 2:len(data) + 4] = crc
-            encrypted[len(data) + 4:len(data) + 6] = b"\x00\x00"
-            self._msg_it += 1
-            return bytes(encrypted)
+        self._counter += 1
+        tag = self._tag(header, payload, self._counter)
+        wire_counter = (self._counter & WIRE_COUNTER_MASK).to_bytes(WIRE_COUNTER_LENGTH, "big")
+        encrypted = header + self._keystream_xor(payload, self._counter) + tag + wire_counter
+        self._frame_sent(frame, before_challenge=False)
+        return encrypted
 
-        self._msg_it += 1
-        crc = self._crc_next(data, self._msg_it)
-        payload = self._crypto_next(payload, self._msg_it)
-        encrypted[3:3 + len(payload)] = payload
-        encrypted[len(data):len(data) + 4] = crc
-        encrypted[len(data) + 4:len(data) + 6] = (self._msg_it & 0xFFFF).to_bytes(2, "big")
+    def decrypt(self, frame: bytes) -> bytes | None:
+        """Return the logical frame, or None with last_rejection_reason set."""
+        self.last_rejection_reason = None
+        if len(frame) < SHORTEST_FRAME_LENGTH or frame[:len(HEADER)] != HEADER:
+            self.last_rejection_reason = REJECTED_MALFORMED
+            return None
+        header = frame[:CLEAR_HEADER_LENGTH]
+        ciphertext = frame[CLEAR_HEADER_LENGTH:-ENCRYPTED_TRAILER_LENGTH]
+        trailer = frame[-ENCRYPTED_TRAILER_LENGTH:]
+        counter = self._full_counter(int.from_bytes(trailer[-WIRE_COUNTER_LENGTH:], "big"))
 
-        if data[:7] == HEADER + bytes((BLE129_APP_KEY_LENGTH, self._host_id, DeviceId.DASHBOARD, PacketOpcode.PING, PairingStatus.PENDING)):
-            self._random_app_data = data[7:23]
+        if counter == 0:
+            return self._decrypt_first(header, ciphertext, trailer)
+        if counter <= self._counter:
+            self.last_rejection_reason = REJECTED_REPLAY
+            return None
 
-        return bytes(encrypted)
+        payload = self._keystream_xor(ciphertext, counter)
+        # The tag is checked with the candidate counter before anything is
+        # stored: a damaged frame must change neither the counter nor the key.
+        if self._tag(header, payload, counter) != trailer[:TAG_LENGTH]:
+            self.last_rejection_reason = REJECTED_TAG
+            return None
+        logical = header + payload
+        self._frame_received(logical, before_challenge=False)
+        self._counter = counter
+        return logical
+
+    def _frame_sent(self, logical: bytes, *, before_challenge: bool) -> None:
+        """Remember the session password this host offers with 0x5C."""
+        if not before_challenge and self._is_password_offer(logical):
+            self._remember_password(logical)
+
+    def _frame_received(self, logical: bytes, *, before_challenge: bool) -> None:
+        """Move to the next key once the dashboard answers 0x5B or accepts 0x5C."""
+        if before_challenge:
+            if self._is_challenge(logical):
+                self._adopt_challenge(logical)
+        elif self._is_password_confirmation(logical):
+            self._use_session_key()
+
+    def _adopt_challenge(self, challenge_frame: bytes) -> None:
+        """Second key: the device name combined with the challenge of the scooter."""
+        self._challenge = challenge_frame[FrameOffset.DATA:FrameOffset.DATA + BLOCK_LENGTH]
+        self._key = derive_key(self._device_name, self._challenge)
+
+    def _remember_password(self, offer_frame: bytes) -> None:
+        """Keep the offered password until the scooter confirms it."""
+        self._session_password = offer_frame[FrameOffset.DATA:FrameOffset.DATA + BLE129_APP_KEY_LENGTH]
+
+    def _use_session_key(self) -> None:
+        """Third key: the confirmed session password combined with the challenge."""
+        self._key = derive_key(self._session_password, self._challenge)
+
+    def resume_with_password(self, password: bytes) -> None:
+        """Skip 0x5C: use a password the scooter already stores for this session."""
+        self._session_password = _pad(password)
+        self._use_session_key()
+
+    def forget_password(self) -> None:
+        """Return to the challenge key after the scooter refused a stored password."""
+        self._key = derive_key(self._device_name, self._challenge)
+
+    def _decrypt_first(self, header: bytes, ciphertext: bytes, trailer: bytes) -> bytes | None:
+        """Open a frame that was sent with counter zero."""
+        payload = self._first_keystream_xor(ciphertext)
+        # A fragment of another frame would otherwise pass as a 0x5B reply
+        # and replace the key of this session for good.
+        if first_frame_checksum(payload) != trailer[2:4]:
+            self.last_rejection_reason = REJECTED_FIRST_CHECKSUM
+            return None
+        logical = header + payload
+        self._frame_received(logical, before_challenge=True)
+        return logical
+
+    def _full_counter(self, wire_counter: int) -> int:
+        """Extend the 16 transmitted counter bits by the rollovers seen so far."""
+        rollovers = self._counter & ~WIRE_COUNTER_MASK
+        if self._counter & WIRE_COUNTER_TOP_BIT and not wire_counter & WIRE_COUNTER_TOP_BIT:
+            rollovers += WIRE_COUNTER_MASK + 1
+        return rollovers | wire_counter
+
+    def _first_keystream_xor(self, data: bytes) -> bytes:
+        """Counter-zero frames reuse a single keystream block for every data block."""
+        keystream = _aes(self._key, FIRMWARE_SEED)
+        return b"".join(_xor(block, keystream) for block in _blocks(data))
+
+    def _aes_input(self, kind: int, counter: int, last_byte: int) -> bytes:
+        """Block made of kind, frame counter, challenge prefix and a final byte."""
+        nonce = counter.to_bytes(4, "big") + self._challenge[:CHALLENGE_BYTES_IN_NONCE]
+        return bytes((kind,)) + nonce + bytes((0, 0, last_byte))
+
+    def _keystream_xor(self, data: bytes, counter: int) -> bytes:
+        """Counter mode: data block n is XORed with the encrypted block number n."""
+        return b"".join(
+            _xor(block, _aes(self._key, self._aes_input(KEYSTREAM_BLOCK, counter, number)))
+            for number, block in enumerate(_blocks(data), start=1)
+        )
+
+    def _tag(self, header: bytes, payload: bytes, counter: int) -> bytes:
+        """CBC-MAC over header and plain payload, masked with keystream block zero."""
+        mac = _aes(self._key, self._aes_input(MAC_START_BLOCK, counter, len(payload)))
+        for block in (header, *_blocks(payload)):
+            mac = _aes(self._key, _xor(_pad(block), mac))
+        mask = _aes(self._key, self._aes_input(KEYSTREAM_BLOCK, counter, 0))
+        return _xor(mac[:TAG_LENGTH], mask)
+
+    def _is_challenge(self, logical: bytes) -> bool:
+        """0x5B reply of the Bluetooth module: 16 challenge bytes, then the serial."""
+        return (
+            logical[FrameOffset.LENGTH] >= BLE129_INIT_REPLY_LENGTH
+            and logical[FrameOffset.SOURCE:FrameOffset.INDEX]
+            == bytes((self._handshake_board, self._host_id, PacketOpcode.INIT))
+        )
+
+    def _is_password_offer(self, logical: bytes) -> bool:
+        """0x5C request of this host that carries the session password."""
+        return logical[CLEAR_HEADER_LENGTH - 1:FrameOffset.DATA] == bytes((
+            BLE129_APP_KEY_LENGTH, self._host_id, self._handshake_board,
+            PacketOpcode.PING, PairingStatus.PENDING,
+        ))
+
+    def _is_password_confirmation(self, logical: bytes) -> bool:
+        """Empty 0x5C reply of the dashboard that accepts the session password."""
+        return logical[CLEAR_HEADER_LENGTH - 1:FrameOffset.DATA] == bytes((
+            0, self._handshake_board, self._host_id,
+            PacketOpcode.PING, PairingStatus.CONFIRMED,
+        ))

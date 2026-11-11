@@ -12,7 +12,7 @@ from collections.abc import Awaitable, Callable
 
 from ..protocols.ninebot.packet import DeviceId, LegacyM365Reply, PacketOpcode
 from ..protocols.xiaomi import PacketParser, ScooterCommand, ScooterMessage
-from ..utilities import TIMEOUT_ERRORS, timeout as async_timeout
+from ..helpers.utilities import TIMEOUT_ERRORS, timeout as async_timeout
 
 
 class LegacyM365Link:

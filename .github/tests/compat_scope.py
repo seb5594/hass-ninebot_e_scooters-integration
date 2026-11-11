@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
-COMPAT = Path(__file__).resolve().parents[2] / "custom_components/ninebot_e_scooters/compat.py"
+COMPAT = Path(__file__).resolve().parents[2] / "custom_components/ninebot_e_scooters/helpers/compat.py"
 EXPORTED = (
     "async_register_scooter_callback",
     "async_register_static_files",

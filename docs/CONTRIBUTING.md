@@ -39,7 +39,9 @@ Do not infer an exact model from an incomplete serial or advertised name. Keep
 
 ## Add a read register
 
-Insert its descriptor in `protocols/ninebot/registers.py`, ordered by target/index.
+Insert its descriptor into the register map of its generation in
+`protocols/ninebot/registers.py` (`CLASSIC_REGISTERS` or `VCU_REGISTERS`), ordered by
+target/index. Name the source in the module docstring.
 The existing current register demonstrates signed hundredths of an ampere:
 
 ```python
@@ -49,8 +51,9 @@ RegisterSpec(
 )
 ```
 
-Reads request two bytes per word. Multiword blocks advance the register index and
-are committed only when every word arrives. Add a decoding fixture:
+Classic reads request two bytes per word. Multiword blocks advance the register index and
+are committed only when every word arrives; the VCU generation fetches a block with one
+request. Add a decoding fixture:
 
 ```python
 data = ScooterData()

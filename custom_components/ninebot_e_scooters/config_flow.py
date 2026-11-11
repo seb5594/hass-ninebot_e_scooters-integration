@@ -22,31 +22,31 @@ from homeassistant.helpers.selector import (
 )
 from homeassistant.helpers.storage import Store
 
-from .compat import (
+from .helpers.compat import (
     ConfigFlowResult,
     async_request_active_scan,
     async_update_reload_and_abort,
 )
 from .const import (
     CONF_MODEL,
+    CONF_PAIRING_PASSWORD,
     CONF_POLL_INTERVAL,
     DEFAULT_POLL_INTERVAL,
     DOMAIN,
     MAX_POLL_INTERVAL,
     MIN_POLL_INTERVAL,
-    LEGACY_XIAOMI_MODELS,
     MODEL,
     REPORT_URL,
 )
-from .models.profiles import AUTO_MODEL
-from .models.profiles import identify_model
-from .discovery import is_scooter_advertisement, needs_explicit_model
-from .sensor_groups import (
+from .models.profiles import AUTO_MODEL, CONFIGURABLE_MODELS, identify_model
+from .helpers.discovery import is_scooter_advertisement, needs_explicit_model
+from .helpers.sensor_groups import (
     CONF_SENSOR_GROUPS,
     OPTIONAL_SENSOR_GROUPS,
     sensor_groups_option,
 )
-from .storage import restore, storage_key
+from .helpers.storage import restore, storage_key
+from .helpers.utilities import parse_app_key
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -84,7 +84,7 @@ def _setup_fields(previous: Mapping[str, Any] | None = None) -> dict[Any, Any]:
     previous = previous or {}
     return {
         vol.Optional(CONF_MODEL, default=previous.get(CONF_MODEL, AUTO_MODEL)): vol.In(
-            LEGACY_XIAOMI_MODELS
+            CONFIGURABLE_MODELS
         ),
         **_sensor_groups_field(sensor_groups_option(previous)),
     }
@@ -392,15 +392,23 @@ class NinebotScooterOptionsFlow(OptionsFlow):
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
-        """Manage polling, model and optional sensor groups."""
+        """Manage polling, model, optional sensor groups and a known pairing password."""
+        errors: dict[str, str] = {}
         if user_input is not None:
-            return self.async_create_entry(
-                data={**user_input, CONF_SENSOR_GROUPS: sensor_groups_option(user_input)}
-            )
+            chosen = {key: value for key, value in user_input.items() if key != CONF_PAIRING_PASSWORD}
+            try:
+                self._adopt_pairing_password(user_input.get(CONF_PAIRING_PASSWORD, ""))
+            except ValueError:
+                errors[CONF_PAIRING_PASSWORD] = "invalid_pairing_password"
+            else:
+                return self.async_create_entry(
+                    data={**chosen, CONF_SENSOR_GROUPS: sensor_groups_option(chosen)}
+                )
 
-        options = self._entry.options
+        options = {**self._entry.options, **(user_input or {})}
         return self.async_show_form(
             step_id="init",
+            errors=errors,
             data_schema=vol.Schema(
                 {
                     vol.Required(
@@ -419,8 +427,22 @@ class NinebotScooterOptionsFlow(OptionsFlow):
                     vol.Required(
                         CONF_MODEL,
                         default=options.get(CONF_MODEL, MODEL),
-                    ): vol.In(LEGACY_XIAOMI_MODELS),
+                    ): vol.In(CONFIGURABLE_MODELS),
                     **_sensor_groups_field(sensor_groups_option(options)),
+                    vol.Optional(CONF_PAIRING_PASSWORD): str,
                 }
             ),
+        )
+
+    def _adopt_pairing_password(self, entered: str) -> None:
+        """Store a password the scooter already knows, so no new pairing replaces it.
+
+        Raises ValueError unless the field is empty or holds 16 bytes as hex.
+        """
+        password = "".join(entered.split())
+        if not password:
+            return
+        key = parse_app_key(password)
+        self.hass.config_entries.async_update_entry(
+            self._entry, data={**self._entry.data, "app_key": key.hex(), "paired": True},
         )

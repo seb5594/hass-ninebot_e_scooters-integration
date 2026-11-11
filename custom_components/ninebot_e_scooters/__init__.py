@@ -15,8 +15,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import CoreState, HomeAssistant, callback
 from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.loader import async_get_integration
 
-from .compat import (
+from .helpers.compat import (
     async_register_scooter_callback,
     async_register_static_files,
     async_request_active_scan,
@@ -27,12 +28,13 @@ from .const import (
     CONF_MODEL,
     CONF_POLL_INTERVAL,
     DEFAULT_POLL_INTERVAL,
+    DOMAIN,
     MODEL,
     PLATFORMS,
 )
 from .coordinator import ScooterCoordinator
-from .feedback import withdraw_invitation
-from .sensor_groups import selected_sensor_groups
+from .helpers.feedback import withdraw_invitation
+from .helpers.sensor_groups import selected_sensor_groups
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -74,7 +76,10 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     # Home Assistant loads the module on each frontend page without editing
     # configuration.yaml or individual dashboards. It watches only our
     # pairing notices; the stored app key never enters the browser.
-    add_extra_js_url(hass, "/api/ninebot_e_scooters/pairing_dialog.js?v=1.0.0b5")
+    # The installed version in the URL makes browsers drop the dialog of an
+    # earlier release instead of serving it from their cache.
+    integration = await async_get_integration(hass, DOMAIN)
+    add_extra_js_url(hass, f"/api/ninebot_e_scooters/pairing_dialog.js?v={integration.version}")
     return True
 
 
@@ -82,8 +87,10 @@ async def _async_options_updated(hass: HomeAssistant, entry: NinebotScooterConfi
     """Apply polling, model and sensor group options through one clean BLE reconnect."""
     # Pairing also updates entry.data. Reload only when the user changes an
     # actual option, or the first successful pairing would tear down its link.
+    # A pairing password entered in the options replaces the key in use.
     coordinator = entry.runtime_data
-    if (coordinator.poll_interval != int(entry.options.get(CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL))
+    if (coordinator.app_key_hex != entry.data.get("app_key")
+            or coordinator.poll_interval != int(entry.options.get(CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL))
             or coordinator.model != entry.options.get(CONF_MODEL, MODEL)
             or coordinator.sensor_groups != selected_sensor_groups(entry.options)):
         await hass.config_entries.async_reload(entry.entry_id)
