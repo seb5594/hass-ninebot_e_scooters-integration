@@ -12,10 +12,7 @@ from test_090_reconnect_mode import method
 from test_protocol import PACKAGE_PATH, const, load_module
 
 
-profiles = load_module(
-    "custom_components.ninebot_e_scooters.model_profiles",
-    PACKAGE_PATH / "model_profiles.py",
-)
+profiles = load_module("models.profiles")
 
 
 @pytest.mark.parametrize("prefix,expected", [
@@ -47,7 +44,7 @@ def test_unknown_or_incomplete_serial_never_invents_model(serial):
 
 
 def test_ble129_pro2_uses_shared_transport_but_cannot_receive_1s_writes():
-    assert profiles.AUTO_MODEL in const.LEGACY_XIAOMI_MODELS
+    assert profiles.AUTO_MODEL in profiles.CONFIGURABLE_MODELS
     pro2 = profiles.identify_model("25701/00015977", "MIScooter5977")
     one_s = profiles.identify_model("25700/00015977", "MIScooter5977")
     assert profiles.effective_profile(profiles.AUTO_MODEL, pro2).protocol == profiles.BLE129

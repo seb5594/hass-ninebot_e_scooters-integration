@@ -20,9 +20,19 @@ if PACKET_MODULE_NAME not in sys.modules:
 else:
     packet = sys.modules[PACKET_MODULE_NAME]
 
+GATT_MODULE_NAME = "isolated_ninebot_gatt_test_scope"
+if GATT_MODULE_NAME not in sys.modules:
+    gatt_path = Path(__file__).resolve().parents[2] / "custom_components/ninebot_e_scooters/protocols/gatt.py"
+    spec = importlib.util.spec_from_file_location(GATT_MODULE_NAME, gatt_path)
+    gatt = importlib.util.module_from_spec(spec)
+    sys.modules[GATT_MODULE_NAME] = gatt
+    spec.loader.exec_module(gatt)
+else:
+    gatt = sys.modules[GATT_MODULE_NAME]
+
 UTILITIES_MODULE_NAME = "isolated_ninebot_utilities_test_scope"
 if UTILITIES_MODULE_NAME not in sys.modules:
-    utilities_path = Path(__file__).resolve().parents[2] / "custom_components/ninebot_e_scooters/utilities.py"
+    utilities_path = Path(__file__).resolve().parents[2] / "custom_components/ninebot_e_scooters/helpers/utilities.py"
     spec = importlib.util.spec_from_file_location(UTILITIES_MODULE_NAME, utilities_path)
     utilities = importlib.util.module_from_spec(spec)
     sys.modules[UTILITIES_MODULE_NAME] = utilities
@@ -69,4 +79,6 @@ def add_protocol_symbols(namespace: dict, packet_module=packet) -> dict:
     for name in PROTOCOL_SYMBOLS:
         namespace.setdefault(name, getattr(packet_module, name))
     namespace.setdefault("NINEBOT_HEADER", packet_module.HEADER)
+    namespace.setdefault("find_uart_characteristics", gatt.find_uart_characteristics)
+    namespace.setdefault("describe_characteristics", gatt.describe_characteristics)
     return namespace

@@ -1,8 +1,9 @@
 from source_helpers import parse_source
 import ast, asyncio, dataclasses, re, secrets, types, logging
 from pathlib import Path
-from custom_components.ninebot_e_scooters.discovery import is_scooter_advertisement, needs_explicit_model
-from custom_components.ninebot_e_scooters import sensor_groups
+from custom_components.ninebot_e_scooters.helpers.discovery import is_scooter_advertisement, needs_explicit_model
+from custom_components.ninebot_e_scooters.helpers import sensor_groups
+from custom_components.ninebot_e_scooters.helpers.utilities import parse_app_key
 src = Path(__file__).resolve().parents[2] / 'custom_components' / 'ninebot_e_scooters'
 parsed=parse_source((src/'config_flow.py').read_text())
 configs=[n for n in parsed.body if isinstance(n,(ast.FunctionDef,ast.ClassDef))]
@@ -51,7 +52,8 @@ namespace={'__name__':'fake_flow','__builtins__':__builtins__, 'Any':object,
     'NUS_SERVICE_UUID':'6e400001-b5a3-f393-e0a9-e50e24dcca9e',
     'CONF_POLL_INTERVAL':'poll_interval','DEFAULT_POLL_INTERVAL':10,'MAX_POLL_INTERVAL':120,
     'CONF_MODEL':'model','AUTO_MODEL':'Automatisch',
-    'LEGACY_XIAOMI_MODELS':('Automatisch','Mi Electric Scooter 1S'),
+    'CONF_PAIRING_PASSWORD':'pairing_password','parse_app_key':parse_app_key,
+    'CONFIGURABLE_MODELS':('Automatisch','Mi Electric Scooter 1S'),
     'MODEL':'Mi Electric Scooter 1S',
     'MIN_POLL_INTERVAL':5,'bluetooth':fake_bt,'async_request_active_scan':fake_bt.async_request_active_scan,
     'async_update_reload_and_abort':lambda *args, **kwargs: None,'vol':Vol,'secrets':secrets,

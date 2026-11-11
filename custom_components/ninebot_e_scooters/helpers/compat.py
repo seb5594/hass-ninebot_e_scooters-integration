@@ -57,7 +57,7 @@ __all__ = [
     "description_dataclass",
 ]
 
-TRANSLATIONS = Path(__file__).parent / "translations" / "en.json"
+TRANSLATIONS = Path(__file__).parents[1] / "translations" / "en.json"
 LEGACY_BACKGROUND_TASKS: dict[str, set[asyncio.Task]] = {}
 
 # Entity descriptions are frozen dataclasses from Home Assistant 2024.1 on. A

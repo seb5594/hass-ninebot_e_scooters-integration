@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 from types import SimpleNamespace
 
-from custom_components.ninebot_e_scooters.ninebot_packet import NinebotPacket
+from custom_components.ninebot_e_scooters.protocols.ninebot.packet import NinebotPacket
 from protocol_scope import add_protocol_symbols
 
 SRC = Path(__file__).resolve().parents[2] / "custom_components/ninebot_e_scooters/coordinator.py"

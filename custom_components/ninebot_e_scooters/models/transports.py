@@ -8,8 +8,22 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ..protocols.constants import NUS_NOTIFY_UUID, NUS_SERVICE_UUID, NUS_WRITE_UUID
+from ..protocols.gatt import NINEBOT_UART, NORDIC_UART, UartService
 from ..protocols.ninebot.packet import DeviceId
+from ..protocols.ninebot.registers import CLASSIC_REGISTERS, VCU_REGISTERS, RegisterMap
+from .profiles import (
+    BLE129,
+    M365_LEGACY,
+    M365_PRO_CRYPTO,
+    NINEBOT_D,
+    NINEBOT_E,
+    NINEBOT_ES,
+    NINEBOT_F,
+    NINEBOT_MAX,
+    NINEBOT_MAX_G2,
+    NINEBOT_VCU,
+    UNVERIFIED,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,50 +31,70 @@ class TransportProfile:
     """Describe the GATT and authentication requirements for one family."""
 
     family: str
-    documented_ble_versions: tuple[str, ...]
+    documented_ble_versions: tuple[str, ...] = ()
     adapter_implemented: bool = False
-    service_uuid: str | None = None
-    write_uuid: str | None = None
-    notify_uuid: str | None = None
+    # The serial service the family is documented with. A session prefers it
+    # and falls back to whichever known service the scooter really offers.
+    uart: UartService | None = None
     host_id: DeviceId = DeviceId.PHONE
+    # Bluetooth modules that may answer the 0x5B handshake, most likely first.
+    handshake_boards: tuple[DeviceId, ...] = (DeviceId.DASHBOARD,)
+    # Layout of the word registers; None for the Xiaomi block reads.
+    registers: RegisterMap | None = None
+    # The scooter keeps one session password. A host that knows it logs in
+    # with 0x5D alone; sending 0x5C again would ask for the power button.
+    resumes_with_password: bool = False
 
 
-# Version families are documented by ScooterHacking/NinebotCrypto. A future
-# transport adapter must provide its own discovery filter, crypto handshake,
-# telemetry register map, capability gates and readback tests.
+# A Ninebot name does not tell the two board numberings apart, so a session
+# asks the documented Bluetooth module first and the other one after silence.
+CLASSIC_HANDSHAKE = (DeviceId.DASHBOARD, DeviceId.VCU_BLUETOOTH)
+VCU_HANDSHAKE = (DeviceId.VCU_BLUETOOTH, DeviceId.DASHBOARD)
+
+
+def _implemented(
+    family: str,
+    *documented_ble_versions: str,
+    uart: UartService = NORDIC_UART,
+    host_id: DeviceId = DeviceId.PHONE,
+) -> TransportProfile:
+    """A Xiaomi family the integration can open a session with."""
+    return TransportProfile(family, documented_ble_versions, True, uart, host_id)
+
+
+def _ninebot(
+    family: str,
+    *documented_ble_versions: str,
+    uart: UartService = NORDIC_UART,
+    host_id: DeviceId = DeviceId.PHONE,
+) -> TransportProfile:
+    """A classic Ninebot family: ESC and BMS word registers, read-only."""
+    return TransportProfile(family, documented_ble_versions, True, uart, host_id,
+                            CLASSIC_HANDSHAKE, CLASSIC_REGISTERS)
+
+
+# BLE versions are the ones ScooterHacking/NinebotCrypto lists per family. The
+# vendor app also uses the chained crypto for the Max G2 and the D series,
+# which have no public version list yet, so none is claimed here.
 TRANSPORT_PROFILES: dict[str, TransportProfile] = {
-    "unverified": TransportProfile("unverified", ()),
-    "xiaomi_ble129": TransportProfile(
-        "xiaomi_ble129", ("BLE129",), True,
-        NUS_SERVICE_UUID, NUS_WRITE_UUID, NUS_NOTIFY_UUID,
-    ),
-    # M365 Pro BLE110/122 uses the 5A A5 chained crypto handshake. The
-    # original four-dot M365 uses unencrypted 55 AA over the same NUS link.
-    "xiaomi_m365_pro_crypto": TransportProfile(
-        "xiaomi_m365_pro_crypto", ("BLE110", "BLE122"), True,
-        NUS_SERVICE_UUID, NUS_WRITE_UUID, NUS_NOTIFY_UUID,
-    ),
-    "xiaomi_m365_legacy": TransportProfile(
-        "xiaomi_m365_legacy", ("55 AA (four-dot display)",), True,
-        NUS_SERVICE_UUID, NUS_WRITE_UUID, NUS_NOTIFY_UUID,
-    ),
-    "ninebot_es": TransportProfile(
-        "ninebot_es", ("BLE109", "BLE110"), True,
-        NUS_SERVICE_UUID, NUS_WRITE_UUID, NUS_NOTIFY_UUID,
-    ),
-    "ninebot_max": TransportProfile(
-        "ninebot_max", ("BLE110", "BLE113", "BLE114"), True,
-        NUS_SERVICE_UUID, NUS_WRITE_UUID, NUS_NOTIFY_UUID,
-    ),
-    "ninebot_e": TransportProfile(
-        "ninebot_e", ("BLE209", "BLE213"), True,
-        NUS_SERVICE_UUID, NUS_WRITE_UUID, NUS_NOTIFY_UUID,
-    ),
-    # ownbee/ninebot-ble uses the PC address on its tested F-series scooter.
-    "ninebot_f": TransportProfile(
-        "ninebot_f", ("BLE307",), True,
-        NUS_SERVICE_UUID, NUS_WRITE_UUID, NUS_NOTIFY_UUID, DeviceId.PC,
-    ),
+    profile.family: profile for profile in (
+        TransportProfile(UNVERIFIED),
+        _implemented(BLE129, "BLE129"),
+        # M365 Pro BLE110/122 uses the 5A A5 chained crypto handshake. The
+        # original four-dot M365 uses unencrypted 55 AA over the same UART.
+        _implemented(M365_PRO_CRYPTO, "BLE110", "BLE122"),
+        _implemented(M365_LEGACY, "55 AA (four-dot display)"),
+        _ninebot(NINEBOT_ES, "BLE109", "BLE110"),
+        _ninebot(NINEBOT_MAX, "BLE110", "BLE113", "BLE114"),
+        _ninebot(NINEBOT_E, "BLE209", "BLE213"),
+        # ownbee/ninebot-ble uses the PC address on its tested F-series scooter.
+        _ninebot(NINEBOT_F, "BLE307", host_id=DeviceId.PC),
+        _ninebot(NINEBOT_MAX_G2, uart=NINEBOT_UART),
+        _ninebot(NINEBOT_D, uart=NINEBOT_UART),
+        # F3 and Max G3 offer both serial services and answer on the Nordic one.
+        TransportProfile(NINEBOT_VCU, (), True, NORDIC_UART, DeviceId.PHONE,
+                         VCU_HANDSHAKE, VCU_REGISTERS, resumes_with_password=True),
+    )
 }
 
 

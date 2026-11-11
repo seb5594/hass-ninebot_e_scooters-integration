@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Any
+
+# Computed from stored values; reported next to them in diagnostics.
+DERIVED_VALUES = (
+    "battery_power_w", "battery_cell_min_v", "battery_cell_max_v", "battery_cell_delta_v",
+)
 
 
 @dataclass(slots=True)
@@ -76,47 +81,15 @@ class ScooterData:
         return max(self.battery_cell_voltages) - min(self.battery_cell_voltages)
 
     def as_dict(self, *, include_raw: bool = False) -> dict[str, Any]:
-        """Return a serializable diagnostics dictionary."""
-        data = {
-            key: value
-            for key, value in {
-                "serial": self.serial,
-                "firmware_version": self.firmware_version,
-                "bms_version": self.bms_version,
-                "ble_version": self.ble_version,
-                "battery_capacity_ah": self.battery_capacity_ah,
-                "battery_percent": self.battery_percent,
-                "battery_current_a": self.battery_current_a,
-                "battery_voltage_v": self.battery_voltage_v,
-                "battery_temperature_1_c": self.battery_temperature_1_c,
-                "battery_temperature_2_c": self.battery_temperature_2_c,
-                "battery_cell_voltages": list(self.battery_cell_voltages),
-                "speed_kmh": self.speed_kmh,
-                "speed_average_kmh": self.speed_average_kmh,
-                "odometer_km": self.odometer_km,
-                "trip_distance_m": self.trip_distance_m,
-                "distance_left_km": self.distance_left_km,
-                "uptime_s": self.uptime_s,
-                "frame_temperature_c": self.frame_temperature_c,
-                "error_flags": self.error_flags,
-                "warning_flags": self.warning_flags,
-                "status_flags": self.status_flags,
-                "bms_status_flags": self.bms_status_flags,
-                "battery_charge_cycles": self.battery_charge_cycles,
-                "battery_health_percent": self.battery_health_percent,
-                "battery_manufacture_date": self.battery_manufacture_date,
-                "work_mode": self.work_mode,
-                "is_cruise_on": self.is_cruise_on,
-                "is_tail_light_on": self.is_tail_light_on,
-                "is_lock_on": self.is_lock_on,
-                "kers_mode": self.kers_mode,
-                "battery_power_w": self.battery_power_w,
-                "battery_cell_min_v": self.battery_cell_min_v,
-                "battery_cell_max_v": self.battery_cell_max_v,
-                "battery_cell_delta_v": self.battery_cell_delta_v,
-            }.items()
-            if value is not None
+        """Return every known value, stored or derived, as a serializable dictionary."""
+        values: dict[str, Any] = {
+            field.name: getattr(self, field.name)
+            for field in fields(self)
+            if field.name != "raw_packets"
         }
+        values["battery_cell_voltages"] = list(self.battery_cell_voltages)
+        values.update({name: getattr(self, name) for name in DERIVED_VALUES})
+        data = {name: value for name, value in values.items() if value is not None}
 
         if include_raw:
             data["raw_packets"] = list(self.raw_packets)

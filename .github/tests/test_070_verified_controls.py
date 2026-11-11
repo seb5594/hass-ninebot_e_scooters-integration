@@ -14,7 +14,7 @@ from test_protocol import protocol
 from test_pairing_queue import PKT
 from test_ninebot_crypto import NinebotCrypto
 from protocol_scope import add_protocol_symbols
-from custom_components.ninebot_e_scooters.sensor_groups import selected_sensor_groups
+from custom_components.ninebot_e_scooters.helpers.sensor_groups import selected_sensor_groups
 
 
 ROOT = Path(__file__).resolve().parents[2] / "custom_components" / "ninebot_e_scooters"
@@ -191,11 +191,22 @@ def test_saved_pairing_key_does_not_reload_scooter_entry():
             reloaded.append(entry_id)
 
         hass = SimpleNamespace(config_entries=SimpleNamespace(async_reload=reload))
-        entry = SimpleNamespace(entry_id="scooter", options={},
+        key = "ab" * 16
+        entry = SimpleNamespace(entry_id="scooter", options={}, data={"app_key": key},
             runtime_data=SimpleNamespace(poll_interval=10, model="Mi Electric Scooter 1S",
-                                         sensor_groups=frozenset()))
+                                         sensor_groups=frozenset(), app_key_hex=key))
         await namespace["_async_options_updated"](hass, entry)
         assert reloaded == []
+        # A completed pairing stores the key that is already in use.
+        entry.data = {"app_key": key, "paired": True}
+        await namespace["_async_options_updated"](hass, entry)
+        assert reloaded == []
+        # A pairing password from the options form replaces it.
+        entry.data = {"app_key": "cd" * 16, "paired": True}
+        await namespace["_async_options_updated"](hass, entry)
+        assert reloaded == ["scooter"]
+        reloaded.clear()
+        entry.runtime_data.app_key_hex = "cd" * 16
         entry.options = {"poll_interval": 15}
         await namespace["_async_options_updated"](hass, entry)
         assert reloaded == ["scooter"]

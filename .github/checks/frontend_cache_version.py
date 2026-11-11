@@ -1,9 +1,8 @@
-"""The pairing dialog URL carries the manifest version so browsers reload new releases."""
-import json
+"""The pairing dialog URL carries the installed version so browsers reload new releases."""
 from pathlib import Path
 
-component = Path("custom_components/ninebot_e_scooters")
-version = json.loads((component / "manifest.json").read_text())["version"]
-setup = (component / "__init__.py").read_text()
-assert f"pairing_dialog.js?v={version}" in setup, "Update the frontend cache version"
-print(f"Frontend cache version matches {version}")
+setup = Path("custom_components/ninebot_e_scooters/__init__.py").read_text()
+assert "pairing_dialog.js?v={integration.version}" in setup, (
+    "Build the frontend cache version from the installed integration"
+)
+print("Frontend cache version follows the manifest")

@@ -12,14 +12,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import CONF_MODEL, DEFAULT_POLL_INTERVAL, MODEL
-from .feedback import FeedbackInvitation
+from .helpers.feedback import FeedbackInvitation
 from .protocols.legacy import LegacyM365Link
 from .protocols.ninebot.crypto import NinebotCrypto
 from .protocols.ninebot.packet import DeviceId, NinebotPacket
 from .models.profiles import AUTO_MODEL, identify_model
-from .sensor_groups import selected_sensor_groups
+from .helpers.sensor_groups import selected_sensor_groups
 from .protocols.xiaomi import ScooterData
-from .storage import storage_key
+from .helpers.storage import storage_key
 from .runtime.constants import GATT_RETRY_COOLDOWN
 from .runtime.device import DeviceMixin
 from .runtime.connection import ConnectionMixin
@@ -28,7 +28,7 @@ from .runtime.requests import RequestsMixin
 from .runtime.telemetry import TelemetryMixin
 from .runtime.controls import ControlsMixin
 from .runtime.ninebot import NinebotMixin
-from .utilities import ConnectionBackoff, parse_app_key
+from .helpers.utilities import ConnectionBackoff, parse_app_key
 from .runtime.errors import ScooterConnectionError as ScooterConnectionError
 
 _LOGGER = logging.getLogger(__name__)
@@ -81,6 +81,10 @@ class ScooterCoordinator(DeviceMixin, ConnectionMixin, SessionMixin, RequestsMix
         self._pending_pair_ack: NinebotPacket | None = None
         self._last_raw_packets: tuple[str, ...] = ()
         self._last_services: tuple[str, ...] = ()
+        self._last_characteristics: tuple[str, ...] = ()
+        self._handshake_board = DeviceId.DASHBOARD
+        # From the 0x5B reply: whether some host has already paired with the scooter.
+        self._scooter_has_session_password: bool | None = None
         self._last_notification: str | None = None
         self._last_error: str | None = None
         self._last_telemetry_at: datetime | None = None

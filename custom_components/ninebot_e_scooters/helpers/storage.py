@@ -6,7 +6,7 @@ from dataclasses import fields
 from datetime import date, datetime
 from typing import Any
 
-from .protocols.data import ScooterData
+from ..protocols.data import ScooterData
 from .utilities import UTC, finite_number
 
 

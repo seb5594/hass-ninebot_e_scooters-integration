@@ -51,9 +51,9 @@ def registry(monkeypatch):
     module("homeassistant.core", HomeAssistant=object)
     module("homeassistant.helpers", issue_registry=issues)
     module("homeassistant.helpers.storage", Store=store)
-    for name in ("const", "feedback"):
+    for name in ("const", "helpers.feedback"):
         monkeypatch.delitem(sys.modules, f"custom_components.ninebot_e_scooters.{name}", raising=False)
-    feedback = importlib.import_module("custom_components.ninebot_e_scooters.feedback")
+    feedback = importlib.import_module("custom_components.ninebot_e_scooters.helpers.feedback")
     recording.new_invitation = lambda: feedback.FeedbackInvitation(
         hass=None, entry_id="entry1", address="AA:BB:CC:DD:EE:FF")
     return recording

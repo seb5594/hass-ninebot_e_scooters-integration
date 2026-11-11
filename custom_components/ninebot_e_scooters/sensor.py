@@ -25,12 +25,12 @@ from homeassistant.const import (
 from homeassistant.helpers import entity_registry
 from homeassistant.helpers.entity import EntityCategory
 
-from .compat import description_dataclass
+from .helpers.compat import description_dataclass
 from .const import DOMAIN, REFERENCE_RANGE_KM, RIDE_MODE_LABELS_1S
 from .coordinator import ScooterCoordinator
 from .entity import ScooterEntity, async_remove_entities
 from .protocols.data import ScooterData
-from .sensor_groups import (
+from .helpers.sensor_groups import (
     BATTERY_HEALTH,
     DEVICE_INFO,
     RIDING,

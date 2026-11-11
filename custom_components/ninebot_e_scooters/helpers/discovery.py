@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from .protocols.constants import AUTH_SERVICE_UUID
-from .protocols.research import NINEBOT_SERIAL
+from ..protocols.constants import AUTH_SERVICE_UUID
+from ..models.serials import NINEBOT_SERIAL
 
 SCOOTER_NAME_PREFIXES = ("miscooter", "ninebot", "nbscooter", "segway")
 

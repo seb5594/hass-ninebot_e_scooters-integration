@@ -21,7 +21,7 @@ from ..protocols.ninebot.packet import (
     LegacyM365Reply,
     PairingStatus,
 )
-from ..utilities import TIMEOUT_ERRORS, timeout as async_timeout
+from ..helpers.utilities import TIMEOUT_ERRORS, timeout as async_timeout
 from .errors import ScooterConnectionError
 from .constants import MAX_BLE129_BUFFER, MAX_BLE129_PAYLOAD
 import logging
@@ -123,7 +123,9 @@ class RequestsMixin:
                 packet.source, packet.target,
                 packet.command, packet.index, len(packet.data),
             )
-            if packet.source == DeviceId.DASHBOARD and packet.target == getattr(self, "_host_id", DeviceId.PHONE) and packet.index == PairingStatus.CONFIRMED:
+            if (packet.source == getattr(self, "_handshake_board", DeviceId.DASHBOARD)
+                    and packet.target == getattr(self, "_host_id", DeviceId.PHONE)
+                    and packet.index == PairingStatus.CONFIRMED):
                 if packet.command == CMD_PING:
                     self._pending_pair_confirmation = packet
                 elif packet.command == CMD_PAIR:
@@ -151,6 +153,9 @@ class RequestsMixin:
         host_id = getattr(self, "_host_id", DeviceId.PHONE)
         if request.source != host_id:
             request = replace(request, source=host_id)
+        handshake_board = getattr(self, "_handshake_board", DeviceId.DASHBOARD)
+        if request.command in (CMD_INIT, CMD_PING, CMD_PAIR) and request.target != handshake_board:
+            request = replace(request, target=handshake_board)
         if getattr(self, "_shutting_down", False):
             raise ScooterConnectionError("Scooter config entry is shutting down")
         if self._crypto is None or self._client is None or self._tx_char is None:

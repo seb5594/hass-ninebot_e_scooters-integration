@@ -7,7 +7,7 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .compat import async_redact_data
+from .helpers.compat import async_redact_data
 from .const import CONF_POLL_INTERVAL
 from .coordinator import ScooterCoordinator
 

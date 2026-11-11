@@ -25,7 +25,7 @@
 [🇬🇧 English](README.md) · [🇩🇪 Deutsch](docs/README.de.md)
 
 > [!IMPORTANT]
-> **Only 1 of 8 model groups has been verified on real hardware so far.** Do you own another
+> **Only 1 of 10 model groups has been verified on real hardware so far.** Do you own another
 > one? Please [tell me in two minutes whether it works](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml).
 > It is a short form, and a report that everything works helps as much as a bug report.
 
@@ -47,16 +47,37 @@ alive and reuses stored keys.
 | Ninebot ES1 / ES2 / ES3 / ES4 | 5A A5, BLE109/110 | Read-only word registers | Experimental · [report](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20ES1%20%2F%20ES2%20%2F%20ES3%20%2F%20ES4) |
 | Ninebot Max G30 / G30P / G30D / G30E / G30LP / G30LE / G30LD | 5A A5, BLE110/113/114 | Read-only word registers | Experimental · [report](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20Max%20G30%20family) |
 | Ninebot E22 / E25 / E45 | 5A A5, BLE209/213 | Read-only word registers | Experimental · [report](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20E22%20%2F%20E25%20%2F%20E45) |
-| Ninebot F20 / F25 / F30 / F40 | 5A A5, BLE307, PC address | Read-only word registers | Experimental · [report](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20F20%20%2F%20F25%20%2F%20F30%20%2F%20F40) |
+| Ninebot F20 / F25 / F30 / F40 / F65 | 5A A5, BLE307, PC address | Read-only word registers | Experimental · [report](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20F20%20%2F%20F25%20%2F%20F30%20%2F%20F40) |
+| Ninebot Max G2 / D18 / D28 / D38 | 5A A5, Ninebot serial service | Read-only word registers | Experimental, no report yet · [report](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20Max%20G2%20%2F%20D18%20%2F%20D28%20%2F%20D38) |
+| Ninebot F3 / F3 Pro / Max G3 | 5A A5, VCU board numbering | Read-only VCU registers | Experimental, no report yet · [report](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20F3%20%2F%20F3%20Pro%20%2F%20Max%20G3) |
 
 These BLE versions come from public implementations. They do not guarantee compatibility with
 every region, dashboard or firmware variant. Xiaomi BLE132 with 5A AB, Xiaomi 3/4 and Ninebot
-G2, F2, ZT and GT are not supported. Model notes in the research catalog do not mean support.
+F2, E2, ZT3, GT and P series are not supported. Model notes in the research catalog do not mean support.
 
 Ninebot scooters report battery level, current, voltage, battery temperatures and the status
 word. Odometer, firmware, errors and battery health are queried step by step. Current speed,
 external ES batteries and write control for Ninebot are not implemented yet. Missing values stay
 unknown.
+
+### Ninebot F3, F3 Pro and Max G3
+
+This generation numbers its boards differently and keeps its values on a vehicle control unit.
+The integration reads battery level, remaining range and odometer on every poll; temperature,
+error codes and, where the pack has its own board (F3), voltage, current, capacity and charge
+cycles follow step by step. A scooter set to **Automatic** is recognized by the board that
+answers and shown as "Ninebot F3 / Max G3".
+
+The scooter remembers **one** session password. There are two ways to connect:
+
+- **Pair with the power button.** Home Assistant sets its own password. The Segway app then has
+  to be paired again, which in turn replaces the password of Home Assistant. Owners report that
+  this generation often ignores the button press, so several attempts can be necessary.
+- **Use the password of the Segway app.** Enter it under **Configure → Pairing password**
+  (32 hex characters). Home Assistant then logs in like the app does and both keep working.
+  The password never leaves the phone, so it has to be read from a Bluetooth capture or a phone
+  backup; [ha-ninebot](https://github.com/BobMcGlobus/ha-ninebot) and
+  [ha-segway-ninebot](https://github.com/camilo-sx/ha-segway-ninebot) publish tools for that.
 
 ## Installation
 
@@ -73,12 +94,12 @@ the scooter's next advertisement instead. Everything else behaves the same.
    cd /config
    mkdir -p custom_components/ninebot_e_scooters
    wget -O /tmp/ninebot_e_scooters.zip \
-     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v1.0.0b4/ninebot_e_scooters.zip
+     https://github.com/seb5594/hass-ninebot_e_scooters-integration/releases/download/v2026.11.11.1/ninebot_e_scooters.zip
    unzip -o /tmp/ninebot_e_scooters.zip -d custom_components/ninebot_e_scooters
    rm /tmp/ninebot_e_scooters.zip
    ```
 
-   Replace `v1.0.0b4` with the version you want, then restart Home Assistant.
+   Replace `v2026.11.11.1` with the version you want, then restart Home Assistant.
 2. Go to **Settings → Devices & services → Add integration** and search for
    **Ninebot E-Scooters**. Switch the scooter on, select the matching model and tick any
    additional sensors you want (see below).

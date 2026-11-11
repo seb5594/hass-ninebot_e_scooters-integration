@@ -6,7 +6,7 @@ They cover raw BLE129 bytes; the Ninebot ES PDF has a separate serial checksum.
 
 import pytest
 
-from test_protocol import const, protocol
+from test_protocol import protocol, wire
 from test_ninebot_crypto import NinebotCrypto, packet_module as packet
 
 
@@ -47,16 +47,16 @@ def test_es_and_xiaomi_1s_same_address_has_different_meaning():
     assert packet.NinebotEsRegister.QUICK_ERROR == packet.Xiaomi1sEscRegister.FAST_TELEMETRY == 0xB0
     assert packet.Xiaomi1sEscRegister.SUPPLEMENTARY_KERS == 0x7B
     assert 0x7B not in {register.value for register in packet.NinebotEsRegister}
-    assert const.MOTOR_TO_MASTER == packet.LegacyM365Reply.ESC
+    assert wire.MOTOR_TO_MASTER == packet.LegacyM365Reply.ESC
     assert packet.DeviceId.EXTERNAL_BMS == packet.LegacyM365Reply.ESC
-    assert const.WRITE == packet.PacketOpcode.WRITE_NO_REPLY
+    assert wire.WRITE == packet.PacketOpcode.WRITE_NO_REPLY
 
 
 def test_legacy_read_frames_keep_their_original_bytes():
     reads = dict(protocol.standard_read_commands())
     assert reads["motor_info"] == protocol.make_read(
-        const.MASTER_TO_MOTOR, 0xB0, 0x20,
+        wire.MASTER_TO_MOTOR, 0xB0, 0x20,
     )
     assert reads["supplementary"] == protocol.make_read(
-        const.MASTER_TO_BATTERY, 0x7B, 0x06,
+        wire.MASTER_TO_BATTERY, 0x7B, 0x06,
     )

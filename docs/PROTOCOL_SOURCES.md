@@ -17,6 +17,24 @@ acknowledgements. Reviewed on 2026-10-01:
 | [dnandha/miauth](https://github.com/dnandha/miauth/tree/7df4f35c258f926ce396df3691d7f91d86ad761e) | `7df4f35c` | Independent crypto/key-stage comparison |
 | [HA Bluetooth API](https://github.com/home-assistant/core/blob/2026.9.3/homeassistant/components/bluetooth/api.py) | `2026.9.3` | Callback replay, active scans and history rearming |
 
+Reviewed on 2026-11-11 for the session crypto rewrite and the newer generations:
+
+| Source | Purpose |
+| --- | --- |
+| [Segway-Ninebot BLE Protocol](https://nootnooot.codeberg.page/segway-ninebot-ble/) (Apache-2.0) | Encryption and handshake description the crypto module is written from; serial services; vendor command tables of the Max G2 and the F3 |
+| [BobMcGlobus/ha-ninebot issue 9](https://github.com/BobMcGlobus/ha-ninebot/issues/9) | An F3 owner's measurements: Bluetooth module 0x04, VCU 0x16, battery board 0x07, scales compared with the vendor app, unreliable button pairing |
+| [camilo-sx/ha-segway-ninebot](https://github.com/camilo-sx/ha-segway-ninebot) | F3 Pro read on hardware with the vendor app's password and without a 0x5C request |
+| [nbeseries](https://wiki.scooterhacking.org/doku.php?id=nbeseries), [nbmax](https://wiki.scooterhacking.org/doku.php?id=nbmax), [nbfseries](https://wiki.scooterhacking.org/doku.php?id=nbfseries) | Serial variant letters of the E, Max and F series |
+| [Ninebot ESX serial/region](https://joeybabcock.me/wiki/Ninebot_ESX_Change_Serial/Region), [Max G2](https://joeybabcock.me/wiki/Ninebot_Max_G2_D) | Serial variant letters of the ES series and the Max G2 |
+
+What rests on a single source: the odometer scale of the VCU generation (0.1 km), its
+frame temperature register 0x6B and the battery board registers. The two sources disagree
+on the index of speed and ride mode, so neither is read. The Max G2 command table matches
+the classic registers; D18, D28 and D38 are assumed to share it, their own tables could not
+be retrieved. The vendor device table lists F2 and E2 with XOR-obfuscated frames instead of
+the chained crypto, so they stay without an adapter. An F65 is reported working with the
+F-series protocol by [scottbambrick/ha-ninebot](https://github.com/scottbambrick/ha-ninebot).
+
 Upstream documents ES BLE109/110, Max BLE110/113/114, E BLE209/213 and F BLE307.
 Some Xiaomi BLE132 dashboards use 5A AB and remain disabled here. The ninebot-ble
 author reports access to an F-series scooter and uses PC address 0x3D. That is

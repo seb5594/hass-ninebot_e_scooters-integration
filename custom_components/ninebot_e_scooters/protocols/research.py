@@ -2,19 +2,19 @@
 
 Nothing in this module is imported by discovery, pairing, polling, entities or
 controls. Each record is a candidate for a future, separately tested adapter;
-it does not establish compatibility with the existing Xiaomi 1S adapter.
+it does not establish compatibility with an existing one. Families that have
+an adapter are described in models/transports.py instead.
 
 Sources: https://github.com/ownbee/ninebot-ble/tree/main/ninebot_ble
          https://github.com/dnandha/miauth (and the miauth 0.9.7 release)
          https://github.com/scooterhacking/NinebotCrypto
          https://wiki.scooterhacking.org/doku.php?id=nbdocs
+         https://nootnooot.codeberg.page/segway-ninebot-ble/ (device tables)
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
-import re
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,78 +32,22 @@ class ProtocolCandidate:
 # BLE versions indicate reported examples, not a complete compatibility list.
 # 5A AB and 55 AB are different packet prefixes; neither is Ninebot 5A A5.
 PROTOCOL_CANDIDATES: tuple[ProtocolCandidate, ...] = (
-    ProtocolCandidate("ninebot_es", "5A A5", "ninebot_chained", ("BLE109", "BLE110"), "nordic_uart"),
-    ProtocolCandidate("ninebot_max", "5A A5", "ninebot_chained", ("BLE110", "BLE113", "BLE114"), "nordic_uart"),
-    ProtocolCandidate("ninebot_e", "5A A5", "ninebot_chained", ("BLE209", "BLE213"), "nordic_uart"),
-    ProtocolCandidate("ninebot_f", "5A A5", "ninebot_chained", ("BLE307",), "nordic_uart"),
     ProtocolCandidate("xiaomi_ble132_nb", "5A A5", "ninebot_chained", ("BLE132",), "nordic_uart"),
     ProtocolCandidate("xiaomi_ble132_5aab", "5A AB", "to_be_verified", ("BLE132",), "to_be_verified"),
     ProtocolCandidate("xiaomi_mi_ec", "55 AB", "mi_ec_register_or_login", (), "mi_auth_services_and_uart"),
+    # F2, F2 Plus, F2 Pro, E2, E2 Plus and E2 Pro: the vendor device table
+    # lists them with XOR-obfuscated frames instead of the chained crypto.
+    ProtocolCandidate("ninebot_f2_e2", "5A A5", "xor_obfuscation", (), "to_be_verified"),
+    # GT1, GT2, P65 and P100S: same chained crypto, but two motors and an
+    # unknown register layout.
+    ProtocolCandidate("segway_gt_p", "5A A5", "ninebot_chained", (), "ninebot_uart"),
+    # ZT3 Pro and GT3 number their boards like the F3, but their registers
+    # have not been compared with it.
+    ProtocolCandidate("segway_zt3_gt3", "5A A5", "ninebot_chained", (), "nordic_uart"),
+    # Described in the public documentation without naming a scooter: the
+    # first key starts from a zero block instead of the firmware constant.
+    ProtocolCandidate("segway_zero_seed", "5A A5", "ninebot_chained_zero_seed", (), "to_be_verified"),
 )
-
-
-# The fourth serial character is a product variant. Only unambiguous variants
-# confirmed against the ScooterHacking model pages are listed. Custom firmware
-# can change the serial, so this is an identity hint rather than proof.
-# N2G: https://wiki.scooterhacking.org/doku.php?id=nbeseries
-# N4G: https://wiki.scooterhacking.org/doku.php?id=nbmax
-# N5G: https://wiki.scooterhacking.org/doku.php?id=nbfseries
-NINEBOT_SERIAL_HINTS: dict[str, tuple[str, dict[str, str]]] = {
-    "N2G": ("Ninebot E series", {
-        "D": "E22", "G": "E22E", "I": "E22D", "V": "E25",
-        "Y": "E25D", "X": "E25E", "Z": "E25A", "R": "E45D",
-        "O": "E45E", "M": "E45E", "Q": "E45",
-    }),
-    "N4G": ("Ninebot Max", {
-        "S": "G30P", "C": "G30", "E": "G30D", "P": "G30E",
-        "N": "G30LP", "A": "G30LE", "O": "G30LE", "M": "G30LD",
-    }),
-    "N5G": ("Ninebot F series", {
-        "A": "F20", "B": "F20D", "C": "F30", "D": "F30D",
-        "E": "F40", "F": "F40E", "G": "F40D", "H": "F60",
-        "N": "F25", "O": "F20A", "Q": "F30E", "R": "F40A",
-        "V": "F40",
-    }),
-}
-
-
-@dataclass(frozen=True, slots=True)
-class NinebotSerialHint:
-    """A read-only hint extracted from a complete legacy ESC serial."""
-
-    series: str
-    family: str
-    variant: str
-    model_hint: str | None
-    production_year: int
-    production_week: int
-    revision: str
-
-
-# Legacy 14-character ESC serial, e.g. N4GEC2110C1234: series and variant,
-# production year and week, revision, sequence number.
-NINEBOT_SERIAL = re.compile(r"[A-Z0-9]{5}[0-9]{4}[A-Z0-9][0-9]{4}")
-
-
-def inspect_ninebot_serial(serial: str | bytes | None) -> NinebotSerialHint | None:
-    """Inspect a legacy 14-character serial without changing live discovery."""
-    if isinstance(serial, bytes):
-        try:
-            serial = serial.rstrip(b"\x00").decode("ascii")
-        except UnicodeDecodeError:
-            return None
-    if not isinstance(serial, str) or not NINEBOT_SERIAL.fullmatch(serial):
-        return None
-    known = NINEBOT_SERIAL_HINTS.get(serial[:3])
-    if known is None:
-        return None
-    year, week = 2000 + int(serial[5:7]), int(serial[7:9])
-    try:
-        date.fromisocalendar(year, week, 1)
-    except ValueError:
-        return None
-    family, variants = known
-    return NinebotSerialHint(serial[:3], family, serial[3], variants.get(serial[3]), year, week, serial[9])
 
 
 @dataclass(frozen=True, slots=True)

@@ -1,6 +1,6 @@
 """BLE129 crypto tests against the current NinebotCrypto interface."""
 
-import importlib.util
+import importlib
 from pathlib import Path
 import sys
 import types
@@ -15,18 +15,11 @@ package.__path__ = [str(PACKAGE_PATH)]
 sys.modules["custom_components.ninebot_e_scooters"] = package
 
 
-def _load_module(name: str, filename: str):
-    spec = importlib.util.spec_from_file_location(name, PACKAGE_PATH / filename)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-crypto_module = _load_module("custom_components.ninebot_e_scooters.ninebot_crypto", "ninebot_crypto.py")
-packet_module = _load_module("custom_components.ninebot_e_scooters.ninebot_packet", "protocols/ninebot/packet.py")
+crypto_module = importlib.import_module("custom_components.ninebot_e_scooters.protocols.ninebot.crypto")
+packet_module = importlib.import_module("custom_components.ninebot_e_scooters.protocols.ninebot.packet")
 NinebotCrypto = crypto_module.NinebotCrypto
+
+from scooter_simulator import DashboardCrypto  # noqa: E402
 
 
 def test_packet_roundtrip():
@@ -48,12 +41,14 @@ def test_crypto_encrypt_is_session_stable():
     assert encrypted == again
 
 
-def test_crypto_key_derivation_changes_after_ble_data():
-    crypto = NinebotCrypto("MIScooter5977")
-    original = crypto._sha1_key
-    crypto._random_ble_data = bytes(reversed(range(16)))
-    crypto._sha1_key = crypto._calc_sha1_key(crypto._name, crypto._random_ble_data)
-    assert crypto._sha1_key != original
+def test_challenge_of_the_scooter_changes_the_session_key():
+    read = packet_module.make_read(0x22, 0x32, 2).pack()
+    frames = []
+    for challenge in (bytes(16), bytes(range(16))):
+        dashboard, host = _session_after_challenge(challenge)
+        frames.append(host.encrypt(read))
+        assert dashboard.decrypt(frames[-1]) == read
+    assert frames[0] != frames[1]
 
 
 def test_ping_frame_length():
@@ -65,71 +60,97 @@ def test_ping_frame_length():
 
 
 
-def _make_5b_pair():
-    """Generate encrypted legacy 0x5B reply with a deterministic BLE key."""
-    tx = NinebotCrypto("MIScooter5977")
-    rx = NinebotCrypto("MIScooter5977")
-    key = bytes(range(16))
-    serial = b"12345678901234"
-    reply = packet_module.NinebotPacket(
-        source=0x21, target=0x3E, command=0x5B, index=0,
-        data=key + serial,
+NAME = "MIScooter5977"
+SERIAL = b"12345678901234"
+
+
+def _challenge_reply(challenge: bytes) -> bytes:
+    return packet_module.NinebotPacket(
+        source=0x21, target=0x3E, command=0x5B, index=0, data=challenge + SERIAL,
     ).pack()
-    encrypted = tx.encrypt(reply)
-    assert rx.decrypt(encrypted) == reply
-    tx._random_ble_data = key
-    tx._sha1_key = tx._calc_sha1_key(tx._name, key)
-    return tx, rx
+
+
+def _session_after_challenge(challenge: bytes = bytes(range(16))):
+    """Dashboard and host after 0x5B: both hold the key derived from the challenge."""
+    dashboard, host = DashboardCrypto(NAME), NinebotCrypto(NAME)
+    init = packet_module.make_init().pack()
+    assert dashboard.decrypt(host.encrypt(init)) == init
+    reply = _challenge_reply(challenge)
+    assert host.decrypt(dashboard.encrypt(reply)) == reply
+    return dashboard, host
+
+
+def _flip(frame: bytes, position: int, mask: int) -> bytes:
+    damaged = bytearray(frame)
+    damaged[position] ^= mask
+    return bytes(damaged)
 
 
 def test_first_reply_bad_crc_does_not_set_ble_key():
-    tx = NinebotCrypto("MIScooter5977")
-    rx = NinebotCrypto("MIScooter5977")
-    reply = packet_module.NinebotPacket(
-        source=0x21, target=0x3E, command=0x5B, index=0,
-        data=bytes(range(16)) + b"12345678901234",
-    ).pack()
-    bad = bytearray(tx.encrypt(reply))
-    bad[-3] ^= 0x40
-    before = (rx.message_counter, rx._random_ble_data, rx._sha1_key)
-    assert rx.decrypt(bytes(bad)) is None
-    assert (rx.message_counter, rx._random_ble_data, rx._sha1_key) == before
+    dashboard, host = DashboardCrypto(NAME), NinebotCrypto(NAME)
+    dashboard.decrypt(host.encrypt(packet_module.make_init().pack()))
+    reply = _challenge_reply(bytes(range(16)))
+    wire = dashboard.encrypt(reply)
+    assert host.decrypt(_flip(wire, -3, 0x40)) is None
+    assert host.last_rejection_reason == "first_frame_crc_or_name"
+    assert host.message_counter == 1
+    # Still on the name key: the undamaged reply opens and the session goes on.
+    assert host.decrypt(wire) == reply
+    read = packet_module.make_read(0x20, 0xB0, 0x20).pack()
+    assert dashboard.decrypt(host.encrypt(read)) == read
 
 
 def test_high_counter_must_pass_integrity_not_arbitrary_limit():
-    tx, rx = _make_5b_pair()
+    dashboard, host = _session_after_challenge()
     message = packet_module.NinebotPacket(
         source=0x21, target=0x3E, command=0x5C, index=0,
     ).pack()
-    tx._msg_it = 39159
-    packet = tx.encrypt(message)  # valid high counter 39160
-    assert rx.decrypt(packet) == message
-    assert rx.message_counter == 39160
-    assert rx.decrypt(packet) is None  # no counter reuse
+    dashboard._counter = 39159
+    packet = dashboard.encrypt(message)  # valid high counter 39160
+    assert host.decrypt(packet) == message
+    assert host.message_counter == 39160
+    assert host.decrypt(packet) is None  # no counter reuse
+    assert host.last_rejection_reason == "old_or_replayed_counter"
+
+
+def test_counter_keeps_counting_beyond_the_16_bits_on_the_wire():
+    dashboard, host = _session_after_challenge()
+    read = packet_module.make_read(0x22, 0x32, 2).pack()
+    reply = packet_module.NinebotPacket(source=0x22, target=0x3E, command=4, index=0x32, data=b"\x50\x00").pack()
+    dashboard._counter = host._counter = 0xFFFC
+    for _ in range(4):
+        assert dashboard.decrypt(host.encrypt(read)) == read
+        assert host.decrypt(dashboard.encrypt(reply)) == reply
+    assert host.message_counter == dashboard.message_counter == 0x10004
 
 
 def test_corrupt_high_counter_cannot_poison_future_session():
-    tx, rx = _make_5b_pair()
+    dashboard, host = _session_after_challenge()
     message = packet_module.NinebotPacket(
         source=0x21, target=0x3E, command=0x5C, index=0,
     ).pack()
-    good = tx.encrypt(message)
-    bad = bytearray(good)
-    bad[-2:] = (39160).to_bytes(2, "big")  # fake high counter, old MAC
-    assert rx.decrypt(bytes(bad)) is None
-    assert rx.message_counter == 0
-    assert rx.decrypt(good) == message
-    assert rx.message_counter == 2
+    good = dashboard.encrypt(message)
+    bad = good[:-2] + (39160).to_bytes(2, "big")  # fake high counter, old MAC
+    assert host.decrypt(bad) is None
+    assert host.last_rejection_reason == "chained_frame_integrity"
+    assert host.message_counter == 1
+    assert host.decrypt(good) == message
+    assert host.message_counter == 2
 
 
 def test_bad_encrypted_mac_cannot_switch_key():
-    tx, rx = _make_5b_pair()
-    packet = packet_module.NinebotPacket(
+    dashboard, host = _session_after_challenge()
+    offer = packet_module.make_ping(bytes(reversed(range(16)))).pack()
+    assert dashboard.decrypt(host.encrypt(offer)) == offer
+    confirmation = packet_module.NinebotPacket(
         source=0x21, target=0x3E, command=0x5C, index=1,
     ).pack()
-    old_key = rx._sha1_key
-    bad = bytearray(tx.encrypt(packet))
-    bad[-6] ^= 0x01
-    assert rx.decrypt(bytes(bad)) is None
-    assert rx._sha1_key == old_key
-    assert rx.message_counter == 0
+    wire = dashboard.encrypt(confirmation)
+    counter_before = host.message_counter
+    assert host.decrypt(_flip(wire, -6, 0x01)) is None
+    assert host.message_counter == counter_before
+    # The confirmation was sealed with the challenge key. It only opens if
+    # the damaged copy has not moved the host to the password key.
+    assert host.decrypt(wire) == confirmation
+    read = packet_module.make_read(0x20, 0xB0, 0x20).pack()
+    assert dashboard.decrypt(host.encrypt(read)) == read

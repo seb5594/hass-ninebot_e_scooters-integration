@@ -6,8 +6,8 @@ from dataclasses import replace
 from datetime import datetime
 import time
 from homeassistant.components import bluetooth
-from ..utilities import UTC
-from ..compat import async_request_active_scan
+from ..helpers.utilities import UTC
+from ..helpers.compat import async_request_active_scan
 from ..protocols.ninebot.packet import (
     CMD_READ,
     CMD_READ_ACK,

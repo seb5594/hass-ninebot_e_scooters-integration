@@ -14,7 +14,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.storage import Store
 
-from .const import DOMAIN, REPORT_URL
+from ..const import DOMAIN, REPORT_URL
 from .utilities import UTC
 
 INVITATION_DELAY = timedelta(days=3)
