@@ -8,7 +8,7 @@ import time
 from homeassistant.components import persistent_notification
 from homeassistant.core import CoreState
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from ..utilities import UTC
+from ..helpers.utilities import UTC
 from ..const import MODEL
 from ..protocols.ninebot.packet import (
     CMD_READ,
@@ -28,7 +28,7 @@ from ..protocols.ninebot.packet import (
 )
 from ..protocols.xiaomi import ScooterData, ScooterMessage, apply_message
 from ..protocols.ninebot.registers import apply_packet as apply_ninebot_packet
-from ..storage import restore, snapshot
+from ..helpers.storage import restore, snapshot
 from .errors import ScooterConnectionError
 from .constants import EXTRA_READ_REGISTERS, GATT_RETRY_COOLDOWN, STATIC_EXTRA_NAMES
 import logging

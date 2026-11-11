@@ -10,23 +10,14 @@ import subprocess
 import pytest
 
 from test_protocol import PACKAGE_PATH, ScooterCommand, ScooterData, load_module, parse_message, protocol
-from custom_components.ninebot_e_scooters.ninebot_packet import DeviceId, RegisterReadSize, Xiaomi1sBmsRegister
-from custom_components.ninebot_e_scooters.ninebot_packet import NinebotPacket, make_read
+from custom_components.ninebot_e_scooters.protocols.ninebot.packet import DeviceId, RegisterReadSize, Xiaomi1sBmsRegister
+from custom_components.ninebot_e_scooters.protocols.ninebot.packet import NinebotPacket, make_read
 from test_090_reconnect_mode import method
 
 
-legacy = load_module(
-    "custom_components.ninebot_e_scooters.legacy_transport",
-    PACKAGE_PATH / "legacy_transport.py",
-)
-models = load_module(
-    "custom_components.ninebot_e_scooters.model_profiles",
-    PACKAGE_PATH / "model_profiles.py",
-)
-transports = load_module(
-    "custom_components.ninebot_e_scooters.transport_profiles",
-    PACKAGE_PATH / "transport_profiles.py",
-)
+legacy = load_module("protocols.legacy")
+models = load_module("models.profiles")
+transports = load_module("models.transports")
 
 
 def test_m365_55aa_reads_fragmented_checksum_validated_bms_date():

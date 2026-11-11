@@ -229,12 +229,17 @@
         "data": {
           "poll_interval": "Abfrageintervall",
           "model": "Scooter-Modell",
-          "sensor_groups": "Zusätzliche Sensoren"
+          "sensor_groups": "Zusätzliche Sensoren",
+          "pairing_password": "Pairing-Passwort der Hersteller-App (optional)"
         },
         "data_description": {
-          "sensor_groups": "Akku, Gesamtkilometer, Reichweite und Verbindung sind immer dabei. Sensoren einer abgewählten Gruppe werden beim Speichern entfernt."
+          "sensor_groups": "Akku, Gesamtkilometer, Reichweite und Verbindung sind immer dabei. Sensoren einer abgewählten Gruppe werden beim Speichern entfernt.",
+          "pairing_password": "Nur für Ninebot F3 und Max G3, die schon mit der Segway-App gekoppelt sind: Der Scooter merkt sich ein einziges Passwort. Mit dem der App (32 Hex-Zeichen) meldet sich Home Assistant an, ohne die App zu entkoppeln. Bleibt das Feld leer, koppelt Home Assistant per Tastendruck selbst und die App muss danach neu gekoppelt werden."
         }
       }
+    },
+    "error": {
+      "invalid_pairing_password": "Das Passwort besteht aus genau 32 Hex-Zeichen (16 Bytes)."
     }
   },
   "selector": {

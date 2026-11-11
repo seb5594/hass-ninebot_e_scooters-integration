@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .compat import DeviceInfo, EntityNameFallback
+from .helpers.compat import DeviceInfo, EntityNameFallback
 from .const import DOMAIN, MANUFACTURER
 from .coordinator import ScooterCoordinator
 

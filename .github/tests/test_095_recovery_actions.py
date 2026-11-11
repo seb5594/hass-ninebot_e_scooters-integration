@@ -14,7 +14,7 @@ import pytest
 from test_090_reconnect_mode import method
 from test_pairing_queue import PKT, ScooterConnectionError, harness
 from test_pairing_recovery_045 import setup as pairing_setup
-from test_protocol import PACKAGE_PATH, const, load_module, protocol
+from test_protocol import PACKAGE_PATH, load_module, protocol
 
 
 def test_late_button_confirmation_is_retained_across_unmatched_requests():
@@ -152,12 +152,11 @@ def test_mode_write_falls_back_once_and_only_on_stationary_readback():
 
 
 def test_ninebot_families_have_independent_read_only_transport_records():
-    transports = load_module("custom_components.ninebot_e_scooters.transport_profiles",
-                             PACKAGE_PATH / "transport_profiles.py")
-    profiles = load_module("custom_components.ninebot_e_scooters.model_profiles",
-                           PACKAGE_PATH / "model_profiles.py")
+    transports = load_module("models.transports")
+    profiles = load_module("models.profiles")
+    gatt = load_module("protocols.gatt")
     assert transports.transport_for_family("xiaomi_ble129").adapter_implemented
-    assert transports.transport_for_family("xiaomi_ble129").write_uuid == const.NUS_WRITE_UUID
+    assert transports.transport_for_family("xiaomi_ble129").uart is gatt.NORDIC_UART
     for model, version in (("Ninebot ES", "BLE109"), ("Ninebot Max", "BLE114"),
                            ("Ninebot E series", "BLE213"), ("Ninebot F series", "BLE307")):
         profile = profiles.PROFILES_BY_NAME[model]

@@ -1,0 +1,1681 @@
+{
+ "provenance": "Recorded from the host crypto of release 1.0.0b5, the implementation that runs against the reference Xiaomi 1S. Scooter frames were produced by the same release; they are not radio captures.",
+ "sessions": [
+  {
+   "name": "MIScooter5977",
+   "host": 62,
+   "steps": [
+    {
+     "operation": "encrypt",
+     "input": "5aa5003e215b00",
+     "output": "5aa50005cfede7000045ff0000",
+     "counter": 1,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51e1ad0fde799ec6d6a0f642fb1e0b0b78d3aee9881bfc7875485ec004ac384735908da00000ff50000",
+     "output": null,
+     "counter": 1,
+     "rejection": "first_frame_crc_or_name"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51e1ad0ede799ec6d6a0f642fb1e0b0b78d3aee9881bfc7875485ec004ac384735908da00000ff50000",
+     "output": "5aa51e213e5b00681fad7bc9ba1eca1377f5e601002e664e34474543323131304331323334",
+     "counter": 1,
+     "rejection": null
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e2001b020",
+     "output": "5aa50116b3e5fffd8b21cd8e0002",
+     "counter": 2,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa520e0da88114858e4cf4302d7d7d87c37977e598bde89faef466251b3de323f92f4379f3bb7ace50b9f0003",
+     "output": null,
+     "counter": 2,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa520e0da88114858e4cf4302d7d7d87c37977e598bde89faeb466251b3de323f92f4379f3bb7ace50b9f0003",
+     "output": "5aa520203e01b06ecb9689ebff1969fd524ae0297765f1d469ba92d1f741a3621d99fe192be94c",
+     "counter": 3,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa520e0da88114858e4cf4302d7d7d87c37977e598bde89faeb466251b3de323f92f4379f3bb7ace50b9f0003",
+     "output": null,
+     "counter": 3,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5103e215c004f64007d92d4601f7d9e98926e6ea6e4",
+     "output": "5aa51098a7a2a9c5e04652ef75e1d67d1a3a0314ee5c9e75543e530004",
+     "counter": 4,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50085e29e0a7c421fcd0005",
+     "output": null,
+     "counter": 4,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50085e29e0a7c621fcd0005",
+     "output": "5aa500213e5c00",
+     "counter": 5,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50085e29e0a7c621fcd0005",
+     "output": null,
+     "counter": 5,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5103e215c004f64007d92d4601f7d9e98926e6ea6e4",
+     "output": "5aa510aebf9cdd6035e630c608a50d9f0446ededcaed29f2b8977c0006",
+     "counter": 6,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5007303b9a4b516d9840007",
+     "output": "5aa500213e5c01",
+     "counter": 7,
+     "rejection": null
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa50e3e215d004e34474543323131304331323334",
+     "output": "5aa50e6eaf8ee42df33119816a8e6a1b5bfdb8e69d0abbb94f0008",
+     "counter": 8,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500c84513147a4c5a270009",
+     "output": null,
+     "counter": 8,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500c84513157a4c5a270009",
+     "output": "5aa500213e5d01",
+     "counter": 9,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500c84513157a4c5a270009",
+     "output": null,
+     "counter": 9,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e20019801",
+     "output": "5aa5012df22a723243cdcb06000a",
+     "counter": 10,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500cc84f272a3502533000b",
+     "output": null,
+     "counter": 10,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500cc94f272a3502533000b",
+     "output": "5aa500203e04fb",
+     "counter": 11,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500cc94f272a3502533000b",
+     "output": null,
+     "counter": 11,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e20012c01",
+     "output": "5aa5017a7fc47431e7bd6fd9000c",
+     "counter": 12,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa501979b2c909fc86a0e29400d",
+     "output": null,
+     "counter": 12,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa501979b2c909fc86a0e29000d",
+     "output": "5aa501223e01f234",
+     "counter": 13,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa501979b2c909fc86a0e29000d",
+     "output": null,
+     "counter": 13,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e22011802",
+     "output": "5aa501e0d1966ae7bd34ae0d000e",
+     "counter": 14,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa502a2f17e9dd0ad9d2ff2c4000f",
+     "output": null,
+     "counter": 14,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa502a2f17e9dd0ad9d2ff244000f",
+     "output": "5aa502223e048c4f6b",
+     "counter": 15,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa502a2f17e9dd0ad9d2ff244000f",
+     "output": null,
+     "counter": 15,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e2201e30f",
+     "output": "5aa501abeaaf122370e9277c0010",
+     "counter": 16,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50f8a88ee055d30d4e3d4dbd16fbb457c2c720de8d3df71300011",
+     "output": null,
+     "counter": 16,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50faa88ee055d30d4e3d4dbd16fbb457c2c720de8d3df71300011",
+     "output": "5aa50f223e04305a7caafe00304eddee2626d4a8e0f2",
+     "counter": 17,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50faa88ee055d30d4e3d4dbd16fbb457c2c720de8d3df71300011",
+     "output": null,
+     "counter": 17,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e22019310",
+     "output": "5aa50113047763dc83fd957e0012",
+     "counter": 18,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa510de38618ba568cb2d1fe1adf956f188cc0bf041c93e92eea50013",
+     "output": null,
+     "counter": 18,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa510de38618ba568cb2d1fe1adf956f188cc0bf041c93a92eea50013",
+     "output": "5aa510223e01ee83918d89da7ae9af57af26d6e73d25b3",
+     "counter": 19,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa510de38618ba568cb2d1fe1adf956f188cc0bf041c93a92eea50013",
+     "output": null,
+     "counter": 19,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e20010411",
+     "output": "5aa501c0b5ae02504bff092a0014",
+     "counter": 20,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa511061570232e77b6a748ddcdf64aaafb2d7423720e6b8b207f010015",
+     "output": null,
+     "counter": 20,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa511061570232e77b6a748ddcdf64aaa7b2d7423720e6b8b207f010015",
+     "output": "5aa511223e0115b3ef3336c90f3520e4604370099ad9103d",
+     "counter": 21,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa511061570232e77b6a748ddcdf64aaa7b2d7423720e6b8b207f010015",
+     "output": null,
+     "counter": 21,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e2001af1f",
+     "output": "5aa5012589787b5d67e79a5f0016",
+     "counter": 22,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51f1f26558fbcf117f6ec2449591d235587d3690ce4e7a56c2ff27ae3e905506c6a002c604a7ee8fc0017",
+     "output": null,
+     "counter": 22,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51f1f26558fbcf117f6ec2449591d235587d3690ce4e7a56c2ff27ae3e905506c6a002c614a7ee8fc0017",
+     "output": "5aa51f203e0154d20e1c4b356bada44c881860488e4fa29ad4c075eed8c15944bbbf7aa16fb7",
+     "counter": 23,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51f1f26558fbcf117f6ec2449591d235587d3690ce4e7a56c2ff27ae3e905506c6a002c614a7ee8fc0017",
+     "output": null,
+     "counter": 23,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e2201de20",
+     "output": "5aa5019d46c1ef5a65cc203d0018",
+     "counter": 24,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5202fc556ef939b042373ccfe5d2ce34a321e39c21f9a8e3ebf6ac82cd9e26448f092a435d9f105697b0019",
+     "output": null,
+     "counter": 24,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5202fc556ef939b042373ccfe5d2ce34a321e39c21f9a8e3ebf6ac82cd9e26448f092a435d9f105617b0019",
+     "output": "5aa520203e01ec2398925b043e88542e9e5339cd294cf2aaf8ffdd2540a1846dae8234d0ef2765",
+     "counter": 25,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5202fc556ef939b042373ccfe5d2ce34a321e39c21f9a8e3ebf6ac82cd9e26448f092a435d9f105617b0019",
+     "output": null,
+     "counter": 25,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e22016521",
+     "output": "5aa5018530c8b8c81fdb776d001a",
+     "counter": 26,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa521697f95d304a9fff498a615d4e8bdaa2d49b07ef7b6a5bbe34f32706b54dcc2dc96da15d2ed7b446c1a001b",
+     "output": null,
+     "counter": 26,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa521697f95d304a9fbf498a615d4e8bdaa2d49b07ef7b6a5bbe34f32706b54dcc2dc96da15d2ed7b446c1a001b",
+     "output": "5aa521223e01de26b08aea2d91ff40f268f41c21331296cd3407c7e8c5e150d4f8ec07ce8eafdc0a",
+     "counter": 27,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa521697f95d304a9fbf498a615d4e8bdaa2d49b07ef7b6a5bbe34f32706b54dcc2dc96da15d2ed7b446c1a001b",
+     "output": null,
+     "counter": 27,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e2201c040",
+     "output": "5aa501d1948cfdb204c4101b001c",
+     "counter": 28,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa54009dd7a9ef9207d2e9bf5fca4ded0de52b535ca602085503afffc97cb551d3b6709a211845c005c735485d7d02b0a2f5e39bc5dcfcc0cbc3424dbcbad8f0b8d50ab6e0cf59d7ea143001d",
+     "output": null,
+     "counter": 28,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa54009dd7a9ef9207d2e9bf5fca4ded0de52b535ca602085503afffc97cb551d3b6709a211845c005c735485d7d02b0a2f5e39bc5dcfcc0cbc3424dbcbad8f0b8d50ab6a0cf59d7ea143001d",
+     "output": "5aa540203e01f1176a895b8e10536e9f69c19281bfc1de139c39c4a0d2f35322924ef2972adeaf34d099728508552d8ab40ae7b1ff0fb7a0cb87c4d71b07d22bb172eee367864f",
+     "counter": 29,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa54009dd7a9ef9207d2e9bf5fca4ded0de52b535ca602085503afffc97cb551d3b6709a211845c005c735485d7d02b0a2f5e39bc5dcfcc0cbc3424dbcbad8f0b8d50ab6a0cf59d7ea143001d",
+     "output": null,
+     "counter": 29,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "",
+     "output": null,
+     "counter": 29,
+     "rejection": "invalid_header_or_short_frame"
+    },
+    {
+     "operation": "decrypt",
+     "input": "55aa84cd5413469c0cc4c4459785",
+     "output": null,
+     "counter": 29,
+     "rejection": "invalid_header_or_short_frame"
+    }
+   ]
+  },
+  {
+   "name": "NBScooter1234",
+   "host": 61,
+   "steps": [
+    {
+     "operation": "encrypt",
+     "input": "5aa5003d215b00",
+     "output": "5aa50032ccfebc000046ff0000",
+     "counter": 1,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51e2ed0eebc20b1775effda7bcbedf6d70b1a19f8253324aca1a1722c193d0707e93cd900008ef20000",
+     "output": null,
+     "counter": 1,
+     "rejection": "first_frame_crc_or_name"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51e2ed0febc20b1775effda7bcbedf6d70b1a19f8253324aca1a1722c193d0707e93cd900008ef20000",
+     "output": "5aa51e213d5b005da19cba1d9a66e3e0b2e1d015f45d994e34474543323131304331323334",
+     "counter": 1,
+     "rejection": null
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d2001b020",
+     "output": "5aa501047a260ed9e5c789b40002",
+     "counter": 2,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5208eec8bd520c127c3fe29c7d433fdb13aac5cca434b940d090013cfa14f9e0fe422e4d90a12330b627ff9",
+     "output": null,
+     "counter": 2,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5208eec8bd520c127c2fe29c7d433fdb13aac5cca434b940d090013cfa14f9e0fe422e4d90a12330b627ff9",
+     "output": "5aa520203d01b029418ac7cb44c927c214da2f9a375aa4ce161814c388a45256208d44e3d2cded",
+     "counter": 32761,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5208eec8bd520c127c2fe29c7d433fdb13aac5cca434b940d090013cfa14f9e0fe422e4d90a12330b627ff9",
+     "output": null,
+     "counter": 32761,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5103d215c00152da0cecdf936f8bf2f0d442e66cb74",
+     "output": "5aa51041f5781e375fa12553c48476919ce97137beb03be3f06a0b7ffa",
+     "counter": 32762,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500693708864af1c6df7ffb",
+     "output": null,
+     "counter": 32762,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500693708844af1c6df7ffb",
+     "output": "5aa500213d5c00",
+     "counter": 32763,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500693708844af1c6df7ffb",
+     "output": null,
+     "counter": 32763,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5103d215c00152da0cecdf936f8bf2f0d442e66cb74",
+     "output": "5aa510fc61a17d21da01716bdba68aff08d04fabd6b764197a6da97ffc",
+     "counter": 32764,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5004bc9cab26ab91afb7ffd",
+     "output": "5aa500213d5c01",
+     "counter": 32765,
+     "rejection": null
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa50e3d215d004e34474543323131304331323334",
+     "output": "5aa50e2b1867dc41152ad99486b54624bf510ccaaa9935f4527ffe",
+     "counter": 32766,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500277af884a88d120b7fff",
+     "output": null,
+     "counter": 32766,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500277ae884a88d120b7fff",
+     "output": "5aa500213d5d01",
+     "counter": 32767,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500277ae884a88d120b7fff",
+     "output": null,
+     "counter": 32767,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d2201cb01",
+     "output": "5aa5015f181e81dd6bd9aa7b8000",
+     "counter": 32768,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50030c46dbb1d4f87cf8001",
+     "output": null,
+     "counter": 32768,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50030c46dbb1d4fc7cf8001",
+     "output": "5aa500223d0472",
+     "counter": 32769,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50030c46dbb1d4fc7cf8001",
+     "output": null,
+     "counter": 32769,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d22012201",
+     "output": "5aa501c8ba1739b84e0ff87a8002",
+     "counter": 32770,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa501c72972d61060faec0c8013",
+     "output": null,
+     "counter": 32770,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa501c72972d61060faec0c8003",
+     "output": "5aa501203d01c3d2",
+     "counter": 32771,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa501c72972d61060faec0c8003",
+     "output": null,
+     "counter": 32771,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d20010302",
+     "output": "5aa50138a7742453b704ded58004",
+     "counter": 32772,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa502a1832bf5bf7431304e9a8005",
+     "output": null,
+     "counter": 32772,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa502a1832bf5bff431304e9a8005",
+     "output": "5aa502223d01c3380b",
+     "counter": 32773,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa502a1832bf5bff431304e9a8005",
+     "output": null,
+     "counter": 32773,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d2201e80f",
+     "output": "5aa501a8d573a9d6f6bc84c48006",
+     "counter": 32774,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50fc6ad609455a7cf365f6b3892f29dc1a66faf9ed37f41d58007",
+     "output": null,
+     "counter": 32774,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50fc6ade09455a7cf365f6b3892f29dc1a66faf9ed37f41d58007",
+     "output": "5aa50f223d0435284a004ef0f17ab01751faad86a71e",
+     "counter": 32775,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50fc6ade09455a7cf365f6b3892f29dc1a66faf9ed37f41d58007",
+     "output": null,
+     "counter": 32775,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d2001d710",
+     "output": "5aa5012d344b4e491e1ef3318008",
+     "counter": 32776,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5102894b3d043e9eab17dfadf174ba51e2d7b8809436f21089b8009",
+     "output": null,
+     "counter": 32776,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5102894b3d043e9eeb17dfadf174ba51e2d7b8809436f21089b8009",
+     "output": "5aa510223d01be2523b693f4b21647a7f2366f6ef47281",
+     "counter": 32777,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5102894b3d043e9eeb17dfadf174ba51e2d7b8809436f21089b8009",
+     "output": null,
+     "counter": 32777,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d22015911",
+     "output": "5aa5010dcac5b945fa3290e5800a",
+     "counter": 32778,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5117c5627ab19cb70d1d33f678c7d4f8c09054e85474d63f19b0e800b",
+     "output": null,
+     "counter": 32778,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5113c5627ab19cb70d1d33f678c7d4f8c09054e85474d63f19b0e800b",
+     "output": "5aa511223d04eb89750db17d717b513bffeaffcf98453bed",
+     "counter": 32779,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5113c5627ab19cb70d1d33f678c7d4f8c09054e85474d63f19b0e800b",
+     "output": null,
+     "counter": 32779,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d2201af1f",
+     "output": "5aa501aa20e4e5be8805eed2800c",
+     "counter": 32780,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51ff3f40cadbcdcb09b6e2cc0c04e6f40412267cefe3893012223370ead3f0deb1bb041fa795d5a57800d",
+     "output": null,
+     "counter": 32780,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51ff3f40cadbcdcb09b6e2cc0c04e6f40412267cefe3893012223370ead3f0deb1bb041fa795d5a53800d",
+     "output": "5aa51f203d01e3b745c73602855d690a8d4d8c31ecb9b1864da8753e439267d89bb58d7cfcfa",
+     "counter": 32781,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51ff3f40cadbcdcb09b6e2cc0c04e6f40412267cefe3893012223370ead3f0deb1bb041fa795d5a53800d",
+     "output": null,
+     "counter": 32781,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d20017f20",
+     "output": "5aa5015eaf5984353f6f80d3800e",
+     "counter": 32782,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa520155d1653c76baaf1c4eb54c3a244b892c0123e43dbab3be015b8f73ee46943574c20ca54e93db11d800f",
+     "output": null,
+     "counter": 32782,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa520155d1653c76baaf1c4eb54c3a344b892c0123e43dbab3be015b8f73ee46943574c20ca54e93db11d800f",
+     "output": "5aa520203d01bf77ab5ac68403f37968b5c6f5449abaf1564da16b143d16ddafca576831e60756",
+     "counter": 32783,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa520155d1653c76baaf1c4eb54c3a344b892c0123e43dbab3be015b8f73ee46943574c20ca54e93db11d800f",
+     "output": null,
+     "counter": 32783,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d22017221",
+     "output": "5aa501b4f19e5de8572a3b8c8010",
+     "counter": 32784,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa521546511a513d405b275371852f206541679f367c5b6710c9470c63aef8ecc6101f28581f0d8a90567da8011",
+     "output": null,
+     "counter": 32784,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa521546511a513d405b275371852f206541679f367c5b6710c9470c63aef8ecc6101f28580f0d8a90567da8011",
+     "output": "5aa521223d043339e3bdcfeb5f611f9d098e1187735d94c4e7d92f3be878b10778f3800b82a49b3d",
+     "counter": 32785,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa521546511a513d405b275371852f206541679f367c5b6710c9470c63aef8ecc6101f28580f0d8a90567da8011",
+     "output": null,
+     "counter": 32785,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d20014940",
+     "output": "5aa501e01b88daabf9643edb8012",
+     "counter": 32786,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa540566d6c8b653572d0aabb8ad41ca4a0af2b8f2e395b15cb0b06e40398a6e3f94a3d1a8d6f4fe1f2c3679c728e39161c3e31e15c3dbeb4d2b5f222ea21d2a9cb7a5f8aefe2a23c8bcb8013",
+     "output": null,
+     "counter": 32786,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa540562d6c8b653572d0aabb8ad41ca4a0af2b8f2e395b15cb0b06e40398a6e3f94a3d1a8d6f4fe1f2c3679c728e39161c3e31e15c3dbeb4d2b5f222ea21d2a9cb7a5f8aefe2a23c8bcb8013",
+     "output": "5aa540203d04d7cfe65ad901a5ba7aac15a53eec771cb34d4fb458c2f33e7e2ed942b2a069b0dece369e01d50cd2b6bf7bc30928d7d01e6fe51825465b943c4ac350b435384ba6",
+     "counter": 32787,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa540562d6c8b653572d0aabb8ad41ca4a0af2b8f2e395b15cb0b06e40398a6e3f94a3d1a8d6f4fe1f2c3679c728e39161c3e31e15c3dbeb4d2b5f222ea21d2a9cb7a5f8aefe2a23c8bcb8013",
+     "output": null,
+     "counter": 32787,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "",
+     "output": null,
+     "counter": 32787,
+     "rejection": "invalid_header_or_short_frame"
+    },
+    {
+     "operation": "decrypt",
+     "input": "55aa12f54f138ab3ce0f47ae91ee",
+     "output": null,
+     "counter": 32787,
+     "rejection": "invalid_header_or_short_frame"
+    }
+   ]
+  },
+  {
+   "name": "Kellerflitzer mit langem Namen",
+   "host": 62,
+   "steps": [
+    {
+     "operation": "encrypt",
+     "input": "5aa5003e215b00",
+     "output": "5aa50039ab756e000045ff0000",
+     "counter": 1,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51e26b4656ebeb064deb1c007224fbff0734cb99132239c691c75bc59152891076b34be0000d0f50000",
+     "output": null,
+     "counter": 1,
+     "rejection": "first_frame_crc_or_name"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51e26b4756ebeb064deb1c007224fbff0734cb99132239c691c75bc59152891076b34be0000d0f50000",
+     "output": "5aa51e213e5b00d3184a87874e6f06576dc62a4b33bf5c4e34474543323131304331323334",
+     "counter": 1,
+     "rejection": null
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e2001b020",
+     "output": "5aa501de0a875532870ca7b70002",
+     "counter": 2,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa520be1b3f970e71aaf9d292b2bd5016f2f72fb50df4de1126082ba44c14620d1067f3b88d0d451f8442fff1",
+     "output": null,
+     "counter": 2,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa520be1b3f970e71aaf8d292b2bd5016f2f72fb50df4de1126082ba44c14620d1067f3b88d0d451f8442fff1",
+     "output": "5aa520203e01b0ef83d77c555421d09f2237da152ed6cef7d3ee9714175cb88ca716fc3e40b029",
+     "counter": 65521,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa520be1b3f970e71aaf8d292b2bd5016f2f72fb50df4de1126082ba44c14620d1067f3b88d0d451f8442fff1",
+     "output": null,
+     "counter": 65521,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5103e215c00094a039f2cdceffa6a4b67fac1aeb386",
+     "output": "5aa510df9626c4ac48c8c8402921f227050bff2f27fbf42baf5256fff2",
+     "counter": 65522,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50001c5e914b1b2afa7eff3",
+     "output": null,
+     "counter": 65522,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50001c5e914b1b2afa7fff3",
+     "output": "5aa500213e5c00",
+     "counter": 65523,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50001c5e914b1b2afa7fff3",
+     "output": null,
+     "counter": 65523,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5103e215c00094a039f2cdceffa6a4b67fac1aeb386",
+     "output": "5aa510da350b2f7daa3ba5d41b0ce8583dce1752b1722d6743a623fff4",
+     "counter": 65524,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50050be7c81ec60938dfff5",
+     "output": "5aa500213e5c01",
+     "counter": 65525,
+     "rejection": null
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa50e3e215d004e34474543323131304331323334",
+     "output": "5aa50eeda06c73a3e80b29b53fbde0338461bc23d181ae581efff6",
+     "counter": 65526,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500be3c7a3c5e04070dfff7",
+     "output": null,
+     "counter": 65526,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500be3c7a3c5e04470dfff7",
+     "output": "5aa500213e5d01",
+     "counter": 65527,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500be3c7a3c5e04470dfff7",
+     "output": null,
+     "counter": 65527,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e2201f701",
+     "output": "5aa501cfbea37dedaa5c3edafff8",
+     "counter": 65528,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500a9520241f4380686f7f9",
+     "output": null,
+     "counter": 65528,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500a9520241f4380686fff9",
+     "output": "5aa500223e045f",
+     "counter": 65529,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500a9520241f4380686fff9",
+     "output": null,
+     "counter": 65529,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e22018601",
+     "output": "5aa50143aebe844bceb78714fffa",
+     "counter": 65530,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5012f8a262706feb83d33fffb",
+     "output": null,
+     "counter": 65530,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5012fca262706feb83d33fffb",
+     "output": "5aa501203e04187b",
+     "counter": 65531,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5012fca262706feb83d33fffb",
+     "output": null,
+     "counter": 65531,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e22018602",
+     "output": "5aa501ae1295cab2dfb98e40fffc",
+     "counter": 65532,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5029b3d6a872b715a1a1f27fff5",
+     "output": null,
+     "counter": 65532,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5029b3d6a872b715a1a1f27fffd",
+     "output": "5aa502223e042b0863",
+     "counter": 65533,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5029b3d6a872b715a1a1f27fffd",
+     "output": null,
+     "counter": 65533,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e2001f00f",
+     "output": "5aa5017d6bec6f8059003c5efffe",
+     "counter": 65534,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50f3b9aa1b39c9c01134c021a2de132f30b39ca56f78aaab7ffff",
+     "output": null,
+     "counter": 65534,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50f3b9aa1b39c9c01134c02122de132f30b39ca56f78aaab7ffff",
+     "output": "5aa50f223e04a153baebd94766f76d2b5728ccc14aa4",
+     "counter": 65535,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50f3b9aa1b39c9c01134c02122de132f30b39ca56f78aaab7ffff",
+     "output": null,
+     "counter": 65535,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e2201ff10",
+     "output": "5aa501f88d8e19ea201150320000",
+     "counter": 65536,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5102339ae35cd0d9c67cc44336a9e9bbbd70572272b4d05f1240001",
+     "output": null,
+     "counter": 65536,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5102339ae25cd0d9c67cc44336a9e9bbbd70572272b4d05f1240001",
+     "output": "5aa510223e013f6bfab437d141a93f2f99075eb0273c6a",
+     "counter": 65537,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5102339ae25cd0d9c67cc44336a9e9bbbd70572272b4d05f1240001",
+     "output": null,
+     "counter": 65537,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e20016711",
+     "output": "5aa5016e60f20560c21125080002",
+     "counter": 65538,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa511a2553028229efecd422e17d1d877e5c737d1db5c6ae3d06ed30003",
+     "output": null,
+     "counter": 65538,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa511a2553028229efecd422e17d1d857e5c737d1db5c6ae3d06ed30003",
+     "output": "5aa511203e0122d61ab96d1c4fd97f7081c56bd843793ba0",
+     "counter": 65539,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa511a2553028229efecd422e17d1d857e5c737d1db5c6ae3d06ed30003",
+     "output": null,
+     "counter": 65539,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e2001b31f",
+     "output": "5aa5010fb9b59f8b223b0eed0004",
+     "counter": 65540,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51f96b7e2d042980c7414e2470db08d080b9637300b9c2825b2de9eb9e912de4442e7106164e734a30005",
+     "output": null,
+     "counter": 65540,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51f96b7e2d042980c7414e2470db08d080b9637300b9c2825b2de9eb9c912de4442e7106164e734a30005",
+     "output": "5aa51f203e01a9ad7d6897815aede8945bed16f3f36a2dec6be829ea57871c553ce726339002",
+     "counter": 65541,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51f96b7e2d042980c7414e2470db08d080b9637300b9c2825b2de9eb9c912de4442e7106164e734a30005",
+     "output": null,
+     "counter": 65541,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e22012020",
+     "output": "5aa5013bb404448d830d80df0006",
+     "counter": 65542,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa520b59d764568945e36dd10936f5efda4a81befb16731673c888b960cb5110702139b181121244801240007",
+     "output": null,
+     "counter": 65542,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa520b59d764568945e36dd10916f5efda4a81befb16731673c888b960cb5110702139b181121244801240007",
+     "output": "5aa520203e018524c72b3a9c11fe7192de146702c1c520763ef6669213366720b29afe4156365c",
+     "counter": 65543,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa520b59d764568945e36dd10916f5efda4a81befb16731673c888b960cb5110702139b181121244801240007",
+     "output": null,
+     "counter": 65543,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e20017721",
+     "output": "5aa5018c7a8fd13c261c118e0008",
+     "counter": 65544,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5219f6d76f61cc0f8cbdef205bad0f83dae6e417f2094f49e22101232e946b847124ae939f53b25a43caa0009",
+     "output": null,
+     "counter": 65544,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5219f6d76f61cc0f8cbdef205bad0f83dae6e417f2094f49e22101232e946b847124aa939f53b25a43caa0009",
+     "output": "5aa521223e01bb1a6e734bc08aa51f3aeafff10583383814e1619702c4759c2991e31e3672aa7bef",
+     "counter": 65545,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5219f6d76f61cc0f8cbdef205bad0f83dae6e417f2094f49e22101232e946b847124aa939f53b25a43caa0009",
+     "output": null,
+     "counter": 65545,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013e20019a40",
+     "output": "5aa5019ccc3f15def69ec64f000a",
+     "counter": 65546,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa54073a93f5f6d26b6074e5a4d06a00253a16ecc795eb8808475e23b1eb2bb4da95f7dab02116291b48aeb7a596d2de80b8d24b350ee715bde9e52fa65624f0e54f724aface2f86d44f3000b",
+     "output": null,
+     "counter": 65546,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa54073a93f5f6d26b6074e5a4d06a00253a16ecc715eb8808475e23b1eb2bb4da95f7dab02116291b48aeb7a596d2de80b8d24b350ee715bde9e52fa65624f0e54f724aface2f86d44f3000b",
+     "output": "5aa540223e01b3fa4ee5642d90305b07e519c43c090745776215a07f53747c5d705f7f400db865837ee69fe474a563332bb205d935e1b783c7601227cf516b214d00a95a52b6f2",
+     "counter": 65547,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa54073a93f5f6d26b6074e5a4d06a00253a16ecc715eb8808475e23b1eb2bb4da95f7dab02116291b48aeb7a596d2de80b8d24b350ee715bde9e52fa65624f0e54f724aface2f86d44f3000b",
+     "output": null,
+     "counter": 65547,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "",
+     "output": null,
+     "counter": 65547,
+     "rejection": "invalid_header_or_short_frame"
+    },
+    {
+     "operation": "decrypt",
+     "input": "55aa7ae1eb174bb154347fb745d5",
+     "output": null,
+     "counter": 65547,
+     "rejection": "invalid_header_or_short_frame"
+    }
+   ]
+  },
+  {
+   "name": "Flitzer-\u00c4",
+   "host": 61,
+   "steps": [
+    {
+     "operation": "encrypt",
+     "input": "5aa5003d215b00",
+     "output": "5aa50004abc58c000046ff0000",
+     "counter": 1,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51e18b7d58c8882269c7fa8b45086401713f2cd03348ed91fb65d318be8ac8d54f70abe000086f40000",
+     "output": null,
+     "counter": 1,
+     "rejection": "first_frame_crc_or_name"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51e18b7c58c8882269c7fa8b45086401713f2cd03348ed91fb65d318be8ac8d54f70abe000086f40000",
+     "output": "5aa51e213d5b00486f7e6f61ab0e891a8e72d6cb479db84e34474543323131304331323334",
+     "counter": 1,
+     "rejection": null
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d2001b020",
+     "output": "5aa501ed830dff70136dc3d20002",
+     "counter": 2,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa520c11f21b80b30d970847f240096a5357d305e0bc3c1485ead46b2d19d920d4e26011924587ea433aafffc",
+     "output": null,
+     "counter": 2,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa520c11f21b81b30d970847f240096a5357d305e0bc3c1485ead46b2d19d920d4e26011924587ea433aafffc",
+     "output": "5aa520203d01b07bd1d96c84dc39c23a5a3d236906dd38752c56820c9a9042816d81b94be97567",
+     "counter": 65532,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa520c11f21b81b30d970847f240096a5357d305e0bc3c1485ead46b2d19d920d4e26011924587ea433aafffc",
+     "output": null,
+     "counter": 65532,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5103d215c00fda23b04793c3cf08bdc5265d3f8a6b4",
+     "output": "5aa51041bea8ac618eaa562febb226daca49c117d71455bbb70309fffd",
+     "counter": 65533,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500ab482b956d78292dfffe",
+     "output": null,
+     "counter": 65533,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500ab492b956d78292dfffe",
+     "output": "5aa500213d5c00",
+     "counter": 65534,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500ab492b956d78292dfffe",
+     "output": null,
+     "counter": 65534,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5103d215c00fda23b04793c3cf08bdc5265d3f8a6b4",
+     "output": "5aa510d2ed9ea9bb5a61b371e63b6e8e382156fae2a56139a7ab03ffff",
+     "counter": 65535,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500847ed2b39cf946bb0000",
+     "output": "5aa500213d5c01",
+     "counter": 65536,
+     "rejection": null
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa50e3d215d004e34474543323131304331323334",
+     "output": "5aa50e7009de1c4e53455e2c6886dbc4a68ecb29f3d3d7e9ec0001",
+     "counter": 65537,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500fbc7cfcdf8fa1f52000a",
+     "output": null,
+     "counter": 65537,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500fbc7cfcdf8fa1f520002",
+     "output": "5aa500213d5d01",
+     "counter": 65538,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa500fbc7cfcdf8fa1f520002",
+     "output": null,
+     "counter": 65538,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d2001ec01",
+     "output": "5aa501e67fcf40c7a08863fa0003",
+     "counter": 65539,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50039f4b17b4cfb29e10004",
+     "output": null,
+     "counter": 65539,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50039b4b17b4cfb29e10004",
+     "output": "5aa500223d01a0",
+     "counter": 65540,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50039b4b17b4cfb29e10004",
+     "output": null,
+     "counter": 65540,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d2001c501",
+     "output": "5aa50177ceaf4f6e693098570005",
+     "counter": 65541,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5011cf2bf836896fdefbc0006",
+     "output": null,
+     "counter": 65541,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5011cf2bf836816fdefbc0006",
+     "output": "5aa501223d040cb8",
+     "counter": 65542,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5011cf2bf836816fdefbc0006",
+     "output": null,
+     "counter": 65542,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d22010a02",
+     "output": "5aa501549f5a7ebe8858b7c00007",
+     "counter": 65543,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa502b836354270d8cb37d1fa0008",
+     "output": null,
+     "counter": 65543,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa502b836354270d8cb37d5fa0008",
+     "output": "5aa502203d011e28ce",
+     "counter": 65544,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa502b836354270d8cb37d5fa0008",
+     "output": null,
+     "counter": 65544,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d2201c80f",
+     "output": "5aa501587e0dc10d84ac86390009",
+     "counter": 65545,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50f5e3d102db388b5632313216b1c8001cbc93df5dfeaaa2d000a",
+     "output": null,
+     "counter": 65545,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50f5e3d102db388b5632313216b1c8001cbc93df5dfebaa2d000a",
+     "output": "5aa50f223d042114a0f6ddefed11857e6e41d66460ff",
+     "counter": 65546,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa50f5e3d102db388b5632313216b1c8001cbc93df5dfebaa2d000a",
+     "output": null,
+     "counter": 65546,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d22010710",
+     "output": "5aa501f81c48b60b6f80975f000b",
+     "counter": 65547,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa510b9911c72dc1797854f4c8a26ec288cee8934f72d75295ad6040c",
+     "output": null,
+     "counter": 65547,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa510b9911c72dc1797854f4c8a26ec288cee8934f72d75295ad6000c",
+     "output": "5aa510203d04c6a9d88ce08e5c6498f41331b3506c8a23",
+     "counter": 65548,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa510b9911c72dc1797854f4c8a26ec288cee8934f72d75295ad6000c",
+     "output": null,
+     "counter": 65548,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d22011911",
+     "output": "5aa5017a8330e08f834dc882000d",
+     "counter": 65549,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa511e955a14cc7f156147e62bd9363bc4ca948d535101147853f68000e",
+     "output": null,
+     "counter": 65549,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa511e955a14cc7f156147e62bd9363bc4cab48d535101147853f68000e",
+     "output": "5aa511223d010c13f5ff166ef9dbb2f753f8aae39102d11c",
+     "counter": 65550,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa511e955a14cc7f156147e62bd9363bc4cab48d535101147853f68000e",
+     "output": null,
+     "counter": 65550,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d22013d1f",
+     "output": "5aa50168f5bf3b53d613bce3000f",
+     "counter": 65551,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51f516de6118b27c3766774dc660ea45a0456759ddbb6a02518275c5d7f636919fe77ecf2304407d10010",
+     "output": null,
+     "counter": 65551,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51f516de6118b27c3766774dc660ea45a0456759ddbb6202518275c5d7f636919fe77ecf2304407d10010",
+     "output": "5aa51f223d01d419f39c3974b2858a3c45ac80b88ae5524225ca725a14cefb4de510f90830db",
+     "counter": 65552,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa51f516de6118b27c3766774dc660ea45a0456759ddbb6202518275c5d7f636919fe77ecf2304407d10010",
+     "output": null,
+     "counter": 65552,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d2201d720",
+     "output": "5aa501460fc2809af39af7a70011",
+     "counter": 65553,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa52081f2b598341ec31aecdcdb195e3084fffec36ade301de69e1c0aef86f6f36e21c66ef9551bd927340012",
+     "output": null,
+     "counter": 65553,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa52081f2b598b41ec31aecdcdb195e3084fffec36ade301de69e1c0aef86f6f36e21c66ef9551bd927340012",
+     "output": "5aa520203d01c38db88b0cd82de01780b48972c4c6a042d2ab1ccd622aab41b3c20395e0906fa4",
+     "counter": 65554,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa52081f2b598b41ec31aecdcdb195e3084fffec36ade301de69e1c0aef86f6f36e21c66ef9551bd927340012",
+     "output": null,
+     "counter": 65554,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d2001ea21",
+     "output": "5aa501d7480fef0fd07341500013",
+     "counter": 65555,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5211c4443f39b5f0bc2c619f963e62480db408501d58fbdf2b1905a04ec73bd6913daec411917f1a460d50014",
+     "output": null,
+     "counter": 65555,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5211c4443f39b5f0bc2c619f963e62480db408509d58fbdf2b1905a04ec73bd6913daec411917f1a460d50014",
+     "output": "5aa521203d04a53d9079c73cc054b148e8085329db893c3b92a317c13a5d26aeb1b118c697495f90",
+     "counter": 65556,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5211c4443f39b5f0bc2c619f963e62480db408509d58fbdf2b1905a04ec73bd6913daec411917f1a460d50014",
+     "output": null,
+     "counter": 65556,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "encrypt",
+     "input": "5aa5013d2001b340",
+     "output": "5aa50113fa2bd0bda747afbb0015",
+     "counter": 65557,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5401b5956619cf0d9f21a0e36ba061e359e1fda08d747dd0094e907fe6c5153d73a0093942e2b2a9d79281b7d8436bf98a27fecd915fc727231384006d42d335bab802101ac2a83de790016",
+     "output": null,
+     "counter": 65557,
+     "rejection": "chained_frame_integrity"
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5401b5956619cf0d9f21a0636ba061e359e1fda08d747dd0094e907fe6c5153d73a0093942e2b2a9d79281b7d8436bf98a27fecd915fc727231384006d42d335bab802101ac2a83de790016",
+     "output": "5aa540223d04be6adb0ae064e06e9ac5f647688df973c54315f1cdd0a27b8f1866f195a1bc0670ec92573da73f5f6993b7c5e09a105edba67b831c1ea8304fee1bc3d0dcd40303",
+     "counter": 65558,
+     "rejection": null
+    },
+    {
+     "operation": "decrypt",
+     "input": "5aa5401b5956619cf0d9f21a0636ba061e359e1fda08d747dd0094e907fe6c5153d73a0093942e2b2a9d79281b7d8436bf98a27fecd915fc727231384006d42d335bab802101ac2a83de790016",
+     "output": null,
+     "counter": 65558,
+     "rejection": "old_or_replayed_counter"
+    },
+    {
+     "operation": "decrypt",
+     "input": "",
+     "output": null,
+     "counter": 65558,
+     "rejection": "invalid_header_or_short_frame"
+    },
+    {
+     "operation": "decrypt",
+     "input": "55aa6302b7b0a59e36ae5013188b",
+     "output": null,
+     "counter": 65558,
+     "rejection": "invalid_header_or_short_frame"
+    }
+   ]
+  }
+ ]
+}

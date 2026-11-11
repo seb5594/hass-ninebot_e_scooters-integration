@@ -32,9 +32,16 @@ class FrameOffset(IntEnum):
 
 
 class DeviceId(IntEnum):
-    """Ninebot serial-bus addresses; 0x23 has other legacy Xiaomi meanings."""
+    """Ninebot serial-bus addresses; 0x23 has other legacy Xiaomi meanings.
+
+    The generation with a vehicle control unit (F3, Max G3) numbers its
+    boards differently: Bluetooth module 0x04, battery 0x07, VCU 0x16.
+    """
 
     BROADCAST = 0x00
+    VCU_BLUETOOTH = 0x04
+    VCU_BATTERY = 0x07
+    VCU = 0x16
     ESC = 0x20
     DASHBOARD = 0x21
     BMS = 0x22
@@ -254,33 +261,21 @@ def make_read(
     )
 
 
+def _handshake_request(command: int, data: bytes = b"") -> NinebotPacket:
+    """A request to the Bluetooth module; sessions re-address it for other boards."""
+    return NinebotPacket(SOURCE_PHONE, TARGET_BLE, command, PairingStatus.PENDING.value, data)
+
+
 def make_init() -> NinebotPacket:
     """Create the BLE initialization packet."""
-    return NinebotPacket(
-        source=SOURCE_PHONE,
-        target=TARGET_BLE,
-        command=CMD_INIT,
-        index=PairingStatus.PENDING.value,
-    )
+    return _handshake_request(CMD_INIT)
 
 
 def make_ping(app_key: bytes) -> NinebotPacket:
     """Create the BLE pairing-state packet."""
-    return NinebotPacket(
-        source=SOURCE_PHONE,
-        target=TARGET_BLE,
-        command=CMD_PING,
-        index=PairingStatus.PENDING.value,
-        data=app_key,
-    )
+    return _handshake_request(CMD_PING, app_key)
 
 
 def make_pair(serial: bytes) -> NinebotPacket:
     """Create the BLE pairing packet."""
-    return NinebotPacket(
-        source=SOURCE_PHONE,
-        target=TARGET_BLE,
-        command=CMD_PAIR,
-        index=PairingStatus.PENDING.value,
-        data=serial,
-    )
+    return _handshake_request(CMD_PAIR, serial)

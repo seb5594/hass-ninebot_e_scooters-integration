@@ -19,13 +19,15 @@ from homeassistant.const import CONF_ADDRESS, MAJOR_VERSION, MINOR_VERSION  # no
 from homeassistant.helpers import entity_registry  # noqa: E402
 from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
-from custom_components.ninebot_e_scooters import compat, diagnostics  # noqa: E402
+from custom_components.ninebot_e_scooters import diagnostics  # noqa: E402
+from custom_components.ninebot_e_scooters.helpers import compat  # noqa: E402
 from custom_components.ninebot_e_scooters.const import (  # noqa: E402
     CONF_MODEL,
+    CONF_PAIRING_PASSWORD,
     CONF_POLL_INTERVAL,
     DOMAIN,
 )
-from custom_components.ninebot_e_scooters.sensor_groups import CONF_SENSOR_GROUPS  # noqa: E402
+from custom_components.ninebot_e_scooters.helpers.sensor_groups import CONF_SENSOR_GROUPS  # noqa: E402
 
 from real_scooter import ADDRESS, NAME  # noqa: E402
 
@@ -67,6 +69,22 @@ async def test_options_flow_receives_the_entry_on_every_release(hass, entry):
         result["flow_id"], {CONF_POLL_INTERVAL: 30, CONF_MODEL: "Mi Electric Scooter 1S"})
     assert result["type"] == "create_entry"
     assert entry.options[CONF_POLL_INTERVAL] == 30
+
+
+async def test_pairing_password_from_the_options_replaces_the_stored_key(hass, entry):
+    settings = {CONF_POLL_INTERVAL: 10, CONF_MODEL: "Mi Electric Scooter 1S"}
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {**settings, CONF_PAIRING_PASSWORD: "not a password"})
+    assert result["type"] == "form"
+    assert result["errors"] == {CONF_PAIRING_PASSWORD: "invalid_pairing_password"}
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {**settings, CONF_PAIRING_PASSWORD: "00112233 44556677 8899aabb ccddeeff"})
+    assert result["type"] == "create_entry"
+    assert entry.data["app_key"] == "00112233445566778899aabbccddeeff"
+    assert entry.data["paired"] is True
+    assert CONF_PAIRING_PASSWORD not in entry.options
 
 
 @pytest.mark.skipif(HA_VERSION < (2024, 4), reason="reconfigure flows arrived in 2024.4")

@@ -11,14 +11,14 @@ from bleak_retry_connector import (
     establish_connection,
 )
 from homeassistant.components import bluetooth
-from ..compat import (
+from ..helpers.compat import (
     async_request_active_scan,
     clear_advertisement_history,
     create_background_task,
     describe_unreachable_scooter,
 )
-from ..storage import snapshot
-from ..utilities import TIMEOUT_ERRORS
+from ..helpers.storage import snapshot
+from ..helpers.utilities import TIMEOUT_ERRORS
 from .errors import ScooterConnectionError
 from .constants import (
     DIRECT_GATT_TIMEOUT,

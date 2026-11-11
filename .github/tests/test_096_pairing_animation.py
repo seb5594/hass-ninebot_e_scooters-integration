@@ -29,7 +29,14 @@ def test_button_notice_embeds_animated_gif_served_without_config_writes(reuse_st
     setup_node = next(node for node in tree.body
                       if isinstance(node, ast.AsyncFunctionDef) and node.name == "async_setup")
     frontend_urls = []
-    scope = {"__file__": str(filename), "Path": Path,
+    version = json.loads((PACKAGE_PATH / "manifest.json").read_text())["version"]
+
+    async def installed_integration(_hass, domain):
+        assert domain == "ninebot_e_scooters"
+        return SimpleNamespace(version=version)
+
+    scope = {"__file__": str(filename), "Path": Path, "DOMAIN": "ninebot_e_scooters",
+             "async_get_integration": installed_integration,
              "add_extra_js_url": lambda _hass, url: frontend_urls.append(url)}
     add_compat_symbols(scope, static_path_config=StaticPathConfig)
     exec(compile(ast.fix_missing_locations(ast.Module(body=[
@@ -55,7 +62,6 @@ def test_button_notice_embeds_animated_gif_served_without_config_writes(reuse_st
         assert asset.stat().st_size > 100_000
         assert routes[1].url_path == "/api/ninebot_e_scooters/pairing_dialog.js"
         assert Path(routes[1].path).is_file()
-        version = json.loads((PACKAGE_PATH / "manifest.json").read_text())["version"]
         assert frontend_urls == [f"/api/ninebot_e_scooters/pairing_dialog.js?v={version}"]
 
         run, state, notices, _ = pairing_setup(timeout=0.012)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .gatt import NORDIC_UART
 from .ninebot.packet import (
     DeviceId,
     LegacyM365Reply,
@@ -11,9 +12,9 @@ from .ninebot.packet import (
 )
 
 # Nordic UART Service used by the M365/1S BLE protocol.
-NUS_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
-NUS_TX_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
-NUS_RX_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
+NUS_SERVICE_UUID = NORDIC_UART.service_uuid
+NUS_TX_UUID = NORDIC_UART.write_uuid
+NUS_RX_UUID = NORDIC_UART.notify_uuid
 NUS_WRITE_UUID = NUS_TX_UUID  # Scooter RX characteristic: host writes here.
 NUS_NOTIFY_UUID = NUS_RX_UUID  # Scooter TX characteristic: host subscribes here.
 
@@ -32,8 +33,8 @@ READ = PacketOpcode.READ.value
 WRITE = PacketOpcode.WRITE_NO_REPLY.value
 
 # M365/1S attribute IDs.
-# Keep existing imports while documenting provenance in
-# ninebot_packet.py. The Ninebot ES table has different meanings at 0xB0/0x7B.
+# Provenance is documented in ninebot/packet.py. The Ninebot ES table has
+# different meanings at 0xB0/0x7B.
 ATTR_GENERAL_INFO = Xiaomi1sEscRegister.GENERAL_INFO.value
 ATTR_BMS_VERSION = Xiaomi1sBmsRegister.VERSION_STANDARD.value
 ATTR_DISTANCE_LEFT = Xiaomi1sEscRegister.DISTANCE_LEFT.value

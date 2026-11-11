@@ -24,6 +24,8 @@ body:
         - Ninebot Max G30 family
         - Ninebot E22 / E25 / E45
         - Ninebot F20 / F25 / F30 / F40
+        - Ninebot Max G2 / D18 / D28 / D38
+        - Ninebot F3 / F3 Pro / Max G3
         - Other (please name it below)
     validations:
       required: true
@@ -67,7 +69,7 @@ body:
     id: versions
     attributes:
       label: Versions
-      description: Home Assistant and this integration, for example "2026.10.4 / 1.0.0b4".
+      description: Home Assistant and this integration, for example "2026.11.1 / 2026.11.11.1".
     validations:
       required: true
   - type: textarea

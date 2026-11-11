@@ -1,4 +1,4 @@
-import importlib.util
+import importlib
 import sys
 import types
 from pathlib import Path
@@ -8,13 +8,9 @@ ROOT = Path(__file__).resolve().parents[2]
 PACKAGE_PATH = ROOT / "custom_components" / "ninebot_e_scooters"
 
 
-def load_module(name: str, path: Path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
+def load_module(name: str):
+    """Import one pure module of the integration by its dotted path below the package."""
+    return importlib.import_module(f"custom_components.ninebot_e_scooters.{name}")
 
 
 # Stub only the tiny Home Assistant surface needed by const.py.
@@ -37,14 +33,9 @@ package = types.ModuleType("custom_components.ninebot_e_scooters")
 package.__path__ = [str(PACKAGE_PATH)]
 sys.modules["custom_components.ninebot_e_scooters"] = package
 
-const = load_module(
-    "custom_components.ninebot_e_scooters.const",
-    PACKAGE_PATH / "const.py",
-)
-protocol = load_module(
-    "custom_components.ninebot_e_scooters.protocol",
-    PACKAGE_PATH / "protocol.py",
-)
+const = load_module("const")
+wire = load_module("protocols.constants")
+protocol = load_module("protocols.xiaomi")
 
 PacketParser = protocol.PacketParser
 ScooterCommand = protocol.ScooterCommand
@@ -52,8 +43,8 @@ ScooterData = protocol.ScooterData
 apply_message = protocol.apply_message
 parse_message = protocol.parse_message
 
-MOTOR_TO_MASTER = const.MOTOR_TO_MASTER
-READ = const.READ
+MOTOR_TO_MASTER = wire.MOTOR_TO_MASTER
+READ = wire.READ
 
 
 def test_packet_roundtrip() -> None:

@@ -1,6 +1,6 @@
 # Validation and hardware acceptance
 
-The regression suite contains **218 active Python tests** and two frontend cases.
+The regression suite contains **304 active Python tests** and two frontend cases.
 Superseded tests for unavailable historical ZIPs have been removed. No current
 functionality is skipped.
 
@@ -12,7 +12,19 @@ New tests cover word/register boundaries, phone/PC key transitions, complete
 multiword reads, concurrent legacy requests, backoff, key validation, assembled
 coordinator imports and encrypted saved-session resume with fragmented notifications.
 
-The regular suite uses Home Assistant doubles; `compat.py` is loaded for real, around those
+`.github/tests/fixtures/released_crypto_sessions.json` holds four sessions recorded from the
+crypto of 1.0.0b5, with damaged, replayed and truncated frames and a counter beyond 16 bits.
+The rewritten crypto must reproduce every output, counter and rejection.
+
+`.github/tests/scooter_simulator.py` is a scooter for tests: a word-addressed register file per
+board behind the encrypted handshake, reached through a fragmenting GATT double.
+`test_model_families.py` drives every selectable model family through pairing and a full
+read cycle against it, `test_vcu_generation.py` does the same for the F3 generation including
+login with a stored password. The register contents follow the public sources, so these
+tests show that a model resolves to its adapter, asks only for documented registers and
+decodes them. They cannot show that a source matches a given firmware.
+
+The regular suite uses Home Assistant doubles; `helpers/compat.py` is loaded for real, around those
 doubles. A second suite in `.github/ha_tests` runs the integration inside a genuine Home
 Assistant core: config, options and reconfigure flows, entity creation and naming, asset
 registration, Bluetooth callback registration, diagnostics redaction and unload. Only the
