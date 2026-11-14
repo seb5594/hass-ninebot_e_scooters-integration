@@ -14,6 +14,7 @@ from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import CoreState, HomeAssistant, callback
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.loader import async_get_integration
 
@@ -83,6 +84,24 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     return True
 
 
+def _unsupported_protocol_issue_id(entry_id: str) -> str:
+    """One issue per config entry; withdrawn with the entry itself."""
+    return f"unsupported_protocol_{entry_id}"
+
+
+def _async_raise_unsupported_protocol_issue(hass: HomeAssistant, entry: ConfigEntry, protocol: str) -> None:
+    """Explain why a successfully paired scooter shows no live data yet."""
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        _unsupported_protocol_issue_id(entry.entry_id),
+        is_fixable=False,
+        severity=ir.IssueSeverity.WARNING,
+        translation_key="unsupported_protocol",
+        translation_placeholders={"protocol": protocol},
+    )
+
+
 async def _async_options_updated(hass: HomeAssistant, entry: NinebotScooterConfigEntry) -> None:
     """Apply polling, model and sensor group options through one clean BLE reconnect."""
     # Pairing also updates entry.data. Reload only when the user changes an
@@ -113,6 +132,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntr
         # Releases before 2023.12 keep only a weak reference to the listener,
         # so it has to be a module-level function rather than a closure.
         entry.async_on_unload(entry.add_update_listener(_async_options_updated))
+
+    if coordinator._unsupported_protocol:
+        _async_raise_unsupported_protocol_issue(hass, entry, coordinator._unsupported_protocol)
 
     bluetooth_activated = False
     refresh_task: asyncio.Task | None = None
@@ -239,6 +261,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntr
         hass.state,
     )
 
+    if coordinator._unsupported_protocol:
+        # Pairing already succeeded through the fallback handshake; there is
+        # no register map to read yet, so no Bluetooth activity is scheduled.
+        return True
+
     if hass.state is CoreState.running:
         _activate_bluetooth()
     else:
@@ -270,8 +297,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntr
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntry) -> None:
-    """Drop the feedback invitation together with the scooter."""
+    """Drop the feedback invitation and any repair issue together with the scooter."""
     withdraw_invitation(hass, entry.entry_id)
+    ir.async_delete_issue(hass, DOMAIN, _unsupported_protocol_issue_id(entry.entry_id))
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntry) -> bool:
