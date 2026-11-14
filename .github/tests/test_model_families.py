@@ -265,11 +265,17 @@ def test_documented_serial_service_wins_when_a_scooter_offers_both(model, expect
 
 
 @pytest.mark.parametrize("model", [
-    "Ninebot F2", "Ninebot F2 Plus", "Ninebot F2 Pro", "Ninebot E2", "Ninebot E2 Plus", "Ninebot E2 Pro",
+    "Ninebot F2", "Ninebot F2 Plus", "Ninebot F2 Pro", "Ninebot E2", "Ninebot E2 Plus",
 ])
 def test_models_the_vendor_app_reaches_without_the_chained_crypto_are_not_offered(model):
     assert PROFILES_BY_NAME[model].protocol == UNVERIFIED
     assert model not in CONFIGURABLE_MODELS
+
+
+def test_e2_pro_is_read_with_the_e_series_registers():
+    profile = PROFILES_BY_NAME["Ninebot E2 Pro"]
+    assert profile.protocol == NINEBOT_E and not profile.writable_settings
+    assert "Ninebot E2 Pro" in CONFIGURABLE_MODELS
 
 
 def test_families_differ_only_where_the_sources_say_so():
