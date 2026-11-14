@@ -40,6 +40,28 @@ Some Xiaomi BLE132 dashboards use 5A AB and remain disabled here. The ninebot-bl
 author reports access to an F-series scooter and uses PC address 0x3D. That is
 protocol evidence, not a hardware test of this integration.
 
+## MIoT BLE Spec v2 (xiaomi_mi_ec research candidate)
+
+Reviewed on 2026-11-14. Three independent projects, none about scooters, document a
+GATT-connected scheme other Xiaomi IoT devices use (sensors, a body scale, buttons, lights):
+an ECDH exchange on the NIST P-256 curve, HKDF-SHA256 session keys and AES-CCM framing.
+
+| Source | Revision | Purpose |
+| --- | --- | --- |
+| [haohaozi328-arch/miot-ble-sdk](https://github.com/haohaozi328-arch/miot-ble-sdk/tree/90dd918fb82f565329c37c0ccd51b2fefd58e2e0) | `90dd918f` | GATT handles 0x0010/0x0019/0x001A; tested on ten-plus sensors, buttons and a scale |
+| [clairefiorettiythzr6802-eng/xiaomi-diffuser-ble](https://github.com/clairefiorettiythzr6802-eng/xiaomi-diffuser-ble/tree/96268a53e3c8ba4443dd322ecaede606ec7c89c6) | `96268a53` | ECDH+HKDF shape, 4-byte AES-CCM tag, login opcode 0x50 (replacing an older 0x20) |
+| [kbpk/xiaomi-s400-homeassistant](https://github.com/kbpk/xiaomi-s400-homeassistant/tree/60569f5826658c9bab617a0d9f2c86988ca48fa2) | `60569f58` | Names the P-256 curve; register/login success as 4-byte frames 0x11000000/0x21000000 |
+
+[Home Assistant's Xiaomi BLE integration](https://www.home-assistant.io/integrations/xiaomi_ble/)
+documents the paired key these devices need as a "bindkey" or "beaconkey": 12 bytes for the
+older MiBeacon v2/v3 devices, 16 bytes for v4/v5. None of the three sources above say how a
+scooter would obtain one, and none names a scooter at all; this was filed as `xiaomi_mi_ec`
+under a "55 AB" frame prefix inherited from the older, plain Xiaomi serial stream, which does
+not apply here — it is a sequence of 4-byte opcodes written to a GATT handle, not a
+byte-prefixed stream. `protocols/research.py` keeps the primitives (ECDH on P-256, HKDF-SHA256,
+AES-CCM) so a future, hardware-tested adapter does not have to look them up again; without a
+way to obtain the paired key, nothing here is reachable from a live session.
+
 ## Issues corrected in the supplied implementation
 
 - Discovery accepted unrelated devices advertising the shared Nordic UART service.

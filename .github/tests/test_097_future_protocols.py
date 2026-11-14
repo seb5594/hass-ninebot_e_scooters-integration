@@ -57,7 +57,7 @@ def test_all_future_adapters_remain_disabled_and_auth_families_are_distinct():
     by_family = {candidate.family: candidate for candidate in catalog.PROTOCOL_CANDIDATES}
     assert by_family["segway_zero_seed"].frame_prefix == "5A A5"
     assert by_family["xiaomi_ble132_5aab"].frame_prefix == "5A AB"
-    assert by_family["xiaomi_mi_ec"].frame_prefix == "55 AB"
+    assert by_family["xiaomi_mi_ec"].authentication == "ecdh_hkdf_aes_ccm"
     # A family with an adapter is described by its transport profile, never
     # by this catalog of protocols nobody has implemented.
     transports = load_module("models.transports")
@@ -90,3 +90,40 @@ def test_research_catalog_is_not_imported_by_any_runtime_component():
             )
             for node in ast.walk(syntax)
         ), f"Unexpected runtime import in {path.relative_to(PACKAGE_PATH)}"
+
+
+def test_miot_elliptic_ecdh_round_trips_to_the_same_shared_secret():
+    """Two independent key pairs must agree on one shared secret, each side
+    computing it from its own private key and the other's public point."""
+    host = catalog.miot_elliptic_generate_keypair()
+    device = catalog.miot_elliptic_generate_keypair()
+    host_point = catalog.miot_elliptic_public_bytes(host)
+    device_point = catalog.miot_elliptic_public_bytes(device)
+    assert len(host_point) == 65 and host_point[0] == 0x04  # uncompressed P-256 point
+    host_secret = catalog.miot_elliptic_shared_secret(host, catalog.miot_elliptic_load_peer_public_key(device_point))
+    device_secret = catalog.miot_elliptic_shared_secret(device, catalog.miot_elliptic_load_peer_public_key(host_point))
+    assert host_secret == device_secret
+    assert len(host_secret) == 32  # P-256 field size
+
+
+def test_miot_elliptic_derive_key_is_deterministic_and_length_bound():
+    secret = b"\x01" * 32
+    derived = catalog.miot_elliptic_derive_key(secret, salt=b"salt", info=b"info", length=48)
+    assert len(derived) == 48
+    assert derived == catalog.miot_elliptic_derive_key(secret, salt=b"salt", info=b"info", length=48)
+    assert derived != catalog.miot_elliptic_derive_key(secret, salt=b"other", info=b"info", length=48)
+
+
+def test_miot_elliptic_aes_ccm_round_trips_and_rejects_a_tampered_frame():
+    key, nonce, aad = b"\x02" * 16, b"\x03" * 12, b"device-info"
+    ciphertext = catalog.miot_elliptic_encrypt(key, nonce, b"payload", aad)
+    assert catalog.miot_elliptic_decrypt(key, nonce, ciphertext, aad) == b"payload"
+    tampered = ciphertext[:-1] + bytes([ciphertext[-1] ^ 1])
+    with pytest.raises(Exception):
+        catalog.miot_elliptic_decrypt(key, nonce, tampered, aad)
+
+
+def test_miot_elliptic_handles_and_responses_match_the_registration_catalog():
+    assert catalog.MIOT_ELLIPTIC_HANDLES == (0x0010, 0x0019, 0x001A)
+    assert catalog.MIOT_ELLIPTIC_REGISTER_OK == b"\x11\x00\x00\x00"
+    assert catalog.MIOT_ELLIPTIC_LOGIN_OK == b"\x21\x00\x00\x00"
