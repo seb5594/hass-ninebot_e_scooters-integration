@@ -87,10 +87,19 @@ different, cloud-issued key instead):
 | [clairefiorettiythzr6802-eng/xiaomi-diffuser-ble](https://github.com/clairefiorettiythzr6802-eng/xiaomi-diffuser-ble/tree/96268a53e3c8ba4443dd322ecaede606ec7c89c6) | `96268a53` | The ECDH+HKDF shape and the 4-byte AES-CCM tag, on a Mijia smart diffuser |
 | [kbpk/xiaomi-s400-homeassistant](https://github.com/kbpk/xiaomi-s400-homeassistant/tree/60569f5826658c9bab617a0d9f2c86988ca48fa2) | `60569f58` | Names the P-256 curve explicitly; the same two 4-byte responses, 0x11000000/0x21000000 |
 
-`protocols/research.py` keeps the primitives, the frame shape and every command byte Table 4
-gives, so a future, hardware-tested adapter does not have to look any of it up again. This
-stays a research candidate regardless: this integration has not been tested against a scooter
-that speaks P4, and nothing here is wired into a live session without that.
+`protocols/miot_elliptic.py` keeps the primitives, the frame shape and every command byte
+Table 4 gives. Unlike the rest of this file's candidates, its Pairing handshake is wired into
+one live, real BLE session: `runtime/flow_pairing.py`, used only by the config flow, tries it
+as a fallback when the classic BLE129 handshake is not confirmed during setup, since some newer
+Xiaomi scooters do not speak BLE129 at all. This is a deliberate, narrow exception to this
+file's own "nothing is wired into a live session" rule, made with the project maintainer's
+explicit sign-off, for Pairing only. Session, the data-channel framing, and every register that
+property traffic over it would carry remain exactly as inert as every other candidate here: no
+register map or entity exists for this protocol, so a scooter that pairs through it is recorded
+as paired, with a Repairs notice explaining that live data is not supported yet, and no further
+Bluetooth connection is attempted for it. The exact fragment boundaries beyond the paper's own
+"0x0010 added each time" rule, and the AES-CCM nonce for the app's one-shot proof, are this
+module's own reconstruction, not confirmed by the paper; see its module docstring.
 
 `docs/tools/fetch_xiaomi_ble_credentials.py` reimplements the openly published Xiaomi cloud
 login that [PiotrMachowski/Xiaomi-cloud-tokens-extractor](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor)
