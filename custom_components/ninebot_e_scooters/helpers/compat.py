@@ -55,6 +55,7 @@ __all__ = [
     "create_background_task",
     "describe_unreachable_scooter",
     "description_dataclass",
+    "supports_progress_task",
 ]
 
 TRANSLATIONS = Path(__file__).parents[1] / "translations" / "en.json"
@@ -86,6 +87,17 @@ def async_update_reload_and_abort(
     if _accepts(flow.async_update_reload_and_abort, "data_updates"):
         return flow.async_update_reload_and_abort(entry, data_updates=updates, reason=reason)
     return flow.async_update_reload_and_abort(entry, data={**entry.data, **updates}, reason=reason)
+
+
+def supports_progress_task(flow: Any) -> bool:
+    """Whether this release's async_show_progress can poll a task itself.
+
+    Home Assistant 2024.8+ accepts `progress_task` and re-invokes the step
+    on its own once the task finishes; earlier releases only know a fixed
+    `progress_action` and expect the flow to re-show progress by hand, so
+    the caller awaits the task directly there instead.
+    """
+    return _accepts(flow.async_show_progress, "progress_task")
 
 
 def _cancel_legacy_background_tasks(entry_id: str) -> None:

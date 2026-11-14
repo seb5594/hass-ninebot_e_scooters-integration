@@ -9,10 +9,11 @@ parsed=parse_source((src/'config_flow.py').read_text())
 configs=[n for n in parsed.body if isinstance(n,(ast.FunctionDef,ast.ClassDef))]
 
 class FakeConfigFlow:
-    def __init__(self): self.context={}
+    _ids = iter(f'fake-flow-{i}' for i in range(100000))
+    def __init__(self): self.context={}; self.flow_id=next(FakeConfigFlow._ids)
     def __init_subclass__(cls, **kwargs): super().__init_subclass__()
     def _async_current_ids(self, include_ignore=False): return set()
-    async def async_set_unique_id(self, address): self.uid=address
+    async def async_set_unique_id(self, address, *, raise_on_progress=True): self.uid=address
     def _abort_if_unique_id_configured(self): return None
     def async_show_form(self, **kwargs): return {'type':'form',**kwargs}
     def async_create_entry(self, **kwargs): return {'type':'entry',**kwargs}
@@ -23,6 +24,18 @@ class FakeBT:
     def async_discovered_service_info(self,hass,connectable):
         return self.devices if connectable else self.devices
     async def async_request_active_scan(self,hass): self.scans+=1
+    def async_ble_device_from_address(self,hass,address,connectable=True): return object()
+
+class FakeHass:
+    """hass.async_create_task is synchronous in Home Assistant: it returns the
+    Task it schedules rather than being awaited itself."""
+    def async_create_task(self, coro, name=None): return asyncio.ensure_future(coro)
+
+async def fake_async_attempt_pairing(hass, ble_device, name, flow_id):
+    """Stands in for runtime/flow_pairing.py: pairing always succeeds here,
+    the behavior that part of the flow builds on is exercised separately in
+    .github/tests/test_flow_pairing.py."""
+    return types.SimpleNamespace(protocol='ble129', app_key=b'\x00' * 16, error=None)
 
 class Vol:
     @staticmethod
@@ -68,7 +81,9 @@ namespace={'__name__':'fake_flow','__builtins__':__builtins__, 'Any':object,
     'SelectSelectorMode': types.SimpleNamespace(LIST='list'),
     'is_scooter_advertisement': is_scooter_advertisement,
     'needs_explicit_model': needs_explicit_model,
-    'identify_model': lambda serial, _name: types.SimpleNamespace(model='Mi Electric Scooter 1S' if serial.startswith('25700/') else None)}
+    'identify_model': lambda serial, _name: types.SimpleNamespace(model='Mi Electric Scooter 1S' if serial.startswith('25700/') else None),
+    'async_attempt_pairing': fake_async_attempt_pairing,
+    'supports_progress_task': lambda flow: False}
 mod=ast.Module(body=[ast.ImportFrom(module='__future__',names=[ast.alias(name='annotations')],level=0)]+configs,type_ignores=[])
 exec(compile(ast.fix_missing_locations(mod), '<fake_config_flow>', 'exec'),namespace)
 Flow=namespace['NinebotScooterConfigFlow']
@@ -78,9 +93,10 @@ class Info:
     address:str
     name:str
     service_uuids:list
+    device:object=None
 
 async def main():
-    no=Flow();no.hass=object();no.context={}
+    no=Flow();no.hass=FakeHass();no.context={};no.flow_id='fake-flow-id'
     r=await no.async_step_user()
     assert r['step_id']=='retry_scan',r
     assert fake_bt.scans==1
@@ -89,7 +105,7 @@ async def main():
     # With a real HA-discovered MIScooter, the config flow must show it by name
     # without initiating a separate Bluetooth connection.
     fake_bt.devices=[Info('D8:9B:B1:50:DD:25','MIScooter5977',[])]
-    got=Flow();got.hass=object();got.context={}
+    got=Flow();got.hass=FakeHass();got.context={};got.flow_id='fake-flow-id'
     r=await got.async_step_user()
     assert r['step_id']=='user' and 'MIScooter5977' in list(r['data_schema'].values())[0]['D8:9B:B1:50:DD:25']
     assert 'model' in r['data_schema']
@@ -97,21 +113,21 @@ async def main():
     r=await got.async_step_user({'address':'D8:9B:B1:50:DD:25'})
     assert r['type']=='entry' and r['data']['bluetooth_name']=='MIScooter5977'
     assert r['options']=={'model':'Automatisch','sensor_groups':[]}
-    picked=Flow();picked.hass=object();picked.context={}
+    picked=Flow();picked.hass=FakeHass();picked.context={};picked.flow_id='fake-flow-id'
     await picked.async_step_user()
     r=await picked.async_step_user({'address':'D8:9B:B1:50:DD:25',
         'sensor_groups':['temperatures','riding','retired_group']})
     assert r['options']['sensor_groups']==['riding','temperatures']
     FakeStore.contents['D8:9B:B1:50:DD:25']='25700/12345678'
-    saved=Flow();saved.hass=object();saved.context={}
+    saved=Flow();saved.hass=FakeHass();saved.context={};saved.flow_id='fake-flow-id'
     r=await saved.async_step_user()
     assert 'MIScooter5977 (Mi Electric Scooter 1S)' in r['data_schema']['address']['D8:9B:B1:50:DD:25']
-    another=Flow();another.hass=object();another.context={}
+    another=Flow();another.hass=FakeHass();another.context={};another.flow_id='fake-flow-id'
     await another.async_step_user()
     r=await another.async_step_user({'address':'D8:9B:B1:50:DD:25','model':'Mi Electric Scooter 1S'})
     assert r['options']['model']=='Mi Electric Scooter 1S'
     # Manual fallback is optional, not required for the normal path.
-    manual=Flow();manual.hass=object();manual.context={}
+    manual=Flow();manual.hass=FakeHass();manual.context={};manual.flow_id='fake-flow-id'
     r=await manual.async_step_retry_scan({'manual_address':'D8:9B:B1:50:DD:25','manual_name':'MIScooter5977'})
     assert r['type']=='entry'
     r=await manual.async_step_retry_scan({'manual_address':'NOT-MAC','manual_name':'MIScooter5977'})

@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026.11.14.2
+
+- **Setup now pairs before adding the scooter.** Selecting a scooter in the config flow (manual
+  selection, automatic Bluetooth discovery, or the manual-address fallback) now tries to pair
+  with it on the spot, with the same power-button notice this integration already shows later.
+  The classic handshake is tried first; if it is not confirmed, the newer MIoT elliptic handshake
+  is tried next on the same connection, since some newer Xiaomi scooters do not speak the classic
+  one at all. If neither is confirmed, the scooter is still added, as a last resort, unpaired —
+  exactly like every earlier release — and pairs itself on the next live advertisement.
+- **MIoT elliptic ("P4") pairing, as a fallback only.** `protocols/research.py`'s ECDH/AES-CCM
+  primitives (sourced from the E-Spoofer paper, see `docs/PROTOCOL_SOURCES.md`) move to the new
+  `protocols/miot_elliptic.py` and are used, for the first time, by a real BLE session — but only
+  during setup, only after the classic handshake has already failed, and only for pairing itself.
+  Nothing reads or controls a scooter over this handshake yet: a scooter that pairs this way is
+  added with a Repairs notice explaining that live data is not supported for it yet, and no
+  Bluetooth connection is attempted for it afterwards.
+- Fixed a race condition: adding a scooter manually while Home Assistant's own Bluetooth discovery
+  also notices it could make the manually started setup fail with a confusing error. The two no
+  longer interfere with each other while both are only in progress.
+
 ## 2026.11.14.1
 
 - **Ninebot E2 Pro (experimental, [#18](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/18)):**

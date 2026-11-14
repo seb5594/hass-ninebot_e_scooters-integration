@@ -26,6 +26,7 @@ from .helpers.compat import (
     ConfigFlowResult,
     async_request_active_scan,
     async_update_reload_and_abort,
+    supports_progress_task,
 )
 from .const import (
     CONF_MODEL,
@@ -47,6 +48,7 @@ from .helpers.sensor_groups import (
 )
 from .helpers.storage import restore, storage_key
 from .helpers.utilities import parse_app_key
+from .runtime.flow_pairing import PairingOutcome, async_attempt_pairing
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -109,6 +111,10 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
         self._discovery_address: str | None = None
         self._scan_error: str | None = None
         self._cached_model_labels: dict[str, str] = {}
+        # Carries the device over from selection to the pairing step.
+        self._pairing_context: dict[str, Any] | None = None
+        self._pairing_task: asyncio.Task[PairingOutcome] | None = None
+        self._pairing_outcome: PairingOutcome | None = None
 
     async def _async_model_label(self, address: str, name: str) -> str:
         """Show an identified model from saved telemetry without extra pairing."""
@@ -172,24 +178,18 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
         self._discovered_devices = found
         return found
 
-    def _async_create_entry_from_values(
-        self, address: str, name: str, options: dict[str, Any]
+    async def _async_create_entry_from_values(
+        self, address: str, name: str, options: dict[str, Any], ble_device: Any,
     ) -> ConfigFlowResult:
-        """Save a discovered scooter without requiring a second BLE connection."""
+        """Require a real pairing success, then save the scooter as a config entry."""
         if options[CONF_MODEL] == AUTO_MODEL and needs_explicit_model(name):
             return self._async_show_retry_scan_form(
                 address, name, options, errors={CONF_MODEL: "model_required"}
             )
-        self.context["title_placeholders"] = {"name": name}
-        return self.async_create_entry(
-            title=name,
-            data={
-                CONF_ADDRESS: address,
-                "bluetooth_name": name,
-                "app_key": secrets.token_hex(16),
-            },
-            options=options,
-        )
+        self._pairing_context = {
+            "address": address, "name": name, "options": options, "ble_device": ble_device,
+        }
+        return await self.async_step_pairing()
 
     def _async_show_retry_scan_form(
         self,
@@ -213,20 +213,24 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
     async def _async_test_and_create_entry(
         self, address: str, options: dict[str, Any]
     ) -> ConfigFlowResult:
-        """Create a config entry for a device already found by HA Bluetooth."""
+        """Pair with a device already found by HA Bluetooth before saving it.
+
+        A connectable BLEDevice can disappear between the scan and the
+        config-flow confirmation; a missing one aborts here rather than
+        letting the pairing attempt fail with a confusing GATT error.
+        """
         service_info = self._discovered_devices.get(address.upper())
         if service_info is None:
-            # The device has already been discovered by Home Assistant's
-            # Bluetooth stack. Do not perform a second connection attempt here.
-            # A connectable BLEDevice can disappear between the scan and the
-            # config-flow confirmation; making setup depend on that lookup causes
-            # false "cannot_connect" failures without even reaching the scooter.
             return self.async_abort(reason="no_devices_found")
         name = _device_name(service_info)
         address = address.upper()
-        await self.async_set_unique_id(address)
+        # raise_on_progress=False: a concurrent discovery flow for the same
+        # device must not abort this flow just for being in progress too.
+        # _abort_if_unique_id_configured below still aborts gracefully if
+        # that other flow finishes first and actually creates the entry.
+        await self.async_set_unique_id(address, raise_on_progress=False)
         self._abort_if_unique_id_configured()
-        return self._async_create_entry_from_values(address, name, options)
+        return await self._async_create_entry_from_values(address, name, options, service_info.device)
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -270,11 +274,17 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
                     # BLE129 derives a crypto key from the advertised device name.
                     errors["manual_name"] = "name_required"
                 else:
-                    await self.async_set_unique_id(manual_address)
+                    await self.async_set_unique_id(manual_address, raise_on_progress=False)
                     self._abort_if_unique_id_configured()
-                    return self._async_create_entry_from_values(
-                        manual_address, manual_name, _setup_options(user_input)
+                    ble_device = bluetooth.async_ble_device_from_address(
+                        self.hass, manual_address, connectable=True,
                     )
+                    if ble_device is None:
+                        errors["manual_address"] = "cannot_connect"
+                    else:
+                        return await self._async_create_entry_from_values(
+                            manual_address, manual_name, _setup_options(user_input), ble_device,
+                        )
             else:
                 return await self.async_step_user()
 
@@ -288,7 +298,10 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
         if not _is_supported(discovery_info):
             return self.async_abort(reason="not_supported")
 
-        await self.async_set_unique_id(discovery_info.address)
+        # raise_on_progress=False: a manually started flow for the same
+        # device may already be in progress (still scanning or showing its
+        # form); claiming the unique ID must not abort it just for that.
+        await self.async_set_unique_id(discovery_info.address, raise_on_progress=False)
         self._abort_if_unique_id_configured()
 
         self._discovered_devices[discovery_info.address] = discovery_info
@@ -330,7 +343,7 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
             address = user_input[CONF_ADDRESS]
 
             if address != entry.unique_id:
-                await self.async_set_unique_id(address)
+                await self.async_set_unique_id(address, raise_on_progress=False)
                 self._abort_if_unique_id_configured()
 
             service_info = self._discovered_devices.get(address)
@@ -371,6 +384,88 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
                 }
             ),
         )
+
+    async def async_step_pairing(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Progress step: try every handshake in the background, in order.
+
+        Tries the classic BLE129 handshake, then the newer MIoT elliptic one
+        (see runtime/flow_pairing.py), on a connection of its own. The
+        power-button dialog this integration already shows during pairing
+        opens here too, since both reuse the same persistent-notification ID
+        pattern pairing_dialog.js watches for. The entry is created either
+        way once both have been tried; async_step_pairing_done decides
+        whether it is created already paired or, as a last resort, the way
+        setup always used to work: unpaired, to be paired on the next live
+        advertisement.
+        """
+        context = self._pairing_context
+        if context is None:
+            return self.async_abort(reason="cannot_connect")
+
+        if self._pairing_task is None:
+            self._pairing_task = self.hass.async_create_task(
+                async_attempt_pairing(self.hass, context["ble_device"], context["name"], self.flow_id),
+                f"ninebot_e_scooters_config_flow_pairing_{self.flow_id}",
+            )
+
+        use_progress = supports_progress_task(self)
+        if not self._pairing_task.done():
+            if use_progress:
+                return self.async_show_progress(
+                    step_id="pairing", progress_action="pairing", progress_task=self._pairing_task,
+                )
+            # Before Home Assistant 2024.8, async_show_progress cannot poll a
+            # task by itself; block this step on it directly instead. The
+            # power-button dialog still opens the same way in the meantime.
+            await self._pairing_task
+
+        self._pairing_outcome = self._pairing_task.result()
+        self._pairing_task = None
+        if use_progress:
+            return self.async_show_progress_done(next_step_id="pairing_done")
+        return await self.async_step_pairing_done()
+
+    async def async_step_pairing_done(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Save the scooter once every handshake attempt has finished."""
+        context = self._pairing_context
+        outcome = self._pairing_outcome
+        self._pairing_context = None
+        self._pairing_outcome = None
+        if outcome.protocol is not None:
+            data: dict[str, Any] = {
+                CONF_ADDRESS: context["address"],
+                "bluetooth_name": context["name"],
+                "app_key": outcome.app_key.hex(),
+                "paired": True,
+            }
+            if outcome.protocol != "ble129":
+                # No register map or entity exists yet for this protocol; the
+                # coordinator checks this flag and raises a repair issue
+                # instead of attempting a session it cannot decode (see
+                # runtime/session.py).
+                data["protocol"] = outcome.protocol
+        else:
+            # Neither handshake was confirmed. Add the scooter as a last
+            # resort, unpaired, the way setup always used to work: the
+            # existing runtime pairing (power-button prompt) retries on the
+            # next live advertisement.
+            _LOGGER.info(
+                "Scooter config flow: no handshake was confirmed (%s); "
+                "adding it unpaired, to pair on the next live advertisement",
+                outcome.error,
+            )
+            data = {
+                CONF_ADDRESS: context["address"],
+                "bluetooth_name": context["name"],
+                "app_key": secrets.token_hex(16),
+                "paired": False,
+            }
+        self.context["title_placeholders"] = {"name": context["name"]}
+        return self.async_create_entry(title=context["name"], data=data, options=context["options"])
 
     @staticmethod
     @callback
