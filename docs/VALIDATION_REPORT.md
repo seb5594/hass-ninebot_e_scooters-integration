@@ -1,4 +1,4 @@
-# Validation report — 2026.11.11.1
+# Validation report — 2026.11.14.1
 
 Local verification on 2026-11-11 used Python 3.13.18, pytest 9.1.1, cryptography 50.0.1
 and Node.js 22. Home Assistant could not be installed in that environment.
