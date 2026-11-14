@@ -40,6 +40,40 @@ Some Xiaomi BLE132 dashboards use 5A AB and remain disabled here. The ninebot-bl
 author reports access to an F-series scooter and uses PC address 0x3D. That is
 protocol evidence, not a hardware test of this integration.
 
+## A closed-source companion app (static analysis only)
+
+Reviewed on 2026-11-14. A closed-source scooter companion app, which ships no public source, was
+read as text from its public web build; nothing was run against a scooter, and no native Windows,
+Android or Linux build was examined. Minified client code keeps class and variable names short, but
+the literal strings it embeds (error messages, enum tags) survive compilation and are readable.
+What they confirm:
+
+- **Four base protocol families**, named `ninebot`, `ninebotCrypto`, `xiaomi` and `xiaomiCrypto` —
+  the same split this integration already keeps between the Ninebot word registers, the Ninebot
+  chained crypto, the Xiaomi legacy block and Xiaomi 1S crypto.
+- **Register access is categorized** as `writeRegister`, `writeRegisterNoReply`, `readRegister`,
+  `readRegisterNoRetry`, `awaitGenericUpdateMsg` and `notifyComplete`. This matches the write/read/
+  write-without-reply split already in `protocols/ninebot/packet.py`; `readRegisterNoRetry` reads as
+  a client-side retry policy, not a distinct wire command, so it changes nothing here.
+- **Writes are verified by a readback**, with dedicated failure states named `REG_VERIFY_FAIL` and
+  `CONFIRMATION NOT EQUAL`. `runtime/controls.py` already reads a setting back after writing it
+  before accepting the change; this is independent confirmation of that design, not a new one.
+- **Ninebot ESC firmware images are TEA- or XTEA-encrypted** for flashing, with a user-overridable
+  16-byte key and an "automatic" mode that uses "each device's live configuration." This belongs to
+  firmware flashing, which this integration does not perform, so it stays a research note.
+- An **"AirLock" feature** is the app's own phone-proximity automation on top of a scooter's
+  existing lock, not a property of the BLE protocol itself.
+
+What this pass could **not** recover, and why: no Bluetooth service or characteristic UUID, no
+manufacturer company ID, no numeric register address, and nothing that names or identifies the E2
+Pro. A search for model codes (`ES1`…`ES4`, `G30…`, `E22`/`E25`/`E45`, `F20`…`F65`, `D18`/`D28`/`D38`,
+`1S`, …) did turn up matches, but every one checked in context was a false positive: keyboard key
+names, minified identifiers or compressed font data that happens to contain the same characters, not
+a model-to-protocol table. No such table is kept as readable text in this build; recovering one would
+need decompiling the compiled bytecode itself, which this pass did not attempt. The native Windows,
+Android and Linux clients were not downloaded or inspected, so they may hold more than the web build
+does; this is not a claim that they hold nothing.
+
 ## Issues corrected in the supplied implementation
 
 - Discovery accepted unrelated devices advertising the shared Nordic UART service.
