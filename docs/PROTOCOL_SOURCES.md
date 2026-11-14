@@ -42,25 +42,45 @@ protocol evidence, not a hardware test of this integration.
 
 ## MIoT BLE Spec v2 (xiaomi_mi_ec research candidate)
 
-Reviewed on 2026-11-14. Three independent projects, none about scooters, document a
-GATT-connected scheme other Xiaomi IoT devices use (sensors, a body scale, buttons, lights):
-an ECDH exchange on the NIST P-256 curve, HKDF-SHA256 session keys and AES-CCM framing.
+Reviewed on 2026-11-14, from [ScooterHacking Utility](https://utility.cfw.sh/), v2.7 of its
+Android build: a GATT-connected scheme the newer Xiaomi generations it supports speak, on the
+MiBeacon service this file already uses (`0000fe95-...`). The register exchange (ECDH on the
+NIST P-256 curve, then a key-confirmation step) runs over characteristic `00000019-...`; the
+login that follows and the property traffic after it run over `00000010-...`. A full public
+key never crosses the wire: only its raw 64-byte X‖Y pair does, reassembled from several
+16-byte GATT writes, each side re-adding the "uncompressed point" marker locally. Once both
+sides confirm the same ECDH secret with `HKDF-SHA256(secret, salt=device_nonce+host_nonce,
+info="mible-login-info")`, each of the resulting keys is checked with an
+`HMAC-SHA256(key, device_nonce+host_nonce)` the other side already sent; a mismatch ends the
+session. The 40-byte HKDF output splits into what receives (verifies and decrypts what the
+device sends) and what sends, 16 bytes each, then a 4-byte nonce seed for each direction.
+A data-channel frame's AES-CCM nonce is that direction's 4-byte seed, four zero bytes, the
+frame's own 2-byte little-endian sequence number, then two more zero bytes — 12 bytes. The
+frame itself is `55 AB`, a length byte, the sequence, the AES-CCM payload with a 4-byte tag,
+and a checksum that is the same one's-complement 16-bit byte sum this file's Ninebot
+candidates already use — not something specific to this scheme. It rides over the same Nordic
+UART characteristics (`6e400002`/`6e400003`) the plain, unencrypted scheme already on this
+service uses; only the register and login exchange has its own two characteristics. The client
+announces itself with a string such as `blt.4.159` plus ten random characters, comparable to a
+user agent. The one paired-key bundle a device needs is kept locally once obtained, indexed by
+the scooter's Bluetooth MAC address — not by anything that would identify its model.
+
+Three independent public projects for other, non-scooter Xiaomi hardware corroborate the shape:
 
 | Source | Revision | Purpose |
 | --- | --- | --- |
-| [haohaozi328-arch/miot-ble-sdk](https://github.com/haohaozi328-arch/miot-ble-sdk/tree/90dd918fb82f565329c37c0ccd51b2fefd58e2e0) | `90dd918f` | GATT handles 0x0010/0x0019/0x001A; tested on ten-plus sensors, buttons and a scale |
-| [clairefiorettiythzr6802-eng/xiaomi-diffuser-ble](https://github.com/clairefiorettiythzr6802-eng/xiaomi-diffuser-ble/tree/96268a53e3c8ba4443dd322ecaede606ec7c89c6) | `96268a53` | ECDH+HKDF shape, 4-byte AES-CCM tag, login opcode 0x50 (replacing an older 0x20) |
-| [kbpk/xiaomi-s400-homeassistant](https://github.com/kbpk/xiaomi-s400-homeassistant/tree/60569f5826658c9bab617a0d9f2c86988ca48fa2) | `60569f58` | Names the P-256 curve; register/login success as 4-byte frames 0x11000000/0x21000000 |
+| [haohaozi328-arch/miot-ble-sdk](https://github.com/haohaozi328-arch/miot-ble-sdk/tree/90dd918fb82f565329c37c0ccd51b2fefd58e2e0) | `90dd918f` | The same GATT handles 0x0010/0x0019/0x001A; tested on ten-plus sensors, a button and a body scale |
+| [clairefiorettiythzr6802-eng/xiaomi-diffuser-ble](https://github.com/clairefiorettiythzr6802-eng/xiaomi-diffuser-ble/tree/96268a53e3c8ba4443dd322ecaede606ec7c89c6) | `96268a53` | The ECDH+HKDF shape and the 4-byte AES-CCM tag, on a Mijia smart diffuser |
+| [kbpk/xiaomi-s400-homeassistant](https://github.com/kbpk/xiaomi-s400-homeassistant/tree/60569f5826658c9bab617a0d9f2c86988ca48fa2) | `60569f58` | Names the P-256 curve explicitly; the same two 4-byte responses, 0x11000000/0x21000000 |
 
 [Home Assistant's Xiaomi BLE integration](https://www.home-assistant.io/integrations/xiaomi_ble/)
 documents the paired key these devices need as a "bindkey" or "beaconkey": 12 bytes for the
-older MiBeacon v2/v3 devices, 16 bytes for v4/v5. None of the three sources above say how a
-scooter would obtain one, and none names a scooter at all; this was filed as `xiaomi_mi_ec`
-under a "55 AB" frame prefix inherited from the older, plain Xiaomi serial stream, which does
-not apply here — it is a sequence of 4-byte opcodes written to a GATT handle, not a
-byte-prefixed stream. `protocols/research.py` keeps the primitives (ECDH on P-256, HKDF-SHA256,
-AES-CCM) so a future, hardware-tested adapter does not have to look them up again; without a
-way to obtain the paired key, nothing here is reachable from a live session.
+older MiBeacon v2/v3 devices, 16 bytes for v4/v5, normally read from a signed-in Xiaomi account.
+None of the four sources say how a scooter would obtain one. `protocols/research.py` keeps the
+primitives and the frame shape so a future, hardware-tested adapter does not have to look them
+up again; without a way to obtain the paired key, none of it is reachable from a live session,
+and the exact AES-CCM nonce for the encrypted channel is not confirmed, so it is left to the
+caller rather than guessed at.
 
 ## Issues corrected in the supplied implementation
 
