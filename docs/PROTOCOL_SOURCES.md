@@ -40,32 +40,46 @@ Some Xiaomi BLE132 dashboards use 5A AB and remain disabled here. The ninebot-bl
 author reports access to an F-series scooter and uses PC address 0x3D. That is
 protocol evidence, not a hardware test of this integration.
 
-## MIoT BLE Spec v2 (xiaomi_mi_ec research candidate)
+## P4: ECDH and AES-CCM (xiaomi_mi_ec research candidate)
 
-Reviewed on 2026-11-14, from [ScooterHacking Utility](https://utility.cfw.sh/), v2.7 of its
-Android build: a GATT-connected scheme the newer Xiaomi generations it supports speak, on the
-MiBeacon service this file already uses (`0000fe95-...`). The register exchange (ECDH on the
-NIST P-256 curve, then a key-confirmation step) runs over characteristic `00000019-...`; the
-login that follows and the property traffic after it run over `00000010-...`. A full public
-key never crosses the wire: only its raw 64-byte X‖Y pair does, reassembled from several
-16-byte GATT writes, each side re-adding the "uncompressed point" marker locally. Once both
-sides confirm the same ECDH secret with `HKDF-SHA256(secret, salt=device_nonce+host_nonce,
-info="mible-login-info")`, each of the resulting keys is checked with an
-`HMAC-SHA256(key, device_nonce+host_nonce)` the other side already sent; a mismatch ends the
-session. The 40-byte HKDF output splits into what receives (verifies and decrypts what the
-device sends) and what sends, 16 bytes each, then a 4-byte nonce seed for each direction.
-A data-channel frame's AES-CCM nonce is that direction's 4-byte seed, four zero bytes, the
-frame's own 2-byte little-endian sequence number, then two more zero bytes — 12 bytes. The
-frame itself is `55 AB`, a length byte, the sequence, the AES-CCM payload with a 4-byte tag,
-and a checksum that is the same one's-complement 16-bit byte sum this file's Ninebot
-candidates already use — not something specific to this scheme. It rides over the same Nordic
-UART characteristics (`6e400002`/`6e400003`) the plain, unencrypted scheme already on this
-service uses; only the register and login exchange has its own two characteristics. The client
-announces itself with a string such as `blt.4.159` plus ten random characters, comparable to a
-user agent. The one paired-key bundle a device needs is kept locally once obtained, indexed by
-the scooter's Bluetooth MAC address — not by anything that would identify its model.
+Reviewed on 2026-11-14. A peer-reviewed security paper, Casagrande, Cestaro, Losiouk, Conti and
+Antonioli, ["E-Spoofer: Attacking and Defending Xiaomi Electric Scooter
+Ecosystem"](https://francozappa.github.io/publication/2023/espoofer/paper.pdf) (WiSec '23, DOI
+10.1145/3558482.3590176), names and fully describes this as one of four Xiaomi
+application-layer protocols found across all Xiaomi e-scooters from 2016 to 2021. Its Table 4
+gives the exact bytes of every step; the account below follows it, and the byte values are
+transcribed from that table, so check them against the paper before relying on them.
 
-Three independent public projects for other, non-scooter Xiaomi hardware corroborate the shape:
+**Pairing** runs on characteristic `00000019-...`, unencrypted. The e-scooter advertises a
+pairable window for seventeen seconds after its headlight button is held down — the paper's
+root cause V2, "Unintentional Pairing mode" — the same kind of physical confirmation this
+integration's own Ninebot and Xiaomi 1S pairing already uses, not a cloud step. The scooter
+sends a sixteen-byte challenge (`chal`); the devices exchange public keys on the NIST P-256
+curve (as a raw 64-byte X‖Y pair each, reassembled from several 16-byte GATT writes) and derive
+an ECDH shared secret (`ss`). From it, `pk||otk=HKDF-SHA256(ss, salt="", info="mible-setup-info")`
+gives a pairing key (`pk`) and a one-time key (`otk`); the app alone proves it reached the same
+`otk` with `resp=AES-CCM(key=otk, input=chal)`. **Pairing authenticates the app to the scooter,
+not the other way around** — the paper's root cause V1, "Unauthenticated Pairing": nothing in
+this exchange proves the pairer is the real Mi Home app, which is also why the paper's
+Malicious Pairing attack needs no Xiaomi account, no cloud connection and no pre-shared secret
+of any kind to complete Pairing. A scooter is connectable and physically confirmable the same
+way M365/1S already is in this codebase; the passive, cloud-issued "beaconkey" that non-
+connectable Xiaomi BLE sensors need (see below) does not appear to apply here.
+
+**Session** runs on characteristic `00000010-...`, then on the same Nordic UART characteristics
+(`6e400002`/`6e400003`) this file's plain, unencrypted Ninebot/Xiaomi candidates already use.
+Both sides exchange sixteen-byte randoms (`rand_app`, `rand_esc`) and derive
+`sk_esc||sk_app||n_esc||n_app=HKDF-SHA256(pk, salt=rand_app‖rand_esc, info="mible-login-info")`:
+two directional AES-CCM-128 keys and two nonce halves. Each side then sends
+`HMAC-SHA256(key=sk_*, input=rand_esc‖rand_app)` for its own key; a mismatch ends the session.
+A data-channel frame is `55 AB`, a length byte, a 2-byte sequence, the AES-CCM payload (a
+4-byte tag), and a checksum that is the same one's-complement 16-bit byte sum this file's
+Ninebot candidates already use — not something specific to this scheme. The exact AES-CCM
+nonce construction for these frames is not stated by the paper and is not guessed at here.
+
+Three independent public projects for other, non-scooter Xiaomi hardware corroborate the shape
+(none of them need a scooter's physical pairing confirmation, since their devices use a
+different, cloud-issued key instead):
 
 | Source | Revision | Purpose |
 | --- | --- | --- |
@@ -73,23 +87,22 @@ Three independent public projects for other, non-scooter Xiaomi hardware corrobo
 | [clairefiorettiythzr6802-eng/xiaomi-diffuser-ble](https://github.com/clairefiorettiythzr6802-eng/xiaomi-diffuser-ble/tree/96268a53e3c8ba4443dd322ecaede606ec7c89c6) | `96268a53` | The ECDH+HKDF shape and the 4-byte AES-CCM tag, on a Mijia smart diffuser |
 | [kbpk/xiaomi-s400-homeassistant](https://github.com/kbpk/xiaomi-s400-homeassistant/tree/60569f5826658c9bab617a0d9f2c86988ca48fa2) | `60569f58` | Names the P-256 curve explicitly; the same two 4-byte responses, 0x11000000/0x21000000 |
 
-[Home Assistant's Xiaomi BLE integration](https://www.home-assistant.io/integrations/xiaomi_ble/)
-documents the paired key these devices need as a "bindkey" or "beaconkey": 12 bytes for the
-older MiBeacon v2/v3 devices, 16 bytes for v4/v5, normally read from a signed-in Xiaomi account.
-None of the four sources say how a scooter would obtain one. `protocols/research.py` keeps the
-primitives and the frame shape so a future, hardware-tested adapter does not have to look them
-up again; without a way to obtain the paired key, none of it is reachable from a live session.
+`protocols/research.py` keeps the primitives, the frame shape and every command byte Table 4
+gives, so a future, hardware-tested adapter does not have to look any of it up again. This
+stays a research candidate regardless: this integration has not been tested against a scooter
+that speaks P4, and nothing here is wired into a live session without that.
 
 `docs/tools/fetch_xiaomi_ble_credentials.py` reimplements the openly published Xiaomi cloud
 login that [PiotrMachowski/Xiaomi-cloud-tokens-extractor](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor)
-and other long-standing community tools already use, to read the one piece of this that lives
-outside any firmware: the "beaconkey" (bindkey) a signed-in Mi account already holds for a
-device. Run by hand, with your own account, it cannot get the second value this scheme's login
-needs, a "device token": no public source documents the endpoint for it (the diffuser project
-above only names it, as `/v2/blemesh/query_dev`), so the tool's attempt at it is openly
-unverified and may simply fail. Fetching either value is not something this integration, or any
-tool that ships with it, does on its own; it stays a manual, one-time step on hardware this file
-does not otherwise touch.
+and other long-standing community tools already use, to read a "beaconkey" (bindkey) a signed-in
+Mi account holds for a device. [Home Assistant's Xiaomi BLE
+integration](https://www.home-assistant.io/integrations/xiaomi_ble/) documents that key for the
+passive, non-connectable MiBeacon sensors it supports: 12 bytes for v2/v3 devices, 16 bytes for
+v4/v5. The tool was first written on the understanding that a scooter's P4 pairing would need
+the same kind of key; the paper above says otherwise for Pairing itself. It may still be useful
+for a scooter that was already bound through Mi Home and does not need to be paired again, or
+simply for other Xiaomi BLE devices that do need a cloud-issued key; it stays in the repository
+for that, with this correction attached.
 
 ## Issues corrected in the supplied implementation
 

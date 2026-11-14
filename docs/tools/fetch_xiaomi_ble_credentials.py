@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
-"""Fetch a Xiaomi scooter's BLE pairing credentials from your own Mi account.
+"""Fetch a Xiaomi BLE device's cloud-issued "beaconkey" from your own Mi account.
+
+Correction: this was first written on the assumption that a scooter's secure
+BLE pairing ("P4", in docs/PROTOCOL_SOURCES.md) needs a key fetched from
+Xiaomi's cloud. A peer-reviewed paper on that exact protocol (cited in that
+file) says otherwise: pairing is confirmed locally, by holding the scooter's
+headlight button, the same way this integration's own Ninebot and Xiaomi 1S
+pairing already works, and needs no cloud account or pre-shared key. What
+this script fetches is still real and still useful for a device that was
+already bound through Mi Home (so it does not need pairing again), or for
+other Xiaomi BLE devices (such as passive sensors) that do rely on a
+cloud-issued key the same way — just not, as far as that paper establishes,
+for pairing with a scooter from scratch.
 
 Run this yourself, on your own machine. It is not part of the Home Assistant
 integration and nothing it does goes through Home Assistant or this
@@ -13,17 +25,18 @@ Usage:
 You will be prompted for your Mi account username and password (not echoed,
 never written to disk) and, if asked, a verification code from your email.
 Every device in your account whose ID marks it as Bluetooth is listed; pick
-the scooter and the script prints what it could retrieve.
+the device and the script prints what it could retrieve.
 
 What this can get, and what it cannot:
-  - The "beaconkey" (the device's local encryption key) through the
-    documented endpoint /v2/device/blt_get_beaconkey. This is the same key
-    Home Assistant's own Xiaomi BLE integration calls a "bindkey".
+  - The "beaconkey" through the documented endpoint
+    /v2/device/blt_get_beaconkey. This is the same key Home Assistant's own
+    Xiaomi BLE integration calls a "bindkey", for the passive MiBeacon
+    sensors it supports.
   - A best-effort attempt at /v2/blemesh/query_dev for a "device token",
-    which some scooter generations' secure pairing needs in addition to the
-    beaconkey. This endpoint is not documented anywhere public that could be
-    found; the attempt may simply fail, and if it does, this script says so
-    plainly rather than guessing at a result.
+    named but not documented by one of the independent projects cited in
+    docs/PROTOCOL_SOURCES.md. This endpoint is not documented anywhere
+    public that could be found; the attempt may simply fail, and if it
+    does, this script says so plainly rather than guessing at a result.
 
 Nothing fetched here is used automatically: copy the values this script
 prints into this integration's configuration yourself, if and when it

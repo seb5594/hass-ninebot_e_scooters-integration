@@ -139,12 +139,60 @@ def test_miot_elliptic_aes_ccm_round_trips_and_rejects_a_tampered_frame():
         catalog.miot_elliptic_decrypt(key, nonce, tampered)
 
 
-def test_miot_elliptic_handles_and_responses_match_the_registration_catalog():
+def test_miot_elliptic_handles_and_responses_match_the_paper():
     assert catalog.MIOT_ELLIPTIC_HANDLES == (0x0010, 0x0019, 0x001A)
-    assert catalog.MIOT_ELLIPTIC_AUTH_CHARACTERISTIC == "00000019-0000-1000-8000-00805f9b34fb"
-    assert catalog.MIOT_ELLIPTIC_CONTROL_CHARACTERISTIC == "00000010-0000-1000-8000-00805f9b34fb"
-    assert catalog.MIOT_ELLIPTIC_REGISTER_OK == b"\x11\x00\x00\x00"
-    assert catalog.MIOT_ELLIPTIC_LOGIN_OK == b"\x21\x00\x00\x00"
+    assert catalog.MIOT_ELLIPTIC_PAIRING_CHARACTERISTIC == "00000019-0000-1000-8000-00805f9b34fb"
+    assert catalog.MIOT_ELLIPTIC_SESSION_CHARACTERISTIC == "00000010-0000-1000-8000-00805f9b34fb"
+    assert catalog.MIOT_PAIR_OK_ACK == b"\x11\x00\x00\x00"
+    assert catalog.MIOT_SESS_OK == b"\x21\x00\x00\x00"
+    assert catalog.MIOT_PAIR_REQ == b"\xA2\x00\x00\x00"
+    assert catalog.MIOT_PAIR_OK == b"\x13\x00\x00\x00"
+    assert catalog.MIOT_SESS_REQ_1 == b"\x24\x00\x00\x00"
+
+
+def test_miot_elliptic_pairing_keys_are_deterministic_and_split_as_pk_then_otk():
+    secret = b"\x07" * 32
+    derived = catalog.miot_elliptic_derive_pairing_keys(secret)
+    assert len(derived) == 32
+    assert derived == catalog.miot_elliptic_derive_pairing_keys(secret)
+    pairing_key, one_time_key = derived[:16], derived[16:]
+    assert pairing_key != one_time_key
+
+
+def test_miot_elliptic_pairing_response_is_the_app_s_unilateral_proof():
+    """Pairing only has the app prove it reached the same otk as the
+    scooter (the paper's V1, Unauthenticated Pairing); there is no
+    matching scooter-side response to verify in return."""
+    one_time_key, nonce, challenge = b"\x08" * 16, b"\x09" * 12, b"\x0A" * 16
+    response = catalog.miot_elliptic_pairing_response(one_time_key, nonce, challenge)
+    assert catalog.miot_elliptic_decrypt(one_time_key, nonce, response) == challenge
+
+
+def test_miot_elliptic_full_pairing_and_session_between_two_sides():
+    """End to end: an ECDH exchange, Pairing's HKDF, the app's unilateral
+    proof, then Session's HKDF reaching the same four keys on both sides —
+    the complete shape Pairing and Session go through, per the cited paper."""
+    app = catalog.miot_elliptic_generate_keypair()
+    esc = catalog.miot_elliptic_generate_keypair()
+    app_point = catalog.miot_elliptic_public_point(app)
+    esc_point = catalog.miot_elliptic_public_point(esc)
+    app_secret = catalog.miot_elliptic_shared_secret(app, catalog.miot_elliptic_load_peer_point(esc_point))
+    esc_secret = catalog.miot_elliptic_shared_secret(esc, catalog.miot_elliptic_load_peer_point(app_point))
+    assert app_secret == esc_secret
+
+    app_pairing = catalog.miot_elliptic_derive_pairing_keys(app_secret)
+    esc_pairing = catalog.miot_elliptic_derive_pairing_keys(esc_secret)
+    assert app_pairing == esc_pairing
+    pairing_key, one_time_key = app_pairing[:16], app_pairing[16:]
+
+    challenge, nonce = b"\x0B" * 16, b"\x0C" * 12
+    response = catalog.miot_elliptic_pairing_response(one_time_key, nonce, challenge)
+    assert catalog.miot_elliptic_decrypt(one_time_key, nonce, response) == challenge
+
+    rand_app, rand_esc = b"\x0D" * 16, b"\x0E" * 16
+    app_session = catalog.miot_elliptic_derive_login_keys(pairing_key, rand_app, rand_esc)
+    esc_session = catalog.miot_elliptic_derive_login_keys(pairing_key, rand_app, rand_esc)
+    assert app_session == esc_session
 
 
 def test_miot_elliptic_full_login_key_confirmation_between_two_sides():
