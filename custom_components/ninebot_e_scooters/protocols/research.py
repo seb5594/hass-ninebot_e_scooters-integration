@@ -10,10 +10,10 @@ Sources: https://github.com/ownbee/ninebot-ble/tree/main/ninebot_ble
          https://github.com/scooterhacking/NinebotCrypto
          https://wiki.scooterhacking.org/doku.php?id=nbdocs
          https://nootnooot.codeberg.page/segway-ninebot-ble/ (device tables)
-         ScooterHacking Utility (https://utility.cfw.sh/), for the MIoT BLE
-         Spec v2 section below; its wire format is independently
-         corroborated by unrelated public projects for other Xiaomi
-         ecosystem devices, none of them scooters
+         Casagrande, Cestaro, Losiouk, Conti and Antonioli, "E-Spoofer:
+         Attacking and Defending Xiaomi Electric Scooter Ecosystem", WiSec
+         '23 (DOI 10.1145/3558482.3590176), for the P4 (ECDH and AES-CCM)
+         section below
 """
 
 from __future__ import annotations
@@ -44,9 +44,10 @@ class ProtocolCandidate:
 PROTOCOL_CANDIDATES: tuple[ProtocolCandidate, ...] = (
     ProtocolCandidate("xiaomi_ble132_nb", "5A A5", "ninebot_chained", ("BLE132",), "nordic_uart"),
     ProtocolCandidate("xiaomi_ble132_5aab", "5A AB", "to_be_verified", ("BLE132",), "to_be_verified"),
-    # The handshake itself is a sequence of small, unencrypted GATT writes;
-    # "55 AB" is the sync of the encrypted frame that carries property
-    # traffic once it succeeds. See the MIoT BLE Spec v2 section below.
+    # Named "P4" by the paper cited at the top of this file. Pairing itself
+    # is a sequence of small, unencrypted GATT writes; "55 AB" is the sync
+    # of the encrypted frame that carries property traffic once Session
+    # succeeds. See the dedicated section below.
     ProtocolCandidate("xiaomi_mi_ec", "55 AB", "ecdh_hkdf_aes_ccm", (), "to_be_verified"),
     # F2, F2 Plus, F2 Pro, E2, E2 Plus and E2 Pro: the vendor device table
     # lists them with XOR-obfuscated frames instead of the chained crypto.
@@ -110,56 +111,84 @@ NINEBOT_READ_CANDIDATES: tuple[RegisterCandidate, ...] = (
 )
 
 
-# --- xiaomi_mi_ec: MIoT BLE Spec v2 primitives, for study only ---------------
+# --- xiaomi_mi_ec: Xiaomi's "P4" scooter protocol, for study only -----------
 #
-# A GATT-connected scheme Xiaomi uses across its IoT line (sensors, a body
-# scale, buttons, lights): an ECDH key exchange on the NIST P-256 curve,
-# session keys from HKDF-SHA256 over the shared secret, and AES-CCM for the
-# encrypted channel. No scooter is confirmed to speak it.
+# Named and fully described, independently of any scooter this integration
+# has seen, by a peer-reviewed security paper: Casagrande, Cestaro, Losiouk,
+# Conti and Antonioli, "E-Spoofer: Attacking and Defending Xiaomi Electric
+# Scooter Ecosystem", WiSec '23 (DOI 10.1145/3558482.3590176). The paper
+# names four Xiaomi application-layer protocols found across all Xiaomi
+# e-scooters from 2016 to 2021; P4, "ECDH and AES-CCM", is the one described
+# here. Its Table 4 gives the exact bytes of every step, reproduced below.
 #
-# ScooterHacking Utility (https://utility.cfw.sh/, v2.7 of its Android build)
-# implements this scheme for the newer Xiaomi generations it supports, on the
-# shared MiBeacon service (0000fe95-...) the rest of this file also uses, over
-# two characteristics: 00000019-... carries the ECDH register exchange and
-# the paired-key confirmation, 00000010-... carries the login and the
-# property traffic that follows. Three independent, unrelated public
-# projects for non-scooter Xiaomi hardware corroborate the shape:
-#   https://github.com/haohaozi328-arch/miot-ble-sdk (ten-plus sensors, a
-#     button and a body scale; the same two handles; "REGISTER COMPLETE
-#     (result 0x11 on 0x0010)" and "STD LOGIN COMPLETE (0x21 on 0x0010)")
+# Pairing: the scooter advertises a pairable window for seventeen seconds
+# after its headlight button is held down (the paper's "unintentional
+# pairing mode", V2) — the same kind of physical confirmation this
+# integration's own Ninebot and Xiaomi 1S pairing already uses, not a cloud
+# step. The scooter sends a sixteen-byte challenge; an ECDH exchange on the
+# NIST P-256 curve follows (both sides' raw public points, fragmented over
+# several GATT writes); then pk (a pairing key) and otk (a one-time key) are
+# derived from the shared secret, and the app alone proves it derived the
+# right otk — pairing authenticates the app to the scooter, not the other
+# way around (the paper's root cause V1, "Unauthenticated Pairing": nothing
+# here proves the pairer is the real Mi Home app). This is also why the
+# paper's Malicious Pairing attack needs no Xiaomi account, no cloud
+# connection and no pre-shared secret of any kind to complete pairing.
+#
+# Session derives two directional AES-CCM-128 keys and nonces from pk, then
+# both sides confirm them with an HMAC before any property traffic is
+# trusted. Session rides the Nordic UART characteristics this file's other
+# candidates already use; Pairing has its own pair, 0x0019 for its unencrypted
+# commands and 0x0010 for its confirmation and the Session handshake after
+# it — independently corroborated, on hardware that is not a scooter, by
+# three unrelated public projects for other Xiaomi devices:
+#   https://github.com/haohaozi328-arch/miot-ble-sdk (the same two handles)
 #   https://github.com/clairefiorettiythzr6802-eng/xiaomi-diffuser-ble (the
-#     ECDH+HKDF shape and a 4-byte AES-CCM tag, on a Mijia smart diffuser)
+#     ECDH+HKDF shape and a 4-byte AES-CCM tag)
 #   https://github.com/kbpk/xiaomi-s400-homeassistant (names the P-256 curve
 #     explicitly; the same two 4-byte responses, 0x11000000/0x21000000)
-# Home Assistant's own https://www.home-assistant.io/integrations/xiaomi_ble/
-# documents the paired key these devices need as a "bindkey" or "beaconkey":
-# 12 bytes for the older MiBeacon v2/v3 devices, 16 bytes for v4/v5, normally
-# read from a signed-in Xiaomi account. None of the sources above say how a
-# scooter would obtain one.
 #
-# The encrypted channel rides over the same Nordic UART characteristics the
-# plain, unencrypted scheme already on this service uses; only the register
-# and login exchange has its own pair. The one credential bundle a device
-# needs, once obtained, is kept locally keyed by the scooter's Bluetooth MAC
-# address, not by anything that would identify its model.
-#
-# This integration has no Xiaomi account sign-in and no way to obtain that
-# key, so none of this is reachable from a live session: a correct ECDH
-# exchange with no key to finish authenticating would just as surely stay
-# empty as a model nobody has looked at. These are the primitives and the
-# frame shape the scheme is built from, written once so a future,
-# hardware-tested adapter does not have to look them up again.
+# Still inert: this integration has not been tested against a scooter that
+# speaks P4, and this file enables no adapter without that. What is recorded
+# here is what the paper and its corroborating sources establish — the
+# primitives, the exact command bytes, and that Pairing needs nothing this
+# integration could not already do with a physical confirmation the owner
+# gives — so a future, hardware-tested adapter does not have to look any of
+# it up again.
 
-MIOT_ELLIPTIC_AUTH_CHARACTERISTIC = "00000019-0000-1000-8000-00805f9b34fb"
-MIOT_ELLIPTIC_CONTROL_CHARACTERISTIC = "00000010-0000-1000-8000-00805f9b34fb"
+MIOT_ELLIPTIC_PAIRING_CHARACTERISTIC = "00000019-0000-1000-8000-00805f9b34fb"
+MIOT_ELLIPTIC_SESSION_CHARACTERISTIC = "00000010-0000-1000-8000-00805f9b34fb"
 MIOT_ELLIPTIC_HANDLES: tuple[int, ...] = (0x0010, 0x0019, 0x001A)
-MIOT_ELLIPTIC_REGISTER_OK = b"\x11\x00\x00\x00"
-MIOT_ELLIPTIC_LOGIN_OK = b"\x21\x00\x00\x00"
 MIOT_ELLIPTIC_CURVE = ec.SECP256R1()
 # AES-CCM tag length every corroborating source agrees on.
 MIOT_ELLIPTIC_TAG_LENGTH = 4
-# The literal frame sync bytes of the encrypted channel that follows login.
+# The literal frame sync bytes of the encrypted channel Session opens.
 MIOT_ELLIPTIC_FRAME_SYNC = b"\x55\xAB"
+# The two HKDF info strings the paper names; Pairing and Session each use
+# their own, so a key derived for one can never be replayed as the other.
+MIOT_ELLIPTIC_PAIRING_INFO = b"mible-setup-info"
+MIOT_ELLIPTIC_SESSION_INFO = b"mible-login-info"
+
+# Every command byte the paper's Table 4 gives, under its own names. A
+# fragmented write (PairPubKey, PairSol, SessSol) repeats with 0x0010 added
+# each time ("00X0" in the paper); the fragment's own payload follows.
+MIOT_PAIR_REQ = b"\xA2\x00\x00\x00"  # App -> Esc: start Pairing.
+MIOT_PAIR_REQ_OK = b"\x00\x00\x00\x00\x02\x00"  # Esc -> App.
+MIOT_PAIR_CHAL_1 = b"\x00\x10"  # Esc -> App, first half of chal; payload follows.
+MIOT_PAIR_CHAL_2 = b"\x00\x20"  # Esc -> App, second half; payload follows.
+MIOT_PAIR_EC_START = b"\x00\x00\x00\x03\x04\x00"  # App <-> Esc: begin the EC exchange.
+MIOT_PAIR_PUB_KEY_FIRST_FRAGMENT = b"\x00\x00"  # App <-> Esc, a public-key fragment; payload follows.
+MIOT_PAIR_EC_END = b"\x00\x00\x00\x00\x02\x00"  # App -> Esc: the EC exchange is complete.
+MIOT_PAIR_SOL_FIRST_FRAGMENT = b"\x00\x00"  # App -> Esc, resp (the pairing solution) fragment; payload follows.
+MIOT_PAIR_SOL_ACK = b"\x00\x00\x01\x00"  # Esc -> App.
+MIOT_PAIR_OK = b"\x13\x00\x00\x00"  # App -> Esc: Pairing is confirmed.
+MIOT_PAIR_OK_ACK = b"\x11\x00\x00\x00"  # Esc -> App.
+MIOT_SESS_REQ_1 = b"\x24\x00\x00\x00"  # App -> Esc: start Session.
+MIOT_SESS_REQ_2 = b"\x00\x00\x00\x0B\x01\x00"  # App -> Esc.
+MIOT_SESS_RAND_HEADER = b"\x01\x00"  # App <-> Esc, carries a directional random; payload follows.
+MIOT_SESS_ASK_RAND = b"\x00\x00\x00\x0C\x02\x00"  # Esc -> App.
+MIOT_SESS_SOL_FIRST_FRAGMENT = b"\x00\x00"  # App <-> Esc, an HMAC (AuthSol) fragment; payload follows.
+MIOT_SESS_OK = b"\x21\x00\x00\x00"  # App -> Esc: Session is confirmed.
 
 
 def miot_elliptic_generate_keypair() -> ec.EllipticCurvePrivateKey:
@@ -190,16 +219,42 @@ def miot_elliptic_shared_secret(
     return private_key.exchange(ec.ECDH(), peer_public_key)
 
 
-def miot_elliptic_derive_login_keys(shared_secret: bytes, host_nonce: bytes, device_nonce: bytes) -> bytes:
-    """HKDF-SHA256(ikm=shared secret, salt=device_nonce+host_nonce,
-    info="mible-login-info") over the ECDH secret, 40 bytes: a 16-byte key to
-    verify what the device sends, a 16-byte key for what this host sends,
-    then two 4-byte values that each become half of a per-direction AES-CCM
-    nonce. Split with miot_elliptic_session_keys below rather than by hand.
+def miot_elliptic_derive_pairing_keys(shared_secret: bytes) -> bytes:
+    """HKDF-SHA256(ikm=shared secret, salt=b"", info="mible-setup-info"),
+    32 bytes: the paper's pk (a pairing key, [0:16]) and otk (a one-time
+    key, [16:32]), in that concatenation order ("pk||otk"); it does not
+    state their exact byte length, 16 bytes each is this module's
+    assumption, matching every AES-CCM-128 key elsewhere in the scheme.
     """
     return HKDF(
-        algorithm=hashes.SHA256(), length=40, salt=device_nonce + host_nonce, info=b"mible-login-info",
+        algorithm=hashes.SHA256(), length=32, salt=b"", info=MIOT_ELLIPTIC_PAIRING_INFO,
     ).derive(shared_secret)
+
+
+def miot_elliptic_pairing_response(one_time_key: bytes, nonce: bytes, challenge: bytes) -> bytes:
+    """resp=AES-CCM(key=otk, input=chal): the app's unilateral proof that it
+    derived the same otk as the scooter, sent once during Pairing. Pairing
+    authenticates the app to the scooter only, not the other way around —
+    this is the paper's root cause V1, "Unauthenticated Pairing". The
+    nonce is not named in the paper; this takes it as a parameter rather
+    than guessing one.
+    """
+    return miot_elliptic_encrypt(one_time_key, nonce, challenge)
+
+
+def miot_elliptic_derive_login_keys(pairing_key: bytes, host_nonce: bytes, device_nonce: bytes) -> bytes:
+    """sk_esc||sk_app||n_esc||n_app=HKDF(key=pk, salt=rand_app||rand_esc,
+    info="mible-login-info"): pairing_key is pk, the first half of
+    miot_elliptic_derive_pairing_keys' output, not the raw ECDH secret —
+    Session happens after Pairing has already produced pk. 40 bytes: a
+    16-byte key to verify what the device sends, a 16-byte key for what
+    this host sends, then two 4-byte values that each become half of a
+    per-direction AES-CCM nonce. Split with miot_elliptic_session_keys
+    below rather than by hand.
+    """
+    return HKDF(
+        algorithm=hashes.SHA256(), length=40, salt=host_nonce + device_nonce, info=MIOT_ELLIPTIC_SESSION_INFO,
+    ).derive(pairing_key)
 
 
 @dataclass(frozen=True, slots=True)
