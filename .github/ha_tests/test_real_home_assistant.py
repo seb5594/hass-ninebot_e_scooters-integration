@@ -55,10 +55,17 @@ async def test_user_flow_lists_the_scooter_and_creates_the_entry(hass):
         assert result["type"] == "form" and result["step_id"] == "user"
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {CONF_ADDRESS: ADDRESS})
+        if result["type"] == "progress":
+            # Releases that support async_show_progress's progress_task poll
+            # the pairing attempt themselves; older ones already awaited it
+            # inline and returned create_entry directly above.
+            await hass.async_block_till_done()
+            result = await hass.config_entries.flow.async_configure(result["flow_id"])
         await hass.async_block_till_done()
     assert result["type"] == "create_entry"
     assert result["title"] == NAME
     assert result["data"][CONF_ADDRESS] == ADDRESS
+    assert result["data"]["paired"] is False  # No BLEDevice in this fixture; see runtime/flow_pairing.py.
     assert result["options"][CONF_SENSOR_GROUPS] == []
 
 
