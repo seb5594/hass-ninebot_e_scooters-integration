@@ -3,7 +3,7 @@
 [🇬🇧 English](../README.md) · [🇩🇪 Deutsch](README.de.md)
 
 > [!IMPORTANT]
-> **Bisher ist nur 1 von 10 Modellgruppen auf echter Hardware geprüft.** Du besitzt ein anderes?
+> **Bisher ist nur 1 von 11 Modellgruppen auf echter Hardware geprüft.** Du besitzt ein anderes?
 > Dann [melde in zwei Minuten, ob es funktioniert](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml).
 > Es ist ein kurzes Formular, und eine Meldung „alles läuft“ hilft genauso wie ein Fehlerbericht.
 
@@ -25,13 +25,14 @@ funktionierende Bluetooth-Sitzung und nutzt gespeicherte Schlüssel erneut.
 | Ninebot ES1 / ES2 / ES3 / ES4 | 5A A5, BLE109/110 | Lesende Wortregister | Experimentell · [melden](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20ES1%20%2F%20ES2%20%2F%20ES3%20%2F%20ES4) |
 | Ninebot Max G30 / G30P / G30D / G30E / G30LP / G30LE / G30LD | 5A A5, BLE110/113/114 | Lesende Wortregister | Experimentell · [melden](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20Max%20G30%20family) |
 | Ninebot E22 / E25 / E45 | 5A A5, BLE209/213 | Lesende Wortregister | Experimentell · [melden](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20E22%20%2F%20E25%20%2F%20E45) |
+| Ninebot E2 Pro | 5A A5, BLE209/213 | Lesende Wortregister | Experimentell, noch ohne Rückmeldung · [melden](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20E2%20Pro) |
 | Ninebot F20 / F25 / F30 / F40 / F65 | 5A A5, BLE307, PC-Adresse | Lesende Wortregister | Experimentell · [melden](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20F20%20%2F%20F25%20%2F%20F30%20%2F%20F40) |
 | Ninebot Max G2 / D18 / D28 / D38 | 5A A5, Ninebot-Seriendienst | Lesende Wortregister | Experimentell, noch ohne Rückmeldung · [melden](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20Max%20G2%20%2F%20D18%20%2F%20D28%20%2F%20D38) |
 | Ninebot F3 / F3 Pro / Max G3 | 5A A5, VCU-Platinennummern | Lesende VCU-Register | Experimentell, noch ohne Rückmeldung · [melden](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/new?template=scooter-report.yml&model=Ninebot%20F3%20%2F%20F3%20Pro%20%2F%20Max%20G3) |
 
 Diese BLE-Versionen stammen aus öffentlichen Implementierungen. Sie garantieren keine
 Kompatibilität mit jeder Regions-, Dashboard- oder Firmwarevariante. Xiaomi BLE132 mit
-5A AB, Xiaomi 3/4 sowie Ninebot F2, E2, ZT3, GT und P-Serie sind nicht freigegeben.
+5A AB, Xiaomi 3/4 sowie Ninebot F2, E2, E2 Plus, ZT3, GT und P-Serie sind nicht freigegeben.
 Modellhinweise im Recherchekatalog bedeuten keine Unterstützung.
 
 Ninebot liest Akkustand, Strom, Spannung, Batterietemperaturen und Statuswort.
