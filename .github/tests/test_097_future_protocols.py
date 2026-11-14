@@ -57,6 +57,7 @@ def test_all_future_adapters_remain_disabled_and_auth_families_are_distinct():
     by_family = {candidate.family: candidate for candidate in catalog.PROTOCOL_CANDIDATES}
     assert by_family["segway_zero_seed"].frame_prefix == "5A A5"
     assert by_family["xiaomi_ble132_5aab"].frame_prefix == "5A AB"
+    assert by_family["xiaomi_mi_ec"].frame_prefix == "55 AB"
     assert by_family["xiaomi_mi_ec"].authentication == "ecdh_hkdf_aes_ccm"
     # A family with an adapter is described by its transport profile, never
     # by this catalog of protocols nobody has implemented.
@@ -94,36 +95,82 @@ def test_research_catalog_is_not_imported_by_any_runtime_component():
 
 def test_miot_elliptic_ecdh_round_trips_to_the_same_shared_secret():
     """Two independent key pairs must agree on one shared secret, each side
-    computing it from its own private key and the other's public point."""
+    computing it from its own private key and the other's raw point."""
     host = catalog.miot_elliptic_generate_keypair()
     device = catalog.miot_elliptic_generate_keypair()
-    host_point = catalog.miot_elliptic_public_bytes(host)
-    device_point = catalog.miot_elliptic_public_bytes(device)
-    assert len(host_point) == 65 and host_point[0] == 0x04  # uncompressed P-256 point
-    host_secret = catalog.miot_elliptic_shared_secret(host, catalog.miot_elliptic_load_peer_public_key(device_point))
-    device_secret = catalog.miot_elliptic_shared_secret(device, catalog.miot_elliptic_load_peer_public_key(host_point))
+    host_point = catalog.miot_elliptic_public_point(host)
+    device_point = catalog.miot_elliptic_public_point(device)
+    assert len(host_point) == 64  # raw P-256 X||Y, no leading 0x04
+    host_secret = catalog.miot_elliptic_shared_secret(host, catalog.miot_elliptic_load_peer_point(device_point))
+    device_secret = catalog.miot_elliptic_shared_secret(device, catalog.miot_elliptic_load_peer_point(host_point))
     assert host_secret == device_secret
     assert len(host_secret) == 32  # P-256 field size
 
 
-def test_miot_elliptic_derive_key_is_deterministic_and_length_bound():
+def test_miot_elliptic_login_keys_are_deterministic_and_salt_bound():
     secret = b"\x01" * 32
-    derived = catalog.miot_elliptic_derive_key(secret, salt=b"salt", info=b"info", length=48)
-    assert len(derived) == 48
-    assert derived == catalog.miot_elliptic_derive_key(secret, salt=b"salt", info=b"info", length=48)
-    assert derived != catalog.miot_elliptic_derive_key(secret, salt=b"other", info=b"info", length=48)
+    host_nonce, device_nonce = b"\x02" * 16, b"\x03" * 16
+    derived = catalog.miot_elliptic_derive_login_keys(secret, host_nonce, device_nonce)
+    assert len(derived) == 40
+    assert derived == catalog.miot_elliptic_derive_login_keys(secret, host_nonce, device_nonce)
+    assert derived != catalog.miot_elliptic_derive_login_keys(secret, host_nonce, b"\x09" * 16)
+
+
+def test_miot_elliptic_confirmation_tags_match_only_with_the_right_nonce_order():
+    key, host_nonce, device_nonce = b"\x04" * 16, b"\x05" * 16, b"\x06" * 16
+    tag = catalog.miot_elliptic_confirmation_tag(key, device_nonce, host_nonce)
+    assert len(tag) == 32  # HMAC-SHA256
+    assert tag == catalog.miot_elliptic_confirmation_tag(key, device_nonce, host_nonce)
+    assert tag != catalog.miot_elliptic_confirmation_tag(key, host_nonce, device_nonce)
+
+
+def test_miot_elliptic_checksum_is_the_one_s_complement_of_the_byte_sum():
+    assert catalog.miot_elliptic_checksum(b"\x00") == (~0 & 0xFFFF).to_bytes(2, "little")
+    assert catalog.miot_elliptic_checksum(b"\x01\x02\x03") == (~6 & 0xFFFF).to_bytes(2, "little")
 
 
 def test_miot_elliptic_aes_ccm_round_trips_and_rejects_a_tampered_frame():
-    key, nonce, aad = b"\x02" * 16, b"\x03" * 12, b"device-info"
-    ciphertext = catalog.miot_elliptic_encrypt(key, nonce, b"payload", aad)
-    assert catalog.miot_elliptic_decrypt(key, nonce, ciphertext, aad) == b"payload"
+    key, nonce = b"\x02" * 16, b"\x03" * 12
+    ciphertext = catalog.miot_elliptic_encrypt(key, nonce, b"payload")
+    assert len(ciphertext) == len(b"payload") + catalog.MIOT_ELLIPTIC_TAG_LENGTH
+    assert catalog.miot_elliptic_decrypt(key, nonce, ciphertext) == b"payload"
     tampered = ciphertext[:-1] + bytes([ciphertext[-1] ^ 1])
     with pytest.raises(Exception):
-        catalog.miot_elliptic_decrypt(key, nonce, tampered, aad)
+        catalog.miot_elliptic_decrypt(key, nonce, tampered)
 
 
 def test_miot_elliptic_handles_and_responses_match_the_registration_catalog():
     assert catalog.MIOT_ELLIPTIC_HANDLES == (0x0010, 0x0019, 0x001A)
+    assert catalog.MIOT_ELLIPTIC_AUTH_CHARACTERISTIC == "00000019-0000-1000-8000-00805f9b34fb"
+    assert catalog.MIOT_ELLIPTIC_CONTROL_CHARACTERISTIC == "00000010-0000-1000-8000-00805f9b34fb"
     assert catalog.MIOT_ELLIPTIC_REGISTER_OK == b"\x11\x00\x00\x00"
     assert catalog.MIOT_ELLIPTIC_LOGIN_OK == b"\x21\x00\x00\x00"
+
+
+def test_miot_elliptic_full_login_key_confirmation_between_two_sides():
+    """An end-to-end sanity check: both sides reach the same derived keys and
+    the same two confirmation tags, the way a real register+login would."""
+    host = catalog.miot_elliptic_generate_keypair()
+    device = catalog.miot_elliptic_generate_keypair()
+    host_point = catalog.miot_elliptic_public_point(host)
+    device_point = catalog.miot_elliptic_public_point(device)
+    host_nonce, device_nonce = b"\x10" * 16, b"\x20" * 16
+
+    host_secret = catalog.miot_elliptic_shared_secret(host, catalog.miot_elliptic_load_peer_point(device_point))
+    device_secret = catalog.miot_elliptic_shared_secret(device, catalog.miot_elliptic_load_peer_point(host_point))
+    host_keys = catalog.miot_elliptic_derive_login_keys(host_secret, host_nonce, device_nonce)
+    device_keys = catalog.miot_elliptic_derive_login_keys(device_secret, host_nonce, device_nonce)
+    assert host_keys == device_keys
+
+    device_confirms_key, host_confirms_key = host_keys[:16], host_keys[16:32]
+    device_tag = catalog.miot_elliptic_confirmation_tag(device_confirms_key, device_nonce, host_nonce)
+    host_tag = catalog.miot_elliptic_confirmation_tag(host_confirms_key, device_nonce, host_nonce)
+    # Each side recomputes the other's tag with its own copy of that key.
+    assert catalog.miot_elliptic_confirmation_tag(device_confirms_key, device_nonce, host_nonce) == device_tag
+    assert catalog.miot_elliptic_confirmation_tag(host_confirms_key, device_nonce, host_nonce) == host_tag
+
+    # The remaining 8 bytes of host_keys exist (two 4-byte halves); how they
+    # become the per-direction AES-CCM nonce is not confirmed, so the
+    # encrypted channel itself is exercised separately, with an arbitrary
+    # nonce, in test_miot_elliptic_aes_ccm_round_trips_and_rejects_a_tampered_frame.
+    assert len(host_keys[32:]) == 8

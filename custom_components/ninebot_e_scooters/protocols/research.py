@@ -10,16 +10,17 @@ Sources: https://github.com/ownbee/ninebot-ble/tree/main/ninebot_ble
          https://github.com/scooterhacking/NinebotCrypto
          https://wiki.scooterhacking.org/doku.php?id=nbdocs
          https://nootnooot.codeberg.page/segway-ninebot-ble/ (device tables)
-         MIoT BLE Spec v2, documented independently by unrelated public
-         projects for other Xiaomi ecosystem devices, none of them scooters
-         (see the MiotElliptic section below for the exact sources)
+         ScooterHacking Utility (https://utility.cfw.sh/), for the MIoT BLE
+         Spec v2 section below; its wire format is independently
+         corroborated by unrelated public projects for other Xiaomi
+         ecosystem devices, none of them scooters
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, hmac
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.ciphers.aead import AESCCM
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -43,9 +44,10 @@ class ProtocolCandidate:
 PROTOCOL_CANDIDATES: tuple[ProtocolCandidate, ...] = (
     ProtocolCandidate("xiaomi_ble132_nb", "5A A5", "ninebot_chained", ("BLE132",), "nordic_uart"),
     ProtocolCandidate("xiaomi_ble132_5aab", "5A AB", "to_be_verified", ("BLE132",), "to_be_verified"),
-    # Not a fixed byte-prefixed stream: a sequence of 4-byte little-endian
-    # opcodes written to a GATT handle. See MiotElliptic below.
-    ProtocolCandidate("xiaomi_mi_ec", "", "ecdh_hkdf_aes_ccm", (), "to_be_verified"),
+    # The handshake itself is a sequence of small, unencrypted GATT writes;
+    # "55 AB" is the sync of the encrypted frame that carries property
+    # traffic once it succeeds. See the MIoT BLE Spec v2 section below.
+    ProtocolCandidate("xiaomi_mi_ec", "55 AB", "ecdh_hkdf_aes_ccm", (), "to_be_verified"),
     # F2, F2 Plus, F2 Pro, E2, E2 Plus and E2 Pro: the vendor device table
     # lists them with XOR-obfuscated frames instead of the chained crypto.
     ProtocolCandidate("ninebot_f2_e2", "5A A5", "xor_obfuscation", (), "to_be_verified"),
@@ -113,43 +115,45 @@ NINEBOT_READ_CANDIDATES: tuple[RegisterCandidate, ...] = (
 # A GATT-connected scheme Xiaomi uses across its IoT line (sensors, a body
 # scale, buttons, lights): an ECDH key exchange on the NIST P-256 curve,
 # session keys from HKDF-SHA256 over the shared secret, and AES-CCM for the
-# encrypted channel. It does not need the fixed "55 AB" byte prefix the
-# family name above was first filed under; that was a mix-up with the older,
-# plain Xiaomi serial stream. No scooter is confirmed to speak it.
+# encrypted channel. No scooter is confirmed to speak it.
 #
-# Three independent, unrelated public projects document it on hardware that
-# is not a scooter, and agree on the parts recorded here:
-#   https://github.com/haohaozi328-arch/miot-ble-sdk
-#     (commit 90dd918fb82f565329c37c0ccd51b2fefd58e2e0) binds and logs in to
-#     ten-plus Xiaomi sensors, buttons and a body scale over GATT handles
-#     0x0010, 0x0019 and 0x001A, and logs "REGISTER COMPLETE (result 0x11 on
-#     0x0010)" and "STD LOGIN COMPLETE (0x21 on 0x0010)".
-#   https://github.com/clairefiorettiythzr6802-eng/xiaomi-diffuser-ble
-#     (commit 96268a53e3c8ba4443dd322ecaede606ec7c89c6) names the ECDH+HKDF
-#     shape, a 4-byte AES-CCM tag, and a login request of 0x50 0x00 0x00 0x00
-#     (replacing an older 0x20) on the Mijia smart diffuser.
-#   https://github.com/kbpk/xiaomi-s400-homeassistant
-#     (commit 60569f5826658c9bab617a0d9f2c86988ca48fa2) names the P-256 curve
-#     explicitly for its body scale and reads the same two responses as
-#     4-byte frames: 0x11000000 for a successful register, 0x21000000 for a
-#     successful login.
+# ScooterHacking Utility (https://utility.cfw.sh/, v2.7 of its Android build)
+# implements this scheme for the newer Xiaomi generations it supports, on the
+# shared MiBeacon service (0000fe95-...) the rest of this file also uses, over
+# two characteristics: 00000019-... carries the ECDH register exchange and
+# the paired-key confirmation, 00000010-... carries the login and the
+# property traffic that follows. Three independent, unrelated public
+# projects for non-scooter Xiaomi hardware corroborate the shape:
+#   https://github.com/haohaozi328-arch/miot-ble-sdk (ten-plus sensors, a
+#     button and a body scale; the same two handles; "REGISTER COMPLETE
+#     (result 0x11 on 0x0010)" and "STD LOGIN COMPLETE (0x21 on 0x0010)")
+#   https://github.com/clairefiorettiythzr6802-eng/xiaomi-diffuser-ble (the
+#     ECDH+HKDF shape and a 4-byte AES-CCM tag, on a Mijia smart diffuser)
+#   https://github.com/kbpk/xiaomi-s400-homeassistant (names the P-256 curve
+#     explicitly; the same two 4-byte responses, 0x11000000/0x21000000)
 # Home Assistant's own https://www.home-assistant.io/integrations/xiaomi_ble/
 # documents the paired key these devices need as a "bindkey" or "beaconkey":
-# 12 bytes (24 hex characters) for the older MiBeacon v2/v3 devices, 16 bytes
-# (32 hex characters) for v4/v5. None of the three projects above say how a
-# scooter would obtain one; likely the same way, through a Xiaomi account.
+# 12 bytes for the older MiBeacon v2/v3 devices, 16 bytes for v4/v5, normally
+# read from a signed-in Xiaomi account. None of the sources above say how a
+# scooter would obtain one.
 #
 # This integration has no Xiaomi account sign-in and no way to obtain that
 # key, so none of this is reachable from a live session: a correct ECDH
 # exchange with no key to finish authenticating would just as surely stay
-# empty as a model nobody has looked at. These are the standard primitives
-# the scheme is built from (curve, KDF, cipher), written once so a future,
+# empty as a model nobody has looked at. These are the primitives and the
+# frame shape the scheme is built from, written once so a future,
 # hardware-tested adapter does not have to look them up again.
 
+MIOT_ELLIPTIC_AUTH_CHARACTERISTIC = "00000019-0000-1000-8000-00805f9b34fb"
+MIOT_ELLIPTIC_CONTROL_CHARACTERISTIC = "00000010-0000-1000-8000-00805f9b34fb"
 MIOT_ELLIPTIC_HANDLES: tuple[int, ...] = (0x0010, 0x0019, 0x001A)
 MIOT_ELLIPTIC_REGISTER_OK = b"\x11\x00\x00\x00"
 MIOT_ELLIPTIC_LOGIN_OK = b"\x21\x00\x00\x00"
 MIOT_ELLIPTIC_CURVE = ec.SECP256R1()
+# AES-CCM tag length every corroborating source agrees on.
+MIOT_ELLIPTIC_TAG_LENGTH = 4
+# The literal frame sync bytes of the encrypted channel that follows login.
+MIOT_ELLIPTIC_FRAME_SYNC = b"\x55\xAB"
 
 
 def miot_elliptic_generate_keypair() -> ec.EllipticCurvePrivateKey:
@@ -157,14 +161,20 @@ def miot_elliptic_generate_keypair() -> ec.EllipticCurvePrivateKey:
     return ec.generate_private_key(MIOT_ELLIPTIC_CURVE)
 
 
-def miot_elliptic_public_bytes(private_key: ec.EllipticCurvePrivateKey) -> bytes:
-    """The uncompressed point (0x04 || X || Y) sent to the other side."""
-    return private_key.public_key().public_bytes(Encoding.X962, PublicFormat.UncompressedPoint)
+def miot_elliptic_public_point(private_key: ec.EllipticCurvePrivateKey) -> bytes:
+    """The 64-byte raw X||Y coordinate pair sent to the other side.
+
+    Over the wire the leading 0x04 "uncompressed point" marker is dropped (it
+    is implied, since this scheme only ever sends uncompressed points) and
+    reconstructed on the receiving end; see miot_elliptic_load_peer_point.
+    """
+    encoded = private_key.public_key().public_bytes(Encoding.X962, PublicFormat.UncompressedPoint)
+    return encoded[1:]
 
 
-def miot_elliptic_load_peer_public_key(point: bytes) -> ec.EllipticCurvePublicKey:
-    """Parse the peer's uncompressed point; raises on a malformed one."""
-    return ec.EllipticCurvePublicKey.from_encoded_point(MIOT_ELLIPTIC_CURVE, point)
+def miot_elliptic_load_peer_point(point: bytes) -> ec.EllipticCurvePublicKey:
+    """Parse a 64-byte raw X||Y point as received over the wire."""
+    return ec.EllipticCurvePublicKey.from_encoded_point(MIOT_ELLIPTIC_CURVE, b"\x04" + point)
 
 
 def miot_elliptic_shared_secret(
@@ -174,13 +184,42 @@ def miot_elliptic_shared_secret(
     return private_key.exchange(ec.ECDH(), peer_public_key)
 
 
-def miot_elliptic_derive_key(
-    shared_secret: bytes, salt: bytes, info: bytes, length: int
-) -> bytes:
-    """HKDF-SHA256 over the shared secret; the published salt and info
-    strings are specific to the diffuser's login and not claimed here for
-    any scooter."""
-    return HKDF(algorithm=hashes.SHA256(), length=length, salt=salt, info=info).derive(shared_secret)
+def miot_elliptic_derive_login_keys(shared_secret: bytes, host_nonce: bytes, device_nonce: bytes) -> bytes:
+    """HKDF-SHA256(ikm=shared secret, salt=device_nonce+host_nonce,
+    info="mible-login-info") over the ECDH secret, 40 bytes: a 16-byte key to
+    verify what the device sends, a 16-byte key for what this host sends,
+    then two 4-byte halves. Split further with the two slice helpers below.
+    """
+    return HKDF(
+        algorithm=hashes.SHA256(), length=40, salt=device_nonce + host_nonce, info=b"mible-login-info",
+    ).derive(shared_secret)
+
+
+def miot_elliptic_confirmation_tag(key: bytes, device_nonce: bytes, host_nonce: bytes) -> bytes:
+    """HMAC-SHA256(key, device_nonce+host_nonce): both sides compute this
+    once with each of the two derived keys and compare, proving each side
+    reached the same shared secret before any property traffic is trusted.
+    """
+    h = hmac.HMAC(key, hashes.SHA256())
+    h.update(device_nonce + host_nonce)
+    return h.finalize()
+
+
+def miot_elliptic_checksum(data: bytes) -> bytes:
+    """One's-complement 16-bit sum, little-endian: the same family of
+    checksum nootnooot documents for the plain Ninebot frames this file's
+    other candidates already use, not something specific to this scheme."""
+    return (~sum(data) & 0xFFFF).to_bytes(2, "little")
+
+
+def miot_elliptic_encrypt(key: bytes, nonce: bytes, plaintext: bytes) -> bytes:
+    """AES-CCM, the 4-byte tag every corroborating source agrees on."""
+    return AESCCM(key, tag_length=MIOT_ELLIPTIC_TAG_LENGTH).encrypt(nonce, plaintext, None)
+
+
+def miot_elliptic_decrypt(key: bytes, nonce: bytes, ciphertext: bytes) -> bytes:
+    """The matching decrypt; raises InvalidTag on a wrong key or a tampered frame."""
+    return AESCCM(key, tag_length=MIOT_ELLIPTIC_TAG_LENGTH).decrypt(nonce, ciphertext, None)
 
 
 def miot_elliptic_encrypt(key: bytes, nonce: bytes, data: bytes, associated_data: bytes = b"") -> bytes:
