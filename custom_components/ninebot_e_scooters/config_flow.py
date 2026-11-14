@@ -24,6 +24,7 @@ from homeassistant.helpers.storage import Store
 
 from .helpers.compat import (
     ConfigFlowResult,
+    async_create_flow_task,
     async_request_active_scan,
     async_update_reload_and_abort,
     supports_progress_task,
@@ -405,7 +406,8 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_abort(reason="cannot_connect")
 
         if self._pairing_task is None:
-            self._pairing_task = self.hass.async_create_task(
+            self._pairing_task = async_create_flow_task(
+                self.hass,
                 async_attempt_pairing(self.hass, context["ble_device"], context["name"], self.flow_id),
                 f"ninebot_e_scooters_config_flow_pairing_{self.flow_id}",
             )

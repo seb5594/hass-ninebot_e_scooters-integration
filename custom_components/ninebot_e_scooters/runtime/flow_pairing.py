@@ -291,6 +291,10 @@ async def async_attempt_pairing(hass: HomeAssistant, ble_device: Any, device_nam
     """
     notification_id = f"ninebot_e_scooters_pair_{flow_id}"
     app_key = secrets.token_bytes(16)
+    if ble_device is None:
+        # A discovered service_info can carry no BLEDevice (not connectable,
+        # or the advertisement has already expired); nothing to connect to.
+        return PairingOutcome(None, None, "no connectable Bluetooth device was available")
     try:
         client = await _async_connect(ble_device, device_name)
     except (BleakError, *TIMEOUT_ERRORS) as err:

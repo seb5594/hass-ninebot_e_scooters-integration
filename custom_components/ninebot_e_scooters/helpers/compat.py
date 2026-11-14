@@ -46,6 +46,7 @@ __all__ = [
     "ConfigFlowResult",
     "DeviceInfo",
     "EntityNameFallback",
+    "async_create_flow_task",
     "async_redact_data",
     "async_register_scooter_callback",
     "async_register_static_files",
@@ -87,6 +88,21 @@ def async_update_reload_and_abort(
     if _accepts(flow.async_update_reload_and_abort, "data_updates"):
         return flow.async_update_reload_and_abort(entry, data_updates=updates, reason=reason)
     return flow.async_update_reload_and_abort(entry, data={**entry.data, **updates}, reason=reason)
+
+
+def async_create_flow_task(
+    hass: HomeAssistant, target: Coroutine[Any, Any, Any], name: str
+) -> asyncio.Task:
+    """hass.async_create_task, with the `name` argument some releases lack.
+
+    Used by a config flow, which has no ConfigEntry yet to bind a task's
+    lifetime to (create_background_task above needs one); the flow itself
+    owns and awaits this task, so none of that entry-unload bookkeeping
+    applies here.
+    """
+    if _accepts(hass.async_create_task, "name"):
+        return hass.async_create_task(target, name)
+    return hass.async_create_task(target)
 
 
 def supports_progress_task(flow: Any) -> bool:

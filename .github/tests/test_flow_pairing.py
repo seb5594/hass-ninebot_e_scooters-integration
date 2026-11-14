@@ -66,8 +66,6 @@ def _namespace(**overrides):
         "ScooterConnectionError": ScooterConnectionError,
         "BleakError": BleakError,
         "InvalidTag": InvalidTag,
-        "TIMEOUT_ERRORS": (asyncio.TimeoutError, TimeoutError),
-        "async_timeout": asyncio.timeout,
         "persistent_notification": Notifications(),
         "MIOT_ELLIPTIC_PAIRING_CHARACTERISTIC": miot.MIOT_ELLIPTIC_PAIRING_CHARACTERISTIC,
         "MIOT_PAIR_REQ": miot.MIOT_PAIR_REQ,
@@ -292,3 +290,13 @@ def test_attempt_pairing_never_tries_a_handshake_when_it_cannot_connect():
     assert outcome.protocol is None
     assert len(connect_calls) == 1
     assert classic_calls == [] and elliptic_calls == []
+
+
+def test_attempt_pairing_skips_connecting_entirely_without_a_ble_device():
+    """A discovered service_info can carry no BLEDevice at all (not
+    connectable, or its advertisement already expired); real Home Assistant
+    test fixtures model this with device=None."""
+    ns, client, connect_calls, classic_calls, elliptic_calls = _orchestration_namespace(connect_ok=True)
+    outcome = asyncio.run(ns["async_attempt_pairing"](object(), None, "Scooter", "flow-5"))
+    assert outcome.protocol is None and outcome.app_key is None
+    assert connect_calls == [] and classic_calls == [] and elliptic_calls == []

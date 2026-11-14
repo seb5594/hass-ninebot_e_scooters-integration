@@ -83,7 +83,8 @@ namespace={'__name__':'fake_flow','__builtins__':__builtins__, 'Any':object,
     'needs_explicit_model': needs_explicit_model,
     'identify_model': lambda serial, _name: types.SimpleNamespace(model='Mi Electric Scooter 1S' if serial.startswith('25700/') else None),
     'async_attempt_pairing': fake_async_attempt_pairing,
-    'supports_progress_task': lambda flow: False}
+    'supports_progress_task': lambda flow: False,
+    'async_create_flow_task': lambda hass, target, name: hass.async_create_task(target, name)}
 mod=ast.Module(body=[ast.ImportFrom(module='__future__',names=[ast.alias(name='annotations')],level=0)]+configs,type_ignores=[])
 exec(compile(ast.fix_missing_locations(mod), '<fake_config_flow>', 'exec'),namespace)
 Flow=namespace['NinebotScooterConfigFlow']
