@@ -137,6 +137,12 @@ NINEBOT_READ_CANDIDATES: tuple[RegisterCandidate, ...] = (
 # read from a signed-in Xiaomi account. None of the sources above say how a
 # scooter would obtain one.
 #
+# The encrypted channel rides over the same Nordic UART characteristics the
+# plain, unencrypted scheme already on this service uses; only the register
+# and login exchange has its own pair. The one credential bundle a device
+# needs, once obtained, is kept locally keyed by the scooter's Bluetooth MAC
+# address, not by anything that would identify its model.
+#
 # This integration has no Xiaomi account sign-in and no way to obtain that
 # key, so none of this is reachable from a live session: a correct ECDH
 # exchange with no key to finish authenticating would just as surely stay
@@ -188,11 +194,30 @@ def miot_elliptic_derive_login_keys(shared_secret: bytes, host_nonce: bytes, dev
     """HKDF-SHA256(ikm=shared secret, salt=device_nonce+host_nonce,
     info="mible-login-info") over the ECDH secret, 40 bytes: a 16-byte key to
     verify what the device sends, a 16-byte key for what this host sends,
-    then two 4-byte halves. Split further with the two slice helpers below.
+    then two 4-byte values that each become half of a per-direction AES-CCM
+    nonce. Split with miot_elliptic_session_keys below rather than by hand.
     """
     return HKDF(
         algorithm=hashes.SHA256(), length=40, salt=device_nonce + host_nonce, info=b"mible-login-info",
     ).derive(shared_secret)
+
+
+@dataclass(frozen=True, slots=True)
+class MiotEllipticSession:
+    """One direction's key and nonce seed, named from this host's view."""
+
+    receive_key: bytes  # Verifies and decrypts what the device sends.
+    receive_nonce_seed: bytes
+    send_key: bytes  # Encrypts what this host sends.
+    send_nonce_seed: bytes
+
+
+def miot_elliptic_session_keys(login_keys: bytes) -> MiotEllipticSession:
+    """Split the 40-byte HKDF output into the four values a session needs."""
+    return MiotEllipticSession(
+        receive_key=login_keys[0:16], send_key=login_keys[16:32],
+        receive_nonce_seed=login_keys[32:36], send_nonce_seed=login_keys[36:40],
+    )
 
 
 def miot_elliptic_confirmation_tag(key: bytes, device_nonce: bytes, host_nonce: bytes) -> bytes:
@@ -212,6 +237,17 @@ def miot_elliptic_checksum(data: bytes) -> bytes:
     return (~sum(data) & 0xFFFF).to_bytes(2, "little")
 
 
+def miot_elliptic_data_nonce(nonce_seed: bytes, sequence: int) -> bytes:
+    """The 12-byte AES-CCM nonce for one encrypted data-channel frame: the
+    4-byte per-direction seed from miot_elliptic_session_keys, four zero
+    bytes, then the frame's own 2-byte little-endian sequence number and two
+    more zero bytes. sequence wraps at 16 bits, matching the frame field.
+    """
+    if not 0 <= sequence <= 0xFFFF:
+        raise ValueError("sequence must fit the frame's 16-bit field")
+    return nonce_seed + b"\x00\x00\x00\x00" + sequence.to_bytes(2, "little") + b"\x00\x00"
+
+
 def miot_elliptic_encrypt(key: bytes, nonce: bytes, plaintext: bytes) -> bytes:
     """AES-CCM, the 4-byte tag every corroborating source agrees on."""
     return AESCCM(key, tag_length=MIOT_ELLIPTIC_TAG_LENGTH).encrypt(nonce, plaintext, None)
@@ -222,11 +258,31 @@ def miot_elliptic_decrypt(key: bytes, nonce: bytes, ciphertext: bytes) -> bytes:
     return AESCCM(key, tag_length=MIOT_ELLIPTIC_TAG_LENGTH).decrypt(nonce, ciphertext, None)
 
 
-def miot_elliptic_encrypt(key: bytes, nonce: bytes, data: bytes, associated_data: bytes = b"") -> bytes:
-    """AES-CCM with the 4-byte tag the diffuser project reports."""
-    return AESCCM(key, tag_length=4).encrypt(nonce, data, associated_data)
+def miot_elliptic_build_data_frame(session: MiotEllipticSession, sequence: int, header: bytes, payload: bytes) -> bytes:
+    """One complete encrypted data-channel frame: sync, length, sequence,
+    AES-CCM(header+payload) with this direction's key and nonce, checksum.
+    header is the 3-byte sub-header the plaintext carries ahead of payload;
+    its meaning (target, command, ...) is not confirmed and not guessed at
+    here.
+    """
+    plaintext = header + payload
+    body = sequence.to_bytes(2, "little") + miot_elliptic_encrypt(
+        session.send_key, miot_elliptic_data_nonce(session.send_nonce_seed, sequence), plaintext,
+    )
+    frame = MIOT_ELLIPTIC_FRAME_SYNC + bytes((len(plaintext) - 1,)) + body
+    return frame + miot_elliptic_checksum(frame[2:])
 
 
-def miot_elliptic_decrypt(key: bytes, nonce: bytes, data: bytes, associated_data: bytes = b"") -> bytes:
-    """The matching decrypt; raises InvalidTag on a wrong key or a tampered frame."""
-    return AESCCM(key, tag_length=4).decrypt(nonce, data, associated_data)
+def miot_elliptic_parse_data_frame(session: MiotEllipticSession, frame: bytes) -> bytes:
+    """The inverse of miot_elliptic_build_data_frame: verifies the checksum,
+    decrypts with this direction's receive key and nonce, and returns the
+    plaintext (header+payload together, undivided). Raises ValueError on a
+    bad sync or checksum, InvalidTag on a wrong key or a tampered frame.
+    """
+    if frame[:2] != MIOT_ELLIPTIC_FRAME_SYNC:
+        raise ValueError("not a MIoT elliptic data frame")
+    if miot_elliptic_checksum(frame[2:-2]) != frame[-2:]:
+        raise ValueError("checksum mismatch")
+    sequence = int.from_bytes(frame[3:5], "little")
+    nonce = miot_elliptic_data_nonce(session.receive_nonce_seed, sequence)
+    return miot_elliptic_decrypt(session.receive_key, nonce, frame[5:-2])

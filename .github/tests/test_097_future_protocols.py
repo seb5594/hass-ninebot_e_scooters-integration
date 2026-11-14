@@ -174,3 +174,51 @@ def test_miot_elliptic_full_login_key_confirmation_between_two_sides():
     # encrypted channel itself is exercised separately, with an arbitrary
     # nonce, in test_miot_elliptic_aes_ccm_round_trips_and_rejects_a_tampered_frame.
     assert len(host_keys[32:]) == 8
+
+
+def test_miot_elliptic_session_keys_split_the_hkdf_output_by_direction():
+    login_keys = bytes(range(40))
+    session = catalog.miot_elliptic_session_keys(login_keys)
+    assert session.receive_key == login_keys[0:16]
+    assert session.send_key == login_keys[16:32]
+    assert session.receive_nonce_seed == login_keys[32:36]
+    assert session.send_nonce_seed == login_keys[36:40]
+
+
+def test_miot_elliptic_data_nonce_is_12_bytes_and_varies_with_the_sequence():
+    seed = b"\xAA\xBB\xCC\xDD"
+    nonce = catalog.miot_elliptic_data_nonce(seed, 7)
+    assert len(nonce) == 12
+    assert nonce[:4] == seed
+    assert nonce != catalog.miot_elliptic_data_nonce(seed, 8)
+    with pytest.raises(ValueError):
+        catalog.miot_elliptic_data_nonce(seed, 0x10000)
+
+
+def test_miot_elliptic_data_frame_round_trips_between_both_directions():
+    """What the host builds with its own session, the device's mirrored
+    session (receive/send swapped) must be able to parse, and back again."""
+    login_keys = b"\x11" * 16 + b"\x22" * 16 + b"\x33\x33\x33\x33" + b"\x44\x44\x44\x44"
+    host = catalog.miot_elliptic_session_keys(login_keys)
+    device = catalog.MiotEllipticSession(
+        receive_key=host.send_key, receive_nonce_seed=host.send_nonce_seed,
+        send_key=host.receive_key, send_nonce_seed=host.receive_nonce_seed,
+    )
+    frame = catalog.miot_elliptic_build_data_frame(host, 1, header=b"\x01\x02\x03", payload=b"battery=80")
+    assert frame[:2] == catalog.MIOT_ELLIPTIC_FRAME_SYNC
+    assert catalog.miot_elliptic_parse_data_frame(device, frame) == b"\x01\x02\x03battery=80"
+
+    reply = catalog.miot_elliptic_build_data_frame(device, 1, header=b"\x01\x02\x03", payload=b"ack")
+    assert catalog.miot_elliptic_parse_data_frame(host, reply) == b"\x01\x02\x03ack"
+
+
+def test_miot_elliptic_data_frame_rejects_a_bad_sync_or_a_flipped_checksum_bit():
+    login_keys = b"\x55" * 40
+    session = catalog.miot_elliptic_session_keys(login_keys)
+    frame = catalog.miot_elliptic_build_data_frame(session, 0, header=b"\x00\x00\x00", payload=b"x")
+    with pytest.raises(ValueError):
+        catalog.miot_elliptic_parse_data_frame(session, b"\x00\x00" + frame[2:])
+    tampered = bytearray(frame)
+    tampered[-1] ^= 1
+    with pytest.raises(ValueError):
+        catalog.miot_elliptic_parse_data_frame(session, bytes(tampered))

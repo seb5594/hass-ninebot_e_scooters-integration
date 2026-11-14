@@ -52,11 +52,18 @@ key never crosses the wire: only its raw 64-byte X‖Y pair does, reassembled fr
 sides confirm the same ECDH secret with `HKDF-SHA256(secret, salt=device_nonce+host_nonce,
 info="mible-login-info")`, each of the resulting keys is checked with an
 `HMAC-SHA256(key, device_nonce+host_nonce)` the other side already sent; a mismatch ends the
-session. The encrypted channel that follows is framed as `55 AB`, a length byte, a 2-byte
-sequence, an AES-CCM payload with a 4-byte tag, and a checksum that is the same one's-complement
-16-bit byte sum this file's Ninebot candidates already use — not something specific to this
-scheme. The client announces itself with a string such as `blt.4.159` plus ten random
-characters, comparable to a user agent.
+session. The 40-byte HKDF output splits into what receives (verifies and decrypts what the
+device sends) and what sends, 16 bytes each, then a 4-byte nonce seed for each direction.
+A data-channel frame's AES-CCM nonce is that direction's 4-byte seed, four zero bytes, the
+frame's own 2-byte little-endian sequence number, then two more zero bytes — 12 bytes. The
+frame itself is `55 AB`, a length byte, the sequence, the AES-CCM payload with a 4-byte tag,
+and a checksum that is the same one's-complement 16-bit byte sum this file's Ninebot
+candidates already use — not something specific to this scheme. It rides over the same Nordic
+UART characteristics (`6e400002`/`6e400003`) the plain, unencrypted scheme already on this
+service uses; only the register and login exchange has its own two characteristics. The client
+announces itself with a string such as `blt.4.159` plus ten random characters, comparable to a
+user agent. The one paired-key bundle a device needs is kept locally once obtained, indexed by
+the scooter's Bluetooth MAC address — not by anything that would identify its model.
 
 Three independent public projects for other, non-scooter Xiaomi hardware corroborate the shape:
 
