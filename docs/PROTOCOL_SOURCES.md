@@ -78,9 +78,18 @@ documents the paired key these devices need as a "bindkey" or "beaconkey": 12 by
 older MiBeacon v2/v3 devices, 16 bytes for v4/v5, normally read from a signed-in Xiaomi account.
 None of the four sources say how a scooter would obtain one. `protocols/research.py` keeps the
 primitives and the frame shape so a future, hardware-tested adapter does not have to look them
-up again; without a way to obtain the paired key, none of it is reachable from a live session,
-and the exact AES-CCM nonce for the encrypted channel is not confirmed, so it is left to the
-caller rather than guessed at.
+up again; without a way to obtain the paired key, none of it is reachable from a live session.
+
+`docs/tools/fetch_xiaomi_ble_credentials.py` reimplements the openly published Xiaomi cloud
+login that [PiotrMachowski/Xiaomi-cloud-tokens-extractor](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor)
+and other long-standing community tools already use, to read the one piece of this that lives
+outside any firmware: the "beaconkey" (bindkey) a signed-in Mi account already holds for a
+device. Run by hand, with your own account, it cannot get the second value this scheme's login
+needs, a "device token": no public source documents the endpoint for it (the diffuser project
+above only names it, as `/v2/blemesh/query_dev`), so the tool's attempt at it is openly
+unverified and may simply fail. Fetching either value is not something this integration, or any
+tool that ships with it, does on its own; it stays a manual, one-time step on hardware this file
+does not otherwise touch.
 
 ## Issues corrected in the supplied implementation
 
