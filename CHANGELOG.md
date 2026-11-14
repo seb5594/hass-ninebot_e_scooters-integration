@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2026.11.14.1
 
 - **Ninebot E2 Pro (experimental, [#18](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/18)):**
   its handshake works with the chained crypto, so it can be selected and is read with the
