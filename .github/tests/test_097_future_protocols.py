@@ -58,6 +58,7 @@ def test_all_future_adapters_remain_disabled_and_auth_families_are_distinct():
     assert by_family["segway_zero_seed"].frame_prefix == "5A A5"
     assert by_family["xiaomi_ble132_5aab"].frame_prefix == "5A AB"
     assert by_family["xiaomi_mi_ec"].frame_prefix == "55 AB"
+    assert by_family["xiaomi_elliptic"].authentication == "ecdh_session"
     # A family with an adapter is described by its transport profile, never
     # by this catalog of protocols nobody has implemented.
     transports = load_module("models.transports")

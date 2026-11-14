@@ -40,6 +40,49 @@ Some Xiaomi BLE132 dashboards use 5A AB and remain disabled here. The ninebot-bl
 author reports access to an F-series scooter and uses PC address 0x3D. That is
 protocol evidence, not a hardware test of this integration.
 
+## A closed-source companion app (static analysis only)
+
+Reviewed on 2026-11-14. A closed-source scooter companion app, which ships no public source, was
+read as compiled text, both its public web build and its Android package; nothing was run against
+a scooter, and the Windows and Linux builds were not examined. Compiled code keeps class and
+variable names short, but the literal strings it embeds (error messages, enum tags, UUIDs) survive
+compilation and are readable. What they confirm:
+
+- **Four base protocol families**, named `ninebot`, `ninebotCrypto`, `xiaomi` and `xiaomiCrypto` —
+  the same split this integration already keeps between the Ninebot word registers, the Ninebot
+  chained crypto, the Xiaomi legacy block and Xiaomi 1S crypto.
+- **A fifth, distinct Xiaomi service**, discovered separately from the Nordic UART
+  (`6e400001-b5a3-f393-e0a9-e50e24dcca9e`, already used here) and the MiBeacon service
+  (`0000fe95-0000-1000-8000-00805f9b34fb`, already used here), with its own session counter and an
+  ECDH key exchange instead of the BLE129/M365 shared-secret scheme. Error strings name it
+  "elliptic." No scooter model is named with it, and the exact service or characteristic UUID and
+  the curve could not be confirmed, so this stays a research candidate
+  (`protocols/research.py:xiaomi_elliptic`) and nothing more. It would explain why the Xiaomi
+  3/4-series models stay unverified here.
+- **Register access is categorized** as `writeRegister`, `writeRegisterNoReply`, `readRegister`,
+  `readRegisterNoRetry`, `awaitGenericUpdateMsg` and `notifyComplete`. This matches the write/read/
+  write-without-reply split already in `protocols/ninebot/packet.py`; `readRegisterNoRetry` reads as
+  a client-side retry policy, not a distinct wire command, so it changes nothing here.
+- **Writes are verified by a readback**, with dedicated failure states named `REG_VERIFY_FAIL` and
+  `CONFIRMATION NOT EQUAL`. `runtime/controls.py` already reads a setting back after writing it
+  before accepting the change; this is independent confirmation of that design, not a new one.
+- **Ninebot ESC firmware images are TEA- or XTEA-encrypted** for flashing, with a user-overridable
+  16-byte key and an "automatic" mode that uses "each device's live configuration." This belongs to
+  firmware flashing, which this integration does not perform, so it stays a research note.
+- An **"AirLock" feature** is the app's own phone-proximity automation on top of a scooter's
+  existing lock, not a property of the BLE protocol itself.
+
+What this pass could **not** recover, and why: no manufacturer company ID, no numeric register
+address, and nothing that names or identifies the E2 Pro. A search for model codes (`ES1`…`ES4`,
+`G30…`, `E22`/`E25`/`E45`, `F20`…`F65`, `D18`/`D28`/`D38`, `1S`, …) in both builds did turn up
+matches, but every one checked in context was a false positive: keyboard key names, minified
+identifiers, asset names or compressed font data that happens to contain the same characters, not a
+model-to-protocol table. No such table is kept as readable text in either build; a model's protocol
+is very likely chosen by code that branches on its serial or advertised name, the same approach this
+integration takes, which compiles away into logic no amount of string reading recovers. The native
+Windows and Linux clients were not downloaded or inspected, so they may hold more than these two
+builds do; this is not a claim that they hold nothing.
+
 ## Issues corrected in the supplied implementation
 
 - Discovery accepted unrelated devices advertising the shared Nordic UART service.

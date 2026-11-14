@@ -47,6 +47,14 @@ PROTOCOL_CANDIDATES: tuple[ProtocolCandidate, ...] = (
     # Described in the public documentation without naming a scooter: the
     # first key starts from a zero block instead of the firmware constant.
     ProtocolCandidate("segway_zero_seed", "5A A5", "ninebot_chained_zero_seed", (), "to_be_verified"),
+    # A closed-source companion app's compiled code names a distinct Xiaomi
+    # service it discovers separately from the Nordic UART and MiBeacon
+    # services, with its own session counter and an ECDH key exchange
+    # instead of the BLE129/M365 shared-secret scheme. No scooter model is
+    # named with it; it would explain why the Xiaomi 3/4-series models stay
+    # unverified here. The curve and the exact service/characteristic UUIDs
+    # could not be confirmed and are not recorded as fact.
+    ProtocolCandidate("xiaomi_elliptic", "", "ecdh_session", (), "to_be_verified"),
 )
 
 
