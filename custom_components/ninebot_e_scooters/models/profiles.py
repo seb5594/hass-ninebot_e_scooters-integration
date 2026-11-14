@@ -113,9 +113,12 @@ PROFILES: tuple[ModelProfile, ...] = (
     # same chained crypto; nobody has reported a result with this integration.
     *_ninebot_named(NINEBOT_MAX_G2, "Max G2", "Max G2E", "Max G2D"),
     *_ninebot_named(NINEBOT_D, "D18", "D28", "D38"),
-    # The vendor app talks to these without the chained crypto (see
-    # protocols/research.py), so they can be named but not connected.
-    *_ninebot_named(UNVERIFIED, "F2", "F2 Plus", "F2 Pro", "E2", "E2 Plus", "E2 Pro"),
+    # The E2 Pro completed the chained-crypto handshake on the dashboard board
+    # (issue #18), so it is read like the E series. Its registers are not
+    # confirmed yet. Unlike the E2 Pro, the vendor device table lists these
+    # without the chained crypto (see protocols/research.py): named only.
+    *_ninebot_named(NINEBOT_E, "E2 Pro"),
+    *_ninebot_named(UNVERIFIED, "F2", "F2 Plus", "F2 Pro", "E2", "E2 Plus"),
     # Other projects read an F3, an F3 Pro and a Max G3 this way (see
     # docs/PROTOCOL_SOURCES.md); this integration has no report of its own yet.
     *_ninebot_named(NINEBOT_VCU, "F3", "F3 Pro", "Max G3"),

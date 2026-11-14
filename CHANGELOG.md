@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **Ninebot E2 Pro (experimental, [#18](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues/18)):**
+  its handshake works with the chained crypto, so it can be selected and is read with the
+  registers of the E series. Read-only. The registers are not confirmed on this scooter yet.
+
 ## 2026.11.11.1
 
 Versions are now named after their release date: `YYYY.MM.DD.BUILD`.

@@ -25,7 +25,8 @@ full read cycle. The simulator is described in [TESTING.md](TESTING.md).
 | Ninebot ES, E, Max G30, F | Register tables of ownbee/ninebot-ble and the ES protocol PDF; serial letters of the ScooterHacking wiki | All 20 documented values decode; one word per request; controller register 0x17 is never read |
 | Ninebot Max G2 | Vendor command table | Same registers as the classic families. Trip distance removed from all families: F keeps it at 0xB9, Max G2 at 0xB7 |
 | Ninebot D18, D28, D38 | Vendor device table only | Listed with the chained crypto; register table assumed equal to the Max G2 |
-| Ninebot F2, E2 | Vendor device table | Listed without the chained crypto. Their adapter was withdrawn before release |
+| Ninebot E2 Pro | Issue #18 diagnostics | Handshake completed with the chained crypto on the dashboard board; registers assumed equal to the E series |
+| Ninebot F2, E2, E2 Plus | Vendor device table | Listed without the chained crypto. Their adapter was withdrawn before release |
 | Ninebot F65 | Third-party hardware report | Added to the F family |
 | Ninebot F3, F3 Pro, Max G3 | Vendor command table of the F3 and an owner's measurements | New adapter, see below |
 
