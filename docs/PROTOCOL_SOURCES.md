@@ -77,6 +77,40 @@ A data-channel frame is `55 AB`, a length byte, a 2-byte sequence, the AES-CCM p
 Ninebot candidates already use — not something specific to this scheme. The exact AES-CCM
 nonce construction for these frames is not stated by the paper and is not guessed at here.
 
+**Which firmware and models speak P4.** The paper's Table 2 maps each BLE firmware version to
+one protocol, and its Section 7.1 lists the models and boards they were tested on (the three
+e-scooters bought for the study are the M365, the Essential and the Mi 3; clone boards for the
+Pro 1 and Pro 2 were flashed onto an M365 to broaden the set cheaply). Transcribed from the
+paper, so check it there before relying on it:
+
+| Firmware | Protocol | E-scooter the board came from | BLE board | SoC |
+| --- | --- | --- | --- | --- |
+| BLE072 | P1 (no security) | M365 | M365 (original) | nRF51822 QFAA |
+| BLE081 | P2 (XOR) | M365 | M365 (original) | nRF51822 QFAA |
+| BLE090 | P3 (AES-ECB + XOR) | M365 | Pro 1 (clone) | nRF51822 QFAA |
+| BLE122 | P4v1 | M365 | M365 (original) | nRF51822 QFAA |
+| BLE129 | P4v1 | M365 | Pro 2 (clone) | nRF51822 QFAC |
+| BLE152 | P4v1 | Essential | Essential (original) | nRF51822 QFAC |
+| BLE153 | P4v1 | — | — | — |
+| BLE157 | P4v2 (P4v1 + downgrade protection) | — | — | — |
+
+Two cautions follow from this table, neither of which changes the code:
+
+- **The name "BLE129" is overloaded.** This integration's `xiaomi_ble129` profile is the chained
+  AES-keystream Nordic-UART handshake (`protocols/ninebot/crypto.py`, 0x5A 0xA5 with 0x5B/0x5C/0x5D),
+  the one ScooterHacking's NinebotCrypto documents for the 1S, Pro 2 and Essential. The paper's
+  "BLE129" row is a different thing under the same version string: a firmware it classifies as
+  P4v1 (ECDH on the `0xFE95` service). A physical scooter speaks whichever its flashed firmware
+  actually implements; the config flow does not have to guess, because it tries the chained
+  handshake first and the P4 pairing fallback (`runtime/flow_pairing.py`) only if that is not
+  confirmed. So both naming worlds reach a working pairing without this file having to decide
+  which "BLE129" a given unit runs.
+- **The Mi 3 was tested and runs P4; the Mi 4 was not.** The paper states plainly it could not
+  evaluate the Mi 4 (released end of 2022). So `models/profiles.py` can cite the paper for the
+  Mi 3 family's protocol, but the Mi 4 and later Xiaomi models remain `UNVERIFIED` with no such
+  source — the P4 pairing fallback may still reach them if they kept the same `0xFE95` scheme,
+  but nothing here establishes that.
+
 Three independent public projects for other, non-scooter Xiaomi hardware corroborate the shape
 (none of them need a scooter's physical pairing confirmation, since their devices use a
 different, cloud-issued key instead):

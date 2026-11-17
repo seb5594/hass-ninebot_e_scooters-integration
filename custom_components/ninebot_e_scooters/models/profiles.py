@@ -85,12 +85,24 @@ PROFILES: tuple[ModelProfile, ...] = (
     ModelProfile("Mi Electric Scooter 1S", XIAOMI, BLE129, ("25699", "25700"),
                  XIAOMI_1S_WRITABLE_SETTINGS, True),
     ModelProfile("Mi Electric Scooter Pro 2", XIAOMI, BLE129, ("26354", "30371", "25701", "30372")),
+    # The E-Spoofer paper (docs/PROTOCOL_SOURCES.md, Table 2) classifies the
+    # Essential's own tested firmware as P4 (ECDH), while ScooterHacking lists
+    # an Essential under the chained BLE129 scheme. The two share the version
+    # string "BLE129"; a given unit speaks whichever it was flashed with. The
+    # chained handshake is tried first and the P4 pairing fallback catches the
+    # rest, so this mapping stays BLE129 and needs no change either way.
     ModelProfile("Mi Electric Scooter Essential", XIAOMI, BLE129, ("25702", "25600")),
     ModelProfile("Mi Electric Scooter Pro", XIAOMI, M365_PRO_CRYPTO, ("18832", "21886")),
     ModelProfile("Mi Electric Scooter", XIAOMI, M365_LEGACY,
                  ("13678", "13679", "16133", "21074", "16132", "21073", "16349", "16348")),
+    # The E-Spoofer paper tested the Mi 3 and found it runs P4 (ECDH). No
+    # register map exists for P4 telemetry, so it stays UNVERIFIED: the config
+    # flow's P4 pairing fallback (runtime/flow_pairing.py) still completes
+    # pairing, and the Repairs notice explains that live data is not read yet.
     ModelProfile("Mi Electric Scooter 3", XIAOMI, UNVERIFIED, ("30807", "30806")),
     ModelProfile("Mi Electric Scooter 3 Lite", XIAOMI, UNVERIFIED),
+    # The paper could not evaluate the Mi 4 (released end of 2022); no source
+    # here establishes its protocol, so these stay UNVERIFIED without a claim.
     ModelProfile("Mi Electric Scooter 4", XIAOMI, UNVERIFIED, ("46442", "46443", "46441", "46440")),
     ModelProfile("Mi Electric Scooter 4 Pro", XIAOMI, UNVERIFIED,
                  ("35802", "38191", "35803", "35804", "35806", "41839")),
