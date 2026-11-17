@@ -1,8 +1,8 @@
 <!-- header:begin (generated from project metadata) -->
 <h1 align="center">
-  Ninebot E-Scooters
-  <br>
   <img src="https://raw.githubusercontent.com/seb5594/hass-ninebot_e_scooters-integration/main/custom_components/ninebot_e_scooters/brand/logo@2x.png" alt="Ninebot E-Scooters" width="160" height="160">
+  <br>
+  Ninebot E-Scooters
 </h1>
 
 <p align="center">
@@ -13,10 +13,10 @@
   <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/stargazers"><img src="https://img.shields.io/github/stars/seb5594/hass-ninebot_e_scooters-integration?label=stars&amp;style=flat" alt="stars" height="20"></a>
   <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/seb5594/hass-ninebot_e_scooters-integration/ci.yml?branch=main&amp;label=checks&amp;style=flat" alt="checks" height="20"></a>
   <img src="https://img.shields.io/static/v1?label=tests&amp;message=332%20passed&amp;color=2F855A&amp;style=flat" alt="tests" height="20">
-  <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues"><img src="https://img.shields.io/github/issues/seb5594/hass-ninebot_e_scooters-integration?label=issues&amp;style=flat" alt="issues" height="20"></a>
-  <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration#license"><img src="https://img.shields.io/github/license/seb5594/hass-ninebot_e_scooters-integration?label=license&amp;style=flat" alt="license" height="20"></a><br>
+  <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues"><img src="https://img.shields.io/github/issues/seb5594/hass-ninebot_e_scooters-integration?label=issues&amp;style=flat" alt="issues" height="20"></a><br>
   <a href="https://paypal.me/seb5594"><img src="https://img.shields.io/static/v1?label=Support&amp;message=PayPal&amp;color=0070BA&amp;logo=paypal&amp;logoColor=white&amp;style=for-the-badge" alt="PayPal" height="24"></a>
-  <a href="https://buymeacoffee.com/seb5594"><img src="https://img.shields.io/static/v1?label=Support%20%F0%9F%8D%BA&amp;message=Buy%20me%20a%20c%CC%B6o%CC%B6f%CC%B6f%CC%B6e%CC%B6e%CC%B6%20Beer&amp;color=FFDD00&amp;style=for-the-badge" alt="Buy me a beer" height="24"></a>
+  <a href="https://buymeacoffee.com/seb5594"><img src="https://img.shields.io/static/v1?label=Support%20%F0%9F%8D%BA&amp;message=Buy%20me%20a%20c%CC%B6o%CC%B6f%CC%B6f%CC%B6e%CC%B6e%CC%B6%20Beer&amp;color=FFDD00&amp;style=for-the-badge" alt="Buy me a beer" height="24"></a><br>
+  <a href="https://github.com/seb5594/hass-ninebot_e_scooters-integration#license"><img src="https://img.shields.io/github/license/seb5594/hass-ninebot_e_scooters-integration?label=license&amp;style=flat" alt="license" height="20"></a>
 </p>
 <!-- header:end -->
 
