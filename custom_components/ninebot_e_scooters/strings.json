@@ -53,6 +53,9 @@
         }
       }
     },
+    "progress": {
+      "pairing": "Waiting for the scooter's power-button confirmation. A notice with the exact steps opens automatically; this can take up to a minute."
+    },
     "error": {
       "cannot_connect": "Unable to establish a Bluetooth connection to the scooter.",
       "invalid_address": "Invalid Bluetooth address",
@@ -63,7 +66,8 @@
     "abort": {
       "no_devices_found": "No supported Ninebot/Xiaomi scooter was found nearby.",
       "already_configured": "This scooter is already configured.",
-      "not_supported": "The discovered Bluetooth device is not a supported Ninebot/Xiaomi scooter."
+      "not_supported": "The discovered Bluetooth device is not a supported Ninebot/Xiaomi scooter.",
+      "cannot_connect": "Unable to establish a Bluetooth connection to the scooter."
     }
   },
   "entity": {
@@ -257,6 +261,10 @@
     "scooter_feedback": {
       "title": "Does your {model} work?",
       "description": "Your {model} has delivered readings for a few days, but this model has not been verified on real hardware yet. Please [tell me in two minutes]({report_url}) how it works for you; \"everything works\" is just as useful as a problem report. You can dismiss this notice."
+    },
+    "unsupported_protocol": {
+      "title": "Scooter paired, but live data is not supported yet",
+      "description": "This scooter paired successfully through the newer {protocol} handshake, which this integration does not yet have a register map or entities for. No Bluetooth connection is attempted for it. Remove and re-add the integration once a future release adds support."
     }
   }
 }
