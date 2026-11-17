@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026.11.17.1
+
+- **Mi Electric Scooter Pro 2 controls (experimental).** The Pro 2 is the same generation as the
+  1S and uses the identical BLE129 register layout, so it is now offered the same controls — lock,
+  work mode, KERS, cruise and rear light — in addition to the sensors it already read. These writes
+  were only confirmed on the 1S, so the Pro 2 stays marked as not hardware-tested: the "Does your
+  scooter work?" Repairs notice still asks for a report. Please [tell me](https://github.com/seb5594/hass-ninebot_e_scooters-integration/issues)
+  whether the controls work on your Pro 2.
+
 ## 2026.11.14.2
 
 - **Setup now pairs before adding the scooter.** Selecting a scooter in the config flow (manual

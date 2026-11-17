@@ -43,13 +43,16 @@ def test_unknown_or_incomplete_serial_never_invents_model(serial):
     assert not profiles.supports_write(profiles.AUTO_MODEL, finding, "work_mode")
 
 
-def test_ble129_pro2_uses_shared_transport_but_cannot_receive_1s_writes():
+def test_ble129_pro2_shares_the_transport_and_the_experimental_writes():
     assert profiles.AUTO_MODEL in profiles.CONFIGURABLE_MODELS
     pro2 = profiles.identify_model("25701/00015977", "MIScooter5977")
     one_s = profiles.identify_model("25700/00015977", "MIScooter5977")
     assert profiles.effective_profile(profiles.AUTO_MODEL, pro2).protocol == profiles.BLE129
     assert profiles.supports_write(profiles.AUTO_MODEL, one_s, "is_lock_on")
-    assert not profiles.supports_write(profiles.AUTO_MODEL, pro2, "is_lock_on")
+    # The Pro 2 now shares the 1S register layout and is offered the same writes.
+    assert profiles.supports_write(profiles.AUTO_MODEL, pro2, "is_lock_on")
+    # A positively identified Pro 2 is still refused writes while the entry is
+    # configured as a 1S: a model mismatch must never send another unit's command.
     assert not profiles.supports_write(const.MODEL, pro2, "work_mode")
 
 

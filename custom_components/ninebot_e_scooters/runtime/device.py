@@ -12,7 +12,7 @@ from ..models.profiles import (
     AUTO_MODEL,
     M365_LEGACY,
     M365_PRO_CRYPTO,
-    XIAOMI_1S_WRITABLE_SETTINGS,
+    XIAOMI_BLE129_WRITABLE_SETTINGS,
     SEGWAY_NINEBOT,
     effective_profile,
     identify_generation,
@@ -240,7 +240,7 @@ class DeviceMixin:
             "model_protocol": (profile.protocol if (profile := effective_profile(self.model, self._model_identification)) else None),
             "transport_adapter_implemented": (transport.adapter_implemented if (transport := self.transport_profile) else False),
             "documented_ble_versions": list(transport.documented_ble_versions) if transport else [],
-            "writable_settings": sorted(field for field in XIAOMI_1S_WRITABLE_SETTINGS if self.supports_action(field)),
+            "writable_settings": sorted(field for field in XIAOMI_BLE129_WRITABLE_SETTINGS if self.supports_action(field)),
             "poll_interval": self.poll_interval,
             "connection_strategy": "ha_recent_advertisement_direct_bledevice_with_bluez_backoff",
             "gatt_attempts": self._gatt_attempts,
@@ -277,7 +277,7 @@ class DeviceMixin:
             "control_ready": self.control_ready,
             "setting_available": {
                 field: self.setting_fresh(field)
-                for field in sorted(XIAOMI_1S_WRITABLE_SETTINGS)
+                for field in sorted(XIAOMI_BLE129_WRITABLE_SETTINGS)
             },
             "telemetry_cache_valid": self.telemetry_cache_valid,
             "telemetry_stale": self.telemetry_stale,

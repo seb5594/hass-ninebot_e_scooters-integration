@@ -28,7 +28,7 @@ from custom_components.ninebot_e_scooters.models.profiles import (
     PROFILES,
     PROFILES_BY_NAME,
     UNVERIFIED,
-    XIAOMI_1S_WRITABLE_SETTINGS,
+    XIAOMI_BLE129_WRITABLE_SETTINGS,
     identify_model,
     uses_ninebot_word_registers,
 )
@@ -138,7 +138,7 @@ def test_classic_ninebot_pairs_and_reads_every_documented_register(
         assert {request.target for request in reads} == {DeviceId.ESC, DeviceId.BMS}
         assert all(request.data == b"\x02" for request in reads), "one register word per request"
         assert not any((request.target, request.index) == (DeviceId.ESC, 0x17) for request in reads)
-        assert not any(scooter.supports_action(setting) for setting in XIAOMI_1S_WRITABLE_SETTINGS)
+        assert not any(scooter.supports_action(setting) for setting in XIAOMI_BLE129_WRITABLE_SETTINGS)
         await scooter.async_shutdown()
     asyncio.run(check())
 
@@ -153,13 +153,15 @@ def xiaomi_boards() -> dict:
     }
 
 
-@pytest.mark.parametrize("model,name,serial", [
-    ("Mi Electric Scooter Pro 2", "MIScooter4321", b"26354/00012345"),
-    ("Mi Electric Scooter Essential", "MIScooter4321", b"25702/00012345"),
-    ("Mi Electric Scooter Pro", "MIScooter4321", b"18832/00012345"),
+@pytest.mark.parametrize("model,name,serial,writable", [
+    # The Pro 2 shares the 1S register layout, so it is offered the same
+    # controls (experimental); the Essential and Pro are not.
+    ("Mi Electric Scooter Pro 2", "MIScooter4321", b"26354/00012345", True),
+    ("Mi Electric Scooter Essential", "MIScooter4321", b"25702/00012345", False),
+    ("Mi Electric Scooter Pro", "MIScooter4321", b"18832/00012345", False),
 ])
-def test_untested_xiaomi_models_read_the_shared_blocks_and_stay_read_only(
-        runtime, model, name, serial):  # noqa: F811
+def test_shared_block_xiaomi_models_read_the_same_and_gate_writes_by_profile(
+        runtime, model, name, serial, writable):  # noqa: F811
     async def check():
         scooter, _ = runtime(model)
         answer_quickly(scooter)
@@ -176,9 +178,10 @@ def test_untested_xiaomi_models_read_the_shared_blocks_and_stay_read_only(
         assert data.battery_voltage_v == pytest.approx(39.8)
         assert data.battery_current_a == pytest.approx(-0.5)
         assert data.battery_capacity_ah == pytest.approx(6.1)
-        # Writes were confirmed on the 1S only; nothing may reach another model.
+        # Polling itself never writes, whatever the profile allows.
         assert {request.command for request in simulated.requests} <= READ_ONLY_SESSION_COMMANDS
-        assert not any(scooter.supports_action(setting) for setting in XIAOMI_1S_WRITABLE_SETTINGS)
+        allows_writes = any(scooter.supports_action(setting) for setting in XIAOMI_BLE129_WRITABLE_SETTINGS)
+        assert allows_writes == writable
         await scooter.async_shutdown()
     asyncio.run(check())
 
@@ -204,11 +207,18 @@ def test_every_profile_names_a_known_family_and_names_are_unique():
     assert {profile.protocol for profile in PROFILES} == set(TRANSPORT_PROFILES)
 
 
-def test_only_the_reference_scooter_is_hardware_tested_and_writable():
+def test_only_the_reference_scooter_is_hardware_tested_but_the_pro2_shares_its_writes():
+    # hardware_tested is the strict signal and stays the 1S alone. Writes are
+    # also offered to the Pro 2 (same BLE129 register layout), experimentally,
+    # so writable is a superset: every writable profile is BLE129, and any
+    # writable profile that is not hardware-tested is the Pro 2 on purpose.
     tested = [profile.name for profile in PROFILES if profile.hardware_tested]
     writable = [profile.name for profile in PROFILES if profile.writable_settings]
-    assert tested == writable == ["Mi Electric Scooter 1S"]
-    assert PROFILES_BY_NAME["Mi Electric Scooter 1S"].protocol == BLE129
+    assert tested == ["Mi Electric Scooter 1S"]
+    assert writable == ["Mi Electric Scooter 1S", "Mi Electric Scooter Pro 2"]
+    assert all(PROFILES_BY_NAME[name].protocol == BLE129 for name in writable)
+    experimental = [name for name in writable if not PROFILES_BY_NAME[name].hardware_tested]
+    assert experimental == ["Mi Electric Scooter Pro 2"]
 
 
 def test_serial_prefixes_belong_to_exactly_one_xiaomi_model():

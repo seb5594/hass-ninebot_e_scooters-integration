@@ -41,8 +41,10 @@ SEGWAY_NINEBOT = "Segway-Ninebot"
 VCU_GENERATION = "Ninebot F3 / Max G3"
 GENERATION_EVIDENCE = "handshake_board"
 
-# Settings the reference scooter accepts and confirms by a readback.
-XIAOMI_1S_WRITABLE_SETTINGS = frozenset({
+# Writable settings of the BLE129 generation (1S, Pro 2, ...). Confirmed on
+# the 1S by a readback; the Pro 2 shares the identical register layout and is
+# offered the same writes as experimental, gated separately by hardware_tested.
+XIAOMI_BLE129_WRITABLE_SETTINGS = frozenset({
     "work_mode", "kers_mode", "is_lock_on", "is_cruise_on", "is_tail_light_on",
 })
 
@@ -83,8 +85,14 @@ def _ninebot_named(protocol: str, *names: str) -> tuple[ModelProfile, ...]:
 # German 25700/25701 IDs: https://www.axdiaservice.com/produkt/scooter-datenbestaetigung-anfordern/
 PROFILES: tuple[ModelProfile, ...] = (
     ModelProfile("Mi Electric Scooter 1S", XIAOMI, BLE129, ("25699", "25700"),
-                 XIAOMI_1S_WRITABLE_SETTINGS, True),
-    ModelProfile("Mi Electric Scooter Pro 2", XIAOMI, BLE129, ("26354", "30371", "25701", "30372")),
+                 XIAOMI_BLE129_WRITABLE_SETTINGS, True),
+    # Same generation and identical BLE129 register layout as the 1S, so it is
+    # offered the same controls. hardware_tested stays False: nobody has
+    # confirmed the writes on a real Pro 2, so the "Does your scooter work?"
+    # Repairs notice still asks for a report and diagnostics still flag it as
+    # not hardware-tested. The writes are experimental on this exact basis.
+    ModelProfile("Mi Electric Scooter Pro 2", XIAOMI, BLE129, ("26354", "30371", "25701", "30372"),
+                 XIAOMI_BLE129_WRITABLE_SETTINGS),
     ModelProfile("Mi Electric Scooter Essential", XIAOMI, BLE129, ("25702", "25600")),
     ModelProfile("Mi Electric Scooter Pro", XIAOMI, M365_PRO_CRYPTO, ("18832", "21886")),
     ModelProfile("Mi Electric Scooter", XIAOMI, M365_LEGACY,
