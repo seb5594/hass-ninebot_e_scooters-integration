@@ -7,7 +7,13 @@ from datetime import timedelta
 import logging
 from pathlib import Path
 import time
-from typing import TypeAlias
+
+try:  # Python 3.10+ (Home Assistant 2023.2+); older CI jobs still run 3.9.
+    from typing import TypeAlias
+except ImportError:  # pragma: no cover
+    # Only referenced in a string annotation under `from __future__ import
+    # annotations`, so it is never evaluated at runtime; any value will do.
+    TypeAlias = type
 
 from homeassistant.components import bluetooth
 from homeassistant.components.frontend import add_extra_js_url
