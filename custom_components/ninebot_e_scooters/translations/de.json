@@ -261,10 +261,6 @@
     "scooter_feedback": {
       "title": "Funktioniert dein {model}?",
       "description": "Dein {model} liefert seit einigen Tagen Werte, dieses Modell ist aber noch nicht auf echter Hardware geprüft. Bitte [melde in zwei Minuten]({report_url}), wie es bei dir läuft; „alles funktioniert“ hilft genauso wie ein Fehlerbericht. Du kannst diesen Hinweis ausblenden."
-    },
-    "unsupported_protocol": {
-      "title": "Scooter gepaart, aber Live-Daten werden noch nicht unterstützt",
-      "description": "Dieser Scooter hat erfolgreich über den neueren {protocol}-Handshake gepaart, für den diese Integration noch keine Register-Tabelle oder Entities hat. Es wird keine Bluetooth-Verbindung dafür versucht. Entferne die Integration und füge sie erneut hinzu, sobald eine künftige Version das unterstützt."
     }
   }
 }

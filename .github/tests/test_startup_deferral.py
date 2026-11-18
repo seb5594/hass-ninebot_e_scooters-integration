@@ -63,7 +63,6 @@ class Coordinator:
         self._session_ready = False
         self._client = None
         self._stage = "waiting"
-        self._unsupported_protocol = entry.data.get("protocol")
 
     def async_on_live_advertisement(self, info):
         self.devices.append(info.device)

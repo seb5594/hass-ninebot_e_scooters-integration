@@ -79,15 +79,18 @@ def test_register_candidates_have_explicit_target_and_never_expose_controller_pa
                    for item in catalog.NINEBOT_READ_CANDIDATES)
 
 
-def test_research_catalog_is_not_imported_by_any_runtime_component():
+def test_inert_research_modules_are_not_imported_by_any_runtime_component():
+    # research.py and miot_elliptic.py record unverified protocol candidates.
+    # Nothing in the live integration may import them: they are study-only.
+    inert = ("research", "miot_elliptic")
     for path in PACKAGE_PATH.rglob("*.py"):
-        if path.name == "research.py":
+        if path.stem in inert:
             continue
         syntax = ast.parse(path.read_text(encoding="utf-8"))
         assert not any(
-            isinstance(node, ast.ImportFrom) and (node.module or "").endswith("research")
+            isinstance(node, ast.ImportFrom) and (node.module or "").endswith(inert)
             or isinstance(node, ast.Import) and any(
-                alias.name.endswith("research") for alias in node.names
+                alias.name.endswith(inert) for alias in node.names
             )
             for node in ast.walk(syntax)
         ), f"Unexpected runtime import in {path.relative_to(PACKAGE_PATH)}"

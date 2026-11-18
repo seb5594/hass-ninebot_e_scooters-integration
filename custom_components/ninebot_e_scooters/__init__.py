@@ -14,11 +14,11 @@ from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import CoreState, HomeAssistant, callback
-from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.loader import async_get_integration
 
 from .helpers.compat import (
+    async_prime_entity_name_fallback,
     async_register_scooter_callback,
     async_register_static_files,
     async_request_active_scan,
@@ -81,25 +81,10 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     # earlier release instead of serving it from their cache.
     integration = await async_get_integration(hass, DOMAIN)
     add_extra_js_url(hass, f"/api/ninebot_e_scooters/pairing_dialog.js?v={integration.version}")
+    # Read the bundled translation off the event loop so the entity-name
+    # fallback used on releases before 2023.7 never blocks the loop.
+    await async_prime_entity_name_fallback(hass)
     return True
-
-
-def _unsupported_protocol_issue_id(entry_id: str) -> str:
-    """One issue per config entry; withdrawn with the entry itself."""
-    return f"unsupported_protocol_{entry_id}"
-
-
-def _async_raise_unsupported_protocol_issue(hass: HomeAssistant, entry: ConfigEntry, protocol: str) -> None:
-    """Explain why a successfully paired scooter shows no live data yet."""
-    ir.async_create_issue(
-        hass,
-        DOMAIN,
-        _unsupported_protocol_issue_id(entry.entry_id),
-        is_fixable=False,
-        severity=ir.IssueSeverity.WARNING,
-        translation_key="unsupported_protocol",
-        translation_placeholders={"protocol": protocol},
-    )
 
 
 async def _async_options_updated(hass: HomeAssistant, entry: NinebotScooterConfigEntry) -> None:
@@ -132,9 +117,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntr
         # Releases before 2023.12 keep only a weak reference to the listener,
         # so it has to be a module-level function rather than a closure.
         entry.async_on_unload(entry.add_update_listener(_async_options_updated))
-
-    if coordinator._unsupported_protocol:
-        _async_raise_unsupported_protocol_issue(hass, entry, coordinator._unsupported_protocol)
 
     bluetooth_activated = False
     refresh_task: asyncio.Task | None = None
@@ -261,11 +243,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntr
         hass.state,
     )
 
-    if coordinator._unsupported_protocol:
-        # Pairing already succeeded through the fallback handshake; there is
-        # no register map to read yet, so no Bluetooth activity is scheduled.
-        return True
-
     if hass.state is CoreState.running:
         _activate_bluetooth()
     else:
@@ -297,9 +274,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntr
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntry) -> None:
-    """Drop the feedback invitation and any repair issue together with the scooter."""
+    """Drop the feedback invitation together with the scooter."""
     withdraw_invitation(hass, entry.entry_id)
-    ir.async_delete_issue(hass, DOMAIN, _unsupported_protocol_issue_id(entry.entry_id))
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: NinebotScooterConfigEntry) -> bool:

@@ -50,10 +50,6 @@ class ScooterCoordinator(DeviceMixin, ConnectionMixin, SessionMixin, RequestsMix
         # Fixed for the lifetime of this coordinator; changing them reloads the entry.
         self.sensor_groups = selected_sensor_groups(entry.options)
         self.entry = entry
-        # Set only by the config flow's MIoT elliptic pairing fallback (see
-        # runtime/flow_pairing.py): pairing succeeded, but no register map or
-        # entity exists yet for this protocol, so no BLE session is attempted.
-        self._unsupported_protocol: str | None = entry.data.get("protocol")
         self._backoff = ConnectionBackoff()
         transport = self.transport_profile
         self._host_id = transport.host_id if transport is not None else DeviceId.PHONE

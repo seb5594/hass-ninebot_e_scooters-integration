@@ -389,17 +389,15 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_pairing(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Progress step: try every handshake in the background, in order.
+        """Progress step: try the classic BLE129 pairing in the background.
 
-        Tries the classic BLE129 handshake, then the newer MIoT elliptic one
-        (see runtime/flow_pairing.py), on a connection of its own. The
-        power-button dialog this integration already shows during pairing
-        opens here too, since both reuse the same persistent-notification ID
-        pattern pairing_dialog.js watches for. The entry is created either
-        way once both have been tried; async_step_pairing_done decides
-        whether it is created already paired or, as a last resort, the way
-        setup always used to work: unpaired, to be paired on the next live
-        advertisement.
+        The handshake runs on a connection of its own (see
+        runtime/flow_pairing.py). The power-button dialog this integration
+        already shows during pairing opens here too, since both reuse the same
+        persistent-notification ID pattern pairing_dialog.js watches for. The
+        entry is created either way; async_step_pairing_done decides whether it
+        is created already paired or, as a last resort, the way setup always
+        used to work: unpaired, to be paired on the next live advertisement.
         """
         context = self._pairing_context
         if context is None:
@@ -432,7 +430,7 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_pairing_done(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Save the scooter once every handshake attempt has finished."""
+        """Save the scooter once the pairing attempt has finished."""
         context = self._pairing_context
         outcome = self._pairing_outcome
         self._pairing_context = None
@@ -444,19 +442,12 @@ class NinebotScooterConfigFlow(ConfigFlow, domain=DOMAIN):
                 "app_key": outcome.app_key.hex(),
                 "paired": True,
             }
-            if outcome.protocol != "ble129":
-                # No register map or entity exists yet for this protocol; the
-                # coordinator checks this flag and raises a repair issue
-                # instead of attempting a session it cannot decode (see
-                # runtime/session.py).
-                data["protocol"] = outcome.protocol
         else:
-            # Neither handshake was confirmed. Add the scooter as a last
-            # resort, unpaired, the way setup always used to work: the
-            # existing runtime pairing (power-button prompt) retries on the
-            # next live advertisement.
+            # Pairing was not confirmed. Add the scooter as a last resort,
+            # unpaired, the way setup always used to work: the existing runtime
+            # pairing (power-button prompt) retries on the next live advertisement.
             _LOGGER.info(
-                "Scooter config flow: no handshake was confirmed (%s); "
+                "Scooter config flow: pairing was not confirmed (%s); "
                 "adding it unpaired, to pair on the next live advertisement",
                 outcome.error,
             )

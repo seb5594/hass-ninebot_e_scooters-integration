@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026.11.18.1
+
+- **Removed the experimental P4 (MIoT elliptic) pairing fallback.** Setup no longer tries the
+  unverified ECDH handshake when the classic BLE129 handshake is not confirmed. Its exact byte
+  layout was an unconfirmed reconstruction, so running it sent unverified frames to a scooter and
+  could store an entry the integration could not use. The classic pairing during setup is
+  unchanged; if it is not confirmed, the scooter is added unpaired and pairs on the next live
+  advertisement, as before. The P4 primitives stay as an inert, documented research record.
+- **The serial-number sensor is no longer forced off on every reload.** It still starts disabled
+  by default, but a user who enables it by hand is no longer overridden on the next restart.
+- **No blocking file read on the event loop.** The bundled translation used for entity names on
+  Home Assistant releases before 2023.7 is now read through an executor during setup, so it never
+  stalls the event loop.
+
 ## 2026.11.14.2
 
 - **Setup now pairs before adding the scooter.** Selecting a scooter in the config flow (manual
