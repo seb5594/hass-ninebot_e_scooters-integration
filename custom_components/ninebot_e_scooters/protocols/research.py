@@ -3,10 +3,10 @@
 Nothing in this module is imported by discovery, pairing, polling, entities or
 controls. Each record is a candidate for a future, separately tested adapter;
 it does not establish compatibility with an existing one. Families that have
-an adapter are described in models/transports.py instead. The one exception
-is xiaomi_mi_ec's own Pairing handshake, promoted to protocols/miot_elliptic.py
-and used by runtime/flow_pairing.py as a config-flow fallback; this catalog
-entry still records that no *data* adapter exists for it, which remains true.
+an adapter are described in models/transports.py instead. The xiaomi_mi_ec
+("P4") primitives are kept in protocols/miot_elliptic.py, equally inert: an
+earlier release wired them into a config-flow pairing fallback, but that live
+use was removed because the exact byte layout is an unconfirmed reconstruction.
 
 Sources: https://github.com/ownbee/ninebot-ble/tree/main/ninebot_ble
          https://github.com/dnandha/miauth (and the miauth 0.9.7 release)

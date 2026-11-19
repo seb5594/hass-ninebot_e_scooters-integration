@@ -35,8 +35,12 @@ def test_button_notice_embeds_animated_gif_served_without_config_writes(reuse_st
         assert domain == "ninebot_e_scooters"
         return SimpleNamespace(version=version)
 
+    async def prime_entity_name_fallback(_hass):
+        return None
+
     scope = {"__file__": str(filename), "Path": Path, "DOMAIN": "ninebot_e_scooters",
              "async_get_integration": installed_integration,
+             "async_prime_entity_name_fallback": prime_entity_name_fallback,
              "add_extra_js_url": lambda _hass, url: frontend_urls.append(url)}
     add_compat_symbols(scope, static_path_config=StaticPathConfig)
     exec(compile(ast.fix_missing_locations(ast.Module(body=[

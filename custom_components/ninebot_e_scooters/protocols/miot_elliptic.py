@@ -1,11 +1,19 @@
 """Xiaomi's "P4" scooter pairing: ECDH key exchange and AES-CCM confirmation.
 
+Inert research record. Nothing in discovery, pairing, polling, entities or
+controls imports this module: it is kept only so the primitives do not have to
+be re-derived if a hardware-tested P4 adapter is ever written. An earlier
+release wired the Pairing handshake into the config-flow fallback; that live
+use was removed because the exact byte layout here is an unconfirmed
+reconstruction and running it sent unverified frames to a user's scooter. It
+stays as documentation and as tested primitives, not as a live code path.
+
 Named and fully described, independently of any scooter this integration has
 seen, by a peer-reviewed security paper: Casagrande, Cestaro, Losiouk, Conti
 and Antonioli, "E-Spoofer: Attacking and Defending Xiaomi Electric Scooter
 Ecosystem", WiSec '23 (DOI 10.1145/3558482.3590176). The paper names four
 Xiaomi application-layer protocols found across all Xiaomi e-scooters from
-2016 to 2021; P4, "ECDH and AES-CCM", is the one implemented here. Its Table 4
+2016 to 2021; P4, "ECDH and AES-CCM", is the one recorded here. Its Table 4
 gives the exact command bytes of every step, reproduced below.
 
 Pairing: the scooter advertises a pairable window for seventeen seconds after
@@ -32,12 +40,10 @@ What follows the named command bytes (exact fragment boundaries beyond the
 documented "the fragment header adds 0x0010 each time" rule, which half of
 the challenge each named fragment carries, and the AES-CCM nonce for the
 app's one-shot proof) is this module's own best-effort reconstruction, not
-confirmed by the paper; `runtime/flow_pairing.py`, the only caller, treats
-any unexpected reply as a failure rather than guessing further. There is no
-register map or entity for the property traffic Session would carry once
-established (see `protocols/research.py`); a scooter paired this way is
-recorded as paired, with a repair issue explaining that live data is not
-supported yet, never with invented telemetry.
+confirmed by the paper. That uncertainty is exactly why nothing runs it: a
+future adapter must verify these bytes against a real P4 scooter first. There
+is also no register map or entity for the property traffic Session would carry
+once established (see `protocols/research.py`).
 """
 
 from __future__ import annotations

@@ -88,18 +88,15 @@ different, cloud-issued key instead):
 | [kbpk/xiaomi-s400-homeassistant](https://github.com/kbpk/xiaomi-s400-homeassistant/tree/60569f5826658c9bab617a0d9f2c86988ca48fa2) | `60569f58` | Names the P-256 curve explicitly; the same two 4-byte responses, 0x11000000/0x21000000 |
 
 `protocols/miot_elliptic.py` keeps the primitives, the frame shape and every command byte
-Table 4 gives. Unlike the rest of this file's candidates, its Pairing handshake is wired into
-one live, real BLE session: `runtime/flow_pairing.py`, used only by the config flow, tries it
-as a fallback when the classic BLE129 handshake is not confirmed during setup, since some newer
-Xiaomi scooters do not speak BLE129 at all. This is a deliberate, narrow exception to this
-file's own "nothing is wired into a live session" rule, made with the project maintainer's
-explicit sign-off, for Pairing only. Session, the data-channel framing, and every register that
-property traffic over it would carry remain exactly as inert as every other candidate here: no
-register map or entity exists for this protocol, so a scooter that pairs through it is recorded
-as paired, with a Repairs notice explaining that live data is not supported yet, and no further
-Bluetooth connection is attempted for it. The exact fragment boundaries beyond the paper's own
-"0x0010 added each time" rule, and the AES-CCM nonce for the app's one-shot proof, are this
-module's own reconstruction, not confirmed by the paper; see its module docstring.
+Table 4 gives, but is inert: nothing in the live integration imports it. An earlier release
+wired its Pairing handshake into a config-flow fallback that ran whenever the classic BLE129
+handshake was not confirmed during setup. That live use was removed: the exact fragment
+boundaries beyond the paper's own "0x0010 added each time" rule, and the AES-CCM nonce for the
+app's one-shot proof, are this module's own reconstruction, not confirmed by the paper, so
+running the handshake sent unverified frames to a user's scooter. It stays as documentation and
+as tested primitives until a future adapter verifies the bytes against a real P4 scooter. Session,
+the data-channel framing, and every register that property traffic over it would carry are
+equally inert: no register map or entity exists for this protocol.
 
 `docs/tools/fetch_xiaomi_ble_credentials.py` reimplements the openly published Xiaomi cloud
 login that [PiotrMachowski/Xiaomi-cloud-tokens-extractor](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor)

@@ -22,7 +22,6 @@ from homeassistant.const import (
     UnitOfTemperature,
     UnitOfTime,
 )
-from homeassistant.helpers import entity_registry
 from homeassistant.helpers.entity import EntityCategory
 
 from .helpers.compat import description_dataclass
@@ -319,17 +318,6 @@ def _is_switched_on(description: ScooterSensorDescription, groups: frozenset[str
     return description.sensor_group is None or description.sensor_group in groups
 
 
-def _keep_serial_disabled_by_default(hass, address: str) -> None:
-    """The serial number identifies its owner; it stays off until enabled by hand."""
-    registry = entity_registry.async_get(hass)
-    entity_id = registry.async_get_entity_id(Platform.SENSOR, DOMAIN, f"{address}_serial")
-    existing = registry.async_get(entity_id) if entity_id is not None else None
-    if existing is not None and existing.disabled_by is None:
-        registry.async_update_entity(
-            entity_id, disabled_by=entity_registry.RegistryEntryDisabler.INTEGRATION
-        )
-
-
 async def async_setup_entry(
     hass,
     entry,
@@ -344,7 +332,6 @@ async def async_setup_entry(
     async_remove_entities(
         hass, Platform.SENSOR, coordinator.address, (*OBSOLETE_SENSOR_KEYS, *switched_off_keys)
     )
-    _keep_serial_disabled_by_default(hass, coordinator.address)
     async_add_entities(
         ScooterSensor(coordinator, description)
         for description in SENSORS

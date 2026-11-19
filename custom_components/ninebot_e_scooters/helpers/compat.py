@@ -47,6 +47,7 @@ __all__ = [
     "DeviceInfo",
     "EntityNameFallback",
     "async_create_flow_task",
+    "async_prime_entity_name_fallback",
     "async_redact_data",
     "async_register_scooter_callback",
     "async_register_static_files",
@@ -235,6 +236,19 @@ def _english_entity_names() -> dict[str, dict[str, str]]:
     }
 
 
+async def async_prime_entity_name_fallback(hass: HomeAssistant) -> None:
+    """Read the bundled translation off the event loop on releases that need it.
+
+    EntityNameFallback.name below reads the translation synchronously; priming
+    the cache here, through an executor, keeps that first read off the event
+    loop so it never stalls other integrations. A no-op on 2023.7+, where entity
+    names come from Home Assistant's own translation handling and the fallback
+    class is empty.
+    """
+    if not hasattr(Entity, "_name_translation_key"):
+        await hass.async_add_executor_job(_english_entity_names)
+
+
 if hasattr(Entity, "_name_translation_key"):  # Home Assistant 2023.7+
 
     class EntityNameFallback:
@@ -246,6 +260,9 @@ else:
         """Name entities from the English translation on releases without name translations.
 
         Without it every entity of the scooter would carry just the device name.
+        The cache it reads is primed off the event loop by
+        async_prime_entity_name_fallback during setup, so this property does no
+        blocking file I/O on the loop.
         """
 
         @property

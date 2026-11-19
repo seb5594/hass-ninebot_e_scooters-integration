@@ -58,11 +58,6 @@ class TelemetryMixin:
 
     async def _async_update_data(self) -> ScooterData:
         """Fetch telemetry only after HA startup and when BLE can see the scooter."""
-        if self._unsupported_protocol:
-            # Pairing succeeded through a protocol this integration cannot
-            # yet decode; never attempt a BLE session for it (see coordinator.py).
-            self._stage = "unsupported_protocol"
-            return self.data or ScooterData()
         # CoordinatorEntity may schedule an interval refresh while HA is still
         # starting. Do not involve the Bluetooth stack in that phase: the
         # adapter and scooter discovery history may not exist yet.
