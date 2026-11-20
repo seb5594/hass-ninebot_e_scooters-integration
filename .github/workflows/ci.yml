@@ -3,7 +3,7 @@ name: Home Assistant CI
 on:
   push:
     branches: [main, dev]
-    tags: ['v*']
+    tags: ['[0-9]*']
   pull_request:
   schedule:
     - cron: '23 4 * * 1' # Weekly: refreshes badge metrics and README values.
